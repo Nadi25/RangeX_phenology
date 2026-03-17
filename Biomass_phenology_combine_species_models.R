@@ -1,7 +1,7 @@
 
-# BIOMASS 10 ---------------------------------------------------------------
+# BIOMASS 6 ---------------------------------------------------------------
 
-# Adding predicted biomass species method to phenology ------------
+# Add predicted biomass to phenology ------------
 
 ## Data used: 
 ## Date:      03.03.26
@@ -38,49 +38,30 @@ colors2 <- c(
 
 # load library ------------------------------------------------------------
 library(ggeffects)
-
-
-# source script that predicts the 23 biomass
-source("Biomass_prediction_23_per_species.R")
-
 theme_set(theme_bw(base_size = 22))
 
+
+# source scripts ----------------------------------------------------------
+# source script that predicts the 23 biomass
+source("Biomass_prediction_23_per_species.R")
 
 # use
 bio_pred_23_species
 
+# source script that prepares phenology data
+# e.g. add metadata
+source("Data_preparation_phenology_NOR.R")
 
-# import pheno 23 data --------------------------------------------------------
-# this is the latest clean version of phenology data
-# what changed is the unique_plant_ID because I added the number in the end 
-# a 1 since all plants survived without being replaced
-phenol <- read.csv("Data/Clean/RangeX_clean_Phenology_2023_NOR.csv")
-
-
-# import metadata NOR -----------------------------------------------------
-meta_NOR <- read.csv("Data/RangeX_clean_MetadataFocal_NOR.csv")
+# use
+phenology
 
 
-# combine pheno with metadata ---------------------------------------------
-phenol_23_NOR <- left_join(meta_NOR, phenol, by = c("unique_plant_ID", "species"))
-
-
-# rename pheno stages to match regions ------------------------------------
-# "number_infructescences" in NOR correpsonfs to "No_FloWithrd" in CHE?
-phenol_23_NOR <- phenol_23_NOR |>
-  mutate(phenology_stage = recode(phenology_stage,
-                                  "number_buds" = "No_Buds",
-                                  "number_flowers" = "No_FloOpen",
-                                  #"number_infructescences" = "No_FloWithrd",
-                                  "seeds_collected" = "No_Seeds"))
-
-
-
+# make dataset only with biomass and unique_plant_ID ----------------------
 bio_23_species <- bio_pred_23_species[, c("unique_plant_ID",
                                   "pred_log_biomass")]
 
 # combine pheno with pred biomass -----------------------------------------
-phenol_23_NOR_bio_species <- phenol_23_NOR |>
+phenol_23_NOR_bio_species <- phenology |>
   left_join(bio_23_species,
             by = "unique_plant_ID") |> 
   rename(pred_log_biomass_species = pred_log_biomass)

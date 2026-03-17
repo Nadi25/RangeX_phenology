@@ -1,13 +1,13 @@
 
-# BIOMASS 13 ---------------------------------------------------------------
+# BIOMASS 7 ---------------------------------------------------------------
 
+# Effect of cooling on flower number glmer.nb adjusted for biomass -------------------------------------
+# negative binomial model is better for our data
 
 #  final figure of effect of cooling on flower number: p_bio_nb_species ---------------------
 
 # the best model option for effect of cooling: m_flower_number_cool_bio_nb_species
 
-# Effect of cooling on flower number glmer.nb -------------------------------------
-# negative binomial model is better for our data
 
 # uses individual species models for biomass prediction 
 
@@ -19,14 +19,20 @@
 ## Purpose:   Does biomass mitigate the effect of cooling on no of flowers?
 
 # load library ------------------------------------------------------------
+library(conflicted)
+conflict_prefer_all("dplyr", quiet = TRUE)
+library(tidyverse)
+
 library(lme4)
 library(ggeffects)
 library(emmeans)
 library(performance)
 
+# script with species models to predict biomass
+source("Biomass_traits_correlation_per_species.R")
 
+# script that combines pred biomass with phenology
 source("Biomass_phenology_combine_species_models.R")
-source("Data_preparation_phenology_NOR.R")
 
 # add predicted species biomass to pheno data -------------------------------------
 bio_flower_species_unique <- bio_flower_species |>
@@ -88,7 +94,7 @@ summary(m_flower_number_cool_bio_nb_species)
 emm_fl_num_cool_bio_nb_species <- emmeans(
   m_flower_number_cool_bio_nb_species,
   ~ site | treat_competition,
-  cov.reduce = mean, ## or cov.reduce = FALSE
+  cov.reduce = mean, #
   type = "response"
 )
 
