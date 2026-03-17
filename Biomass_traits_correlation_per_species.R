@@ -1,7 +1,7 @@
 
 # BIOMASS 3 ---------------------------------------------------------------
 
-
+# find the best model to predict biomass with 24 data
 
 # library -----------------------------------------------------------------
 library(conflicted)
@@ -694,5 +694,18 @@ summary(m_sildio)
 # this doesn't work now
 
 
+# make list with all models -----------------------------------------------
+species_models <- list(
+  sucpra = m_sucpra,
+  cennig = m_cennig,
+  pimsax = m_pimsax,
+  luzmul = m_luzmul,
+  leuvul = m_leuvul,
+  tripra = m_tripra,
+  hypmac = m_hypmac,
+  plalan = m_plalan,
+  cyncri = m_cyncri,
+  sildio = m_sildio
+)
 
 
