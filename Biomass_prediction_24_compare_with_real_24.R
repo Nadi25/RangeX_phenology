@@ -10,6 +10,10 @@
 ##            or species specific models
 
 
+# source script with all the species traits models ------------------------
+source("Biomass_traits_correlation_per_species.R")
+
+
 # set theme and colors ----------------------------------------------------
 theme_set(theme_bw(base_size = 22))
 
@@ -26,9 +30,6 @@ colors <- c(
   "#80B1D3"
 )
 
-
-# source script with all the species traits models ------------------------
-source("Biomass_traits_correlation_per_species.R")
 
 
 # make list with all models -----------------------------------------------
@@ -112,8 +113,8 @@ g <- ggplot(df_2024_pred_species,
   facet_wrap(~ species)
 g
 
-ggsave(filename = "Output/Biomass/Log(biomass24)_log(pred_biomass24_species_seperated).png", 
-       plot = g, width = 12, height = 9, units = "in")
+# ggsave(filename = "Output/Biomass/Log(biomass24)_log(pred_biomass24_species_seperated).png", 
+#        plot = g, width = 12, height = 9, units = "in")
 
 
 
