@@ -1,6 +1,9 @@
 
 
-# Combine traits 23 with predicted biomass --------------------------------
+# BIOMASS 5 ---------------------------------------------------------------
+
+
+# Combine traits 23 with predicted biomass 23 --------------------------------
 
 # source("RangeX_data_paper_cleaning_demographic_traits_23.R")
 # # to use 
@@ -19,6 +22,8 @@ demo_traits_2023_bio2 <- rx_traits_23_nor |>
   rename(no_stems = no_rep_stems)
 
 
+
+# predict biomass 23 per species ------------------------------------------
 
 # sucpra ------------------------------------------------------------------
 df_2023_sucpra <- demo_traits_2023_bio2 |> filter(species == "sucpra")
