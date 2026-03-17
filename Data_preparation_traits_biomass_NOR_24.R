@@ -12,6 +12,10 @@
 
 # lo 3a tripra i9: probably seedlings from i8 --> deleted
 
+
+source("Data_praparation_biomass_NOR.R")
+
+
 # import metadata NOR -----------------------------------------------------
 meta_NOR <- read.csv("Data/RangeX_clean_MetadataFocal_NOR.csv")
 
