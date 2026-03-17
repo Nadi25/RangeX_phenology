@@ -6,8 +6,8 @@
 ## Data used: 
 ## Date:      07.03.26
 ## Author:    Nadine Arzt
-## Purpose:   Figure out which prediction method to use - one general model across species
-##            or species specific models
+## Purpose:   Predict biomass 24 and plot per species to see correlation
+##            of real 24 vs predicted 24
 
 
 # source script with all the species traits models ------------------------
@@ -96,7 +96,7 @@ f
 
 
 # plot separated per species ----------------------------------------------
-g <- ggplot(df_2024_pred_species,
+a <- ggplot(df_2024_pred_species,
             aes(log_biomass,
                 pred_log_biomass_species,
                 color = species,
@@ -111,10 +111,10 @@ g <- ggplot(df_2024_pred_species,
        shape = "Functional group")+
   theme(legend.position = "none")+
   facet_wrap(~ species)
-g
+a
 
 # ggsave(filename = "Output/Biomass/Log(biomass24)_log(pred_biomass24_species_seperated).png", 
-#        plot = g, width = 12, height = 9, units = "in")
+#        plot = a, width = 12, height = 9, units = "in")
 
 
 
