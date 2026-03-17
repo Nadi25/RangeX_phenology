@@ -1,7 +1,6 @@
 
 # BIOMASS 3 ---------------------------------------------------------------
 
-source("Data_preparation_traits_biomass_NOR_24.R")
 
 
 # library -----------------------------------------------------------------
@@ -12,6 +11,7 @@ library(tidyverse)
 library(lmerTest)
 conflicts_prefer(lmerTest::lmer)
 
+source("Data_preparation_traits_biomass_NOR_24.R")
 
 # Fit individual models per species ---------------------------------------
 
@@ -665,23 +665,22 @@ m_sildio3 <- lmerTest::lmer(
 )
 
 
-m_sildio2 <- lmerTest::lmer(
-  log_biomass ~ log_number_leaves + log_height_reproductive_str + (1 | block_ID),
-  data = df_sildio
-)
+# m_sildio2 <- lmerTest::lmer(
+#   log_biomass ~ log_number_leaves + log_height_reproductive_str + (1 | block_ID),
+#   data = df_sildio
+# )
 
-
-m_sildio <- lmerTest::lmer(
-  log_biomass ~ log_number_leaves * log_height_reproductive_str + (1 | block_ID),
-  data = df_sildio
-)
+# m_sildio <- lmerTest::lmer(
+#   log_biomass ~ log_number_leaves * log_height_reproductive_str + (1 | block_ID),
+#   data = df_sildio
+# )
 
 m_sildio4 <- lmerTest::lmer(
   log_biomass ~ log_number_leaves + log_no_stems + (1 | block_ID),
   data = df_sildio
 )
 
-AIC(m_sildio, m_sildio2, m_sildio3, m_sildio4)
+AIC(m_sildio3, m_sildio4)
 
 # final model for sildio --------------------------------------------------
 m_sildio <- lmerTest::lmer(
