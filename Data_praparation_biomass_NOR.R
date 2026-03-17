@@ -5,6 +5,7 @@
 
 # Data preparation - biomass 24 -------------------------------------------
 
+# bring biomass data in correct format
 
 # load library ------------------------------------------------------------
 library(conflicted)
