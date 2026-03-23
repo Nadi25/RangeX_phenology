@@ -3,6 +3,9 @@
 
 # find the best model to predict biomass with 24 data
 
+# take two traits
+# exception: single model for cyncri, sildio to use more observations
+
 # library -----------------------------------------------------------------
 library(conflicted)
 conflict_prefer_all("dplyr", quiet = TRUE)
@@ -605,11 +608,11 @@ m_cyncri2 <- lmerTest::lmer(
 )
 summary(m_cyncri2)
 
-m_cyncri <- lmerTest::lmer(
+m_cyncri1 <- lmerTest::lmer(
   log_biomass ~ log_no_stems * log_number_leaves + (1 | block_ID),
   data = df_cyncri
 )
-summary(m_cyncri)
+summary(m_cyncri1)
 
 m_cyncri4 <- lmerTest::lmer(
   log_biomass ~ log_height_reproductive + (1 | block_ID),
@@ -622,21 +625,27 @@ m_cyncri5 <- lmerTest::lmer(
   log_biomass ~ log_height_reproductive * log_number_leaves + (1 | block_ID),
   data = df_cyncri
 )
+summary(m_cyncri5)
+
+m_cyncri6 <- lmerTest::lmer(
+  log_biomass ~ log_number_leaves + (1 | block_ID),
+  data = df_cyncri
+)
+summary(m_cyncri6)
+
+AIC(m_cyncri3, m_cyncri2, m_cyncri1, m_cyncri4, m_cyncri5, m_cyncri6)
 
 
-AIC(m_cyncri3, m_cyncri2, m_cyncri, m_cyncri4, m_cyncri5)
-
-
-
+# number of leaves has 115 obs, which is much more than for any of the combinations
+# exception to use single trait model
 
 # final model for cyncri --------------------------------------------------
 m_cyncri <- lmerTest::lmer(
-  log_biomass ~ log_no_stems * log_number_leaves + (1 | block_ID),
+  log_biomass ~ log_number_leaves + (1 | block_ID),
   data = df_cyncri
 )
 summary(m_cyncri)
-# use the interactive model 
-# first thought that the additive model is causing a split in the biomass
+
 
 # sildio ------------------------------------------------------------------
 df_sildio <- analysis_data_24_log |> filter(species == "sildio")
@@ -663,10 +672,11 @@ m_sildio3 <- lmerTest::lmer(
   log_biomass ~ log_number_leaves + (1 | block_ID),
   data = df_sildio
 )
+summary(m_sildio3)
 
 
 # m_sildio2 <- lmerTest::lmer(
-#   log_biomass ~ log_number_leaves + log_height_reproductive_str + (1 | block_ID),
+#   log_biomass ~ log_number_leaves * log_height_reproductive_str + (1 | block_ID),
 #   data = df_sildio
 # )
 
@@ -679,19 +689,21 @@ m_sildio4 <- lmerTest::lmer(
   log_biomass ~ log_number_leaves + log_no_stems + (1 | block_ID),
   data = df_sildio
 )
+summary(m_sildio4)
 
-AIC(m_sildio3, m_sildio4)
+nobs(m_sildio3) ## 50
+nobs(m_sildio4) ## only 4 plants
+
+AIC(m_sildio3, m_sildio4) # meaningless because only 4 inidividuals have leaves and stems
 
 # final model for sildio --------------------------------------------------
 m_sildio <- lmerTest::lmer(
-  log_biomass ~ log_number_leaves + log_no_stems + (1 | block_ID),
+  log_biomass ~ log_number_leaves + (1 | block_ID),
   data = df_sildio
 )
 summary(m_sildio)
 
-# before it looked better with log_number_leaves * log_height_reproductive_str
-# in the plot but 
-# this doesn't work now
+# take only one trait for sildio because it has too few observations otherwise
 
 
 # make list with all models -----------------------------------------------
