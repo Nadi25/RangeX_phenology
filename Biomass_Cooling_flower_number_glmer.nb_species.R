@@ -166,7 +166,7 @@ ann_comp_bio_nb_species <- contr_comp_bio_nb_species |>
   )
 
 # raw means for jittered points --------------------------------------
-raw_means <- phenology |>
+raw_means_cool_bio <- phenology |>
   filter(treat_warming == "ambient") |> 
   group_by(site, treat_competition, species, block_ID) |> 
   summarise(mean_value = mean(value, na.rm = TRUE), .groups = "drop")
@@ -187,7 +187,7 @@ p_bio_nb_species <- ggplot() +
   
   # raw data (optional)
   geom_jitter(
-    data = raw_means,
+    data = raw_means_cool_bio,
     aes(x = site, y = mean_value, color = treat_competition),
     width = 0.1, alpha = 0.3, size = 1.5
   ) +
