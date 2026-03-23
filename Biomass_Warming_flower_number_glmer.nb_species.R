@@ -45,7 +45,6 @@ phenology_bio_species <- phenology |>
             by = "unique_plant_ID")
 
 
-
 # center the biomass ------------------------------------------------------
 # there are two clusters in biomass
 # this centering uses whether a plant is above or below the species average biomass
@@ -156,7 +155,7 @@ ann_comp_nb_bio <- contr_comp_bio_nb_species |>
   )
 
 # raw means for jittered points --------------------------------------
-raw_means <- phenology_bio_species |>
+raw_means_warm_bio <- phenology_bio_species |>
   filter(site == "high") |> 
   group_by(treat_warming, treat_competition, species, block_ID) |> 
   summarise(mean_value = mean(value, na.rm = TRUE), .groups = "drop")

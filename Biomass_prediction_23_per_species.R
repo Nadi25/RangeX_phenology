@@ -62,12 +62,14 @@ df_2023_pimsax$pred_log_biomass <- predict(species_models$pimsax, newdata = df_2
 
 
 # luzmul ------------------------------------------------------------------
+# no leaves is actually tillers (bunch of leaves)
+
 df_2023_luzmul <- demo_traits_2023_bio2 |> filter(species == "luzmul")
 
 df_2023_luzmul <- df_2023_luzmul |> 
   mutate(
     log_no_stems      = log1p(no_stems),
-    log_number_leaves = log1p(number_leaves)
+    log_number_leaves = log1p(number_tillers)
   ) |> drop_na(log_no_stems, log_number_leaves)
 
 df_2023_luzmul$pred_log_biomass <- predict(species_models$luzmul, newdata = df_2023_luzmul, re.form = NA)
@@ -122,15 +124,19 @@ df_2023_plalan$pred_log_biomass <- predict(species_models$plalan, newdata = df_2
 
 
 # cyncri ------------------------------------------------------------------
+# no leaves is actually tillers (bunch of leaves)
+
 df_2023_cyncri <- demo_traits_2023_bio2 |> filter(species == "cyncri")
 
 df_2023_cyncri <- df_2023_cyncri |> 
   mutate(
     log_no_stems      = log1p(no_stems),
-    log_number_leaves = log1p(number_leaves)
+    log_number_leaves = log1p(number_tillers)
   ) |> drop_na(log_no_stems, log_number_leaves)
 
 df_2023_cyncri$pred_log_biomass <- predict(species_models$cyncri, newdata = df_2023_cyncri, re.form = NA)
+
+
 
 
 # sildio ------------------------------------------------------------------

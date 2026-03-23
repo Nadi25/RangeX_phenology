@@ -113,7 +113,7 @@ a <- ggplot(df_2024_pred_species,
   facet_wrap(~ species)
 a
 
-# ggsave(filename = "Output/Biomass/Log(biomass24)_log(pred_biomass24_species_seperated).png", 
+# ggsave(filename = "Output/Biomass/Log(biomass24)_log(pred_biomass24_species_seperated2).png", 
 #        plot = a, width = 12, height = 9, units = "in")
 
 
