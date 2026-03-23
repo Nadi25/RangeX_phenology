@@ -90,27 +90,58 @@ ggplot(bio_flower_species, aes(x = flowers_max, y = pred_log_biomass_species)) +
     title = "Predicted biomass vs. flower production"
   )
 
-# filter out max flower number 0 ----------------------------------------------
+# make plants without flowers in different category/color ---------------
 bio_flower_species <- bio_flower_species |>
-  filter(flowers_max > 0)
+  mutate(flower_zero = flowers_max == 0)
+
+
+ggplot(bio_flower_species,
+       aes(x = pred_log_biomass_species,
+           y = flowers_max,
+           color = flower_zero)) +
+  geom_point(alpha = 0.4) +
+  facet_wrap(~ species) +
+  scale_color_manual(
+    values = c("FALSE" = "darkred", "TRUE" = "steelblue"),
+    labels = c("Flowered", "No flowers")
+  ) +
+  labs(
+    y = "Maximum number of flowers",
+    x = "Predicted log(biomass)",
+    color = "Flower status",
+    title = "Predicted biomass vs. flower production"
+  )
+
+
+# should max flower be log transformed? -----------------------------------
 
 hist(bio_flower_species$flowers_max)
 hist(log(bio_flower_species$flowers_max))
 
+qqnorm(bio_flower_species$flowers_max); qqline(bio_flower_species$flowers_max)
+qqnorm(log1p(bio_flower_species$flowers_max)); qqline(log1p(bio_flower_species$flowers_max))
+
+# check residuals of the model
+m_flowers_species <- lmerTest::lmer(flowers_max ~ pred_log_biomass_species+ (1|species) + (1|block_ID),
+                                     data = bio_flower_species)
+summary(m_flowers_species)
+
+plot(m_flowers_species)
+qqnorm(residuals(m_flowers_species)); qqline(residuals(m_flowers_species))
+hist(residuals(m_flowers_species))
+# looks all not good, so log transform max flowers
 
 # log max flower -----------------------------------------------------------
-qqnorm(bio_flower_species$flowers_max); qqline(bio_flower_species$flowers_max)
-qqnorm(log(bio_flower_species$flowers_max)); qqline(log(bio_flower_species$flowers_max))
-
-# log 
+# log transform so that plants with 0 flowers are still in
 bio_flower_species <- bio_flower_species |>
-  mutate(log_max_flower = log(flowers_max))
+  mutate(log_max_flower = log1p(flowers_max))
+
 
 # fit model ---------------------------------------------------------------
 # to see if the observed trend is significant
-m_flowers_species <- lmerTest::lmer(pred_log_biomass_species ~ log_max_flower + (1|species) + (1|block_ID),
+m_flowers_species2 <- lmerTest::lmer(pred_log_biomass_species ~ log_max_flower + (1|species) + (1|block_ID),
                             data = bio_flower_species)
-summary(m_flowers_species)
+summary(m_flowers_species2)
 
 # it is significant: <2e-16 ***
 
@@ -171,4 +202,73 @@ h
 
 # ggsave(filename = "Output/Biomass/Log_pred_biomass_log_max_flowers_lmm_species_models_color.png", 
 #        plot = h, width = 13, height = 9, units = "in")
+
+
+
+
+# have biomass on x axis --------------------------------------------------
+m_flowers_species3 <- lmerTest::lmer(log_max_flower ~ pred_log_biomass_species+ (1|species) + (1|block_ID),
+                                    data = bio_flower_species)
+summary(m_flowers_species3)
+
+plot(m_flowers_species3)
+qqnorm(residuals(m_flowers_species3)); qqline(residuals(m_flowers_species3))
+hist(residuals(m_flowers_species3))
+
+
+pred_df_species2 <- ggpredict(m_flowers_species2, terms = "pred_log_biomass_species")
+
+# this is making one line per species which all have the same slope because
+# species is a random effect
+pred_df_species3 <- ggpredict(
+  m_flowers_species2,
+  terms = c("pred_log_biomass_species", "species"),
+  type = "random"
+)
+
+
+
+# facet by species
+c <- ggplot() +
+  geom_point(
+    data = bio_flower_species,
+    aes(
+      x = pred_log_biomass_species,
+      y = log_max_flower,
+      color = flower_zero),
+    alpha = 0.6
+  ) +
+  geom_line(
+    data = pred_df_species2,   # the global fixed-effect line
+    aes(x = x, y = predicted),
+    color = "black",
+    size = 1.2
+  ) +
+  geom_ribbon(
+    data = pred_df_species2,
+    aes(x = x, ymin = conf.low, ymax = conf.high),
+    alpha = 0.15,
+    fill = "grey70"
+  ) +
+  facet_wrap(~ species, scales = "free_y") +
+  scale_color_manual(
+    values = c("TRUE" = "#E69F00", "FALSE" = "darkblue"),
+    labels = c("TRUE" = "No flowers", "FALSE" = "Flowered"),
+    name = "Flower status"
+  ) +
+  #scale_color_manual(values = colors) +
+  #scale_shape_manual(values = c(16, 17, 15)) +
+  labs(
+    x = "Predicted log(biomass)",
+    y = "Log(Max number of flowers)",
+    title = "Flower–biomass relationship by species"
+  ) +
+  theme(legend.position = "bottom")
+c
+
+# ggsave(filename = "Output/Biomass/Pred_bio_23_vs_max_flowers_23_species_flower_no_flower.png", 
+#        plot = c, width = 13, height = 11, units = "in")
+
+
+
 
