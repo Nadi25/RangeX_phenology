@@ -95,9 +95,16 @@ phenology <- phenology |>
   )
 
 
-# do the filtering in the model
+# do the filtering of data in the model with subset
 
-
+# change reference to be warmed ----------------------------------------------
+# by factor
+phenology <- phenology |>
+  mutate(
+    treat_warming = factor(treat_warming),
+    treat_warming = relevel(treat_warming, ref = "warmed")
+  )
+# unsure if we want that
 
 
 
