@@ -218,16 +218,17 @@ hist(residuals(m_flowers_species3))
 
 pred_df_species2 <- ggpredict(m_flowers_species2, terms = "pred_log_biomass_species")
 
-# this is making one line per species which all have the same slope because
-# species is a random effect
-pred_df_species3 <- ggpredict(
-  m_flowers_species2,
-  terms = c("pred_log_biomass_species", "species"),
-  type = "random"
-)
+# # this is making one line per species which all have the same slope because
+# # species is a random effect
+# pred_df_species3 <- ggpredict(
+#   m_flowers_species2,
+#   terms = c("pred_log_biomass_species", "species"),
+#   type = "random"
+# )
 
 
 
+# plot --------------------------------------------------------------------
 # facet by species
 c <- ggplot() +
   geom_point(
