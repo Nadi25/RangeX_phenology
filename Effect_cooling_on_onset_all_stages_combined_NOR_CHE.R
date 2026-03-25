@@ -21,7 +21,7 @@ source("Effect_cooling_on_fruiting_onset_NOR_CHE.R")
 #budding
 nor_che_delta_raw_cool_bud <- nor_che_delta_raw_cool_bud +
   guides(color = "none", shape = "none") +
-  labs(title = "Effect cooling on: Budding onset")
+  labs(title = "Effect transplantation on:\nBudding onset")
 
 # flowering
 nor_che_delta_raw_cool <- nor_che_delta_raw_cool +
