@@ -17,6 +17,8 @@ library(ggeffects)
 library(broom.mixed)
 library(emmeans)
 library(lubridate)
+library(performance)
+library(see)
 
 source("Data_preparation_phenology_NOR_CHE_combined.R")
 
@@ -61,6 +63,14 @@ m_onset_n_c_cooling <- lmerTest::lmer(onset ~ region * site * treat_competition 
 
 summary(m_onset_n_c_cooling)
 
+model_performance(m_onset_n_c_cooling)
+check_collinearity(m_onset_n_c_cooling)
+check_model(m_onset_n_c_cooling)
+
+# check residuals
+plot(m_onset_n_c_cooling)
+qqnorm(residuals(m_onset_n_c_cooling)); qqline(residuals(m_onset_n_c_cooling))
+hist(residuals(m_onset_n_c_cooling))
 
 
 # calculate emmeans -------------------------------------------------------
@@ -77,6 +87,18 @@ contr_n_c_cool<- contrast(emm_n_c_cool, method = list("hi - lo" = c(1, -1)))
 
 # using summary keeps the p-values
 contrast_df_n_c_cool <- as.data.frame(summary(contr_n_c_cool, infer = TRUE))
+
+# this would add the significances between with and without biotic --------
+contrast_df_n_c_cool <- contrast_df_n_c_cool |>
+  mutate(
+    stars = case_when(
+      p.value < 0.001 ~ "***",
+      p.value < 0.01  ~ "**",
+      p.value < 0.05  ~ "*",
+      TRUE ~ "n.s."
+    )
+  )
+
 
 
 
@@ -101,7 +123,7 @@ nor_che_delta_raw_cool <- ggplot() +
   # raw deltas (jittered for visibility)
   geom_jitter(data = delta_onset_cool,
               aes(x = region, y = delta, color = treat_competition),
-              width = 0.1, alpha = 0.4, size = 2) +
+              width = 0.1, alpha = 0.4, size = 3) +
   
   # model-based warming effects
   geom_point(data = contrast_df_n_c_cool, 
@@ -127,29 +149,24 @@ nor_che_delta_raw_cool <- ggplot() +
        y = "Δ days shifted flowering onset (high - low)",
        title = "Effect of cooling through transplantation on flowering onset across regions",
        color = "Biotic interactions") +
+  
+  theme(
+    axis.text.x = element_text(size = 20),
+    axis.text.y = element_text(size = 20)
+  ) +
+  
   scale_color_manual(values = c("#528B8B", "#CD950C"))+
   scale_shape_manual(values = c("Norway" = 16, "Switzerland" = 17))+
-  guides(shape = "none")
+  guides(shape = "none")+
+  scale_y_continuous(
+    limits = c(-30, 90),
+    breaks = seq(-30, 90, by = 20))
+
 nor_che_delta_raw_cool
 
 # 
 # ggsave(filename = "Output/Onset/Flowering_onset_cooling_effect_NOR_CHE.png", 
 #        plot = nor_che_delta_raw_cool, width = 12, height = 8, units = "in")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
