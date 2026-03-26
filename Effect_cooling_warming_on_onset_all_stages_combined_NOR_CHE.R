@@ -81,6 +81,11 @@ theme_set(theme_bw(base_size = 20))
 
 onset_all_stages_cooling <- ggplot(contr_all_cool,
                                    aes(x = estimate, y = stage, color = treat_competition, shape = region)) +
+
+  annotate("rect",
+           xmin = -Inf, xmax = 0,
+           ymin = -Inf, ymax = Inf,
+           fill = "salmon1", alpha = 0.2)+
   
   geom_vline(xintercept = 0, linetype = "dashed") +
   
@@ -108,12 +113,15 @@ onset_all_stages_cooling <- ggplot(contr_all_cool,
   
   geom_text(aes(label = sig),
             vjust = -1, position = position_dodge(width = 0.7),
-            show.legend = FALSE)
+            show.legend = FALSE)+
+  scale_x_continuous(
+    limits = c(-18, 30))
+
 onset_all_stages_cooling
 
 
-# ggsave(filename = "Output/Onset/Effect_cooling_bud_flower_fruit_NOR_CHE_all_in_one.png", 
-#        plot = onset_all_stages_cooling, width = 15, height = 12, units = "in")
+ggsave(filename = "Output/Onset/Effect_cooling_bud_flower_fruit_NOR_CHE_all_in_one.png", 
+       plot = onset_all_stages_cooling, width = 15, height = 10, units = "in")
 
 
 
@@ -193,6 +201,11 @@ theme_set(theme_bw(base_size = 20))
 onset_all_stages_warming <- ggplot(contr_all_warm,
        aes(x = estimate, y = stage, color = treat_competition, shape = region)) +
   
+  annotate("rect",
+           xmin = -Inf, xmax = 0,
+           ymin = -Inf, ymax = Inf,
+           fill = "salmon1", alpha = 0.2)+
+  
   geom_vline(xintercept = 0, linetype = "dashed") +
   
   geom_point(position = position_dodge(width = 0.5), size = 4) +
@@ -219,14 +232,16 @@ onset_all_stages_warming <- ggplot(contr_all_warm,
   
   geom_text(aes(label = sig),
             vjust = -1, position = position_dodge(width = 0.7),
-            show.legend = FALSE)
+            show.legend = FALSE)+
+  scale_x_continuous(
+    limits = c(-18, 30))
 onset_all_stages_warming
 
-# ggsave(filename = "Output/Onset/Effect_warming_bud_flower_fruit_NOR_CHE_all_in_one.png", 
-#        plot = onset_all_stages_warming, width = 15, height = 12, units = "in")
+ggsave(filename = "Output/Onset/Effect_warming_bud_flower_fruit_NOR_CHE_all_in_one.png", 
+       plot = onset_all_stages_warming, width = 15, height = 10, units = "in")
 
 
-
+## have the same scale as for cooling to make better comparable
 
 
 
