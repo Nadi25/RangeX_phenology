@@ -241,7 +241,85 @@ ggsave(filename = "Output/Onset/Effect_warming_bud_flower_fruit_NOR_CHE_all_in_o
        plot = onset_all_stages_warming, width = 15, height = 10, units = "in")
 
 
-## have the same scale as for cooling to make better comparable
+
+
+
+
+# GDD ---------------------------------------------------------------------
+
+source("GDD_Cooling_budding_onset_NOR.R")
+
+source("GDD_Cooling_flowering_onset_NOR.R")
+
+source("GDD_Cooling_fruiting_onset_NOR.R")
+
+
+
+
+
+# One figure warming all stages -------------------------------------------
+contrast_df_nor_gdd_ambi_bud$stage <- "Budding"
+contrast_df_nor_gdd_ambi$stage <- "Flowering"
+contrast_df_nor_gdd_ambi_fruit$stage <- "Fruiting"
+
+contr_all_gdd_cool <- bind_rows(contrast_df_nor_gdd_ambi_bud, contrast_df_nor_gdd_ambi, contrast_df_nor_gdd_ambi_fruit)
+
+contr_all_gdd_cool$stage <- factor(contr_all_gdd_cool$stage,
+                               levels = c("Fruiting", "Flowering", "Budding"))
+
+contr_all_gdd_cool <- contr_all_gdd_cool |>
+  mutate(sig = case_when(
+    p.value < 0.001 ~ "***",
+    p.value < 0.01  ~ "**",
+    p.value < 0.05  ~ "*",
+    TRUE ~ ""
+  ))
+contr_all_gdd_cool
+
+
+onset_all_stages_gdd_cool <- ggplot(contr_all_gdd_cool,
+                                   aes(x = estimate, y = stage, color = treat_competition)) +
+  
+  annotate("rect",
+           xmin = -Inf, xmax = 0,
+           ymin = -Inf, ymax = Inf,
+           fill = "salmon1", alpha = 0.2)+
+  
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  
+  geom_point(position = position_dodge(width = 0.5), size = 4) +
+  
+  geom_errorbar(
+    aes(xmin = lower.CL, xmax = upper.CL),
+    position = position_dodge(width = 0.5),
+    width = 0.2,
+    orientation = "y" 
+  ) +
+  
+  scale_color_manual(values = c("#528B8B", "#CD950C"))+
+  
+  labs(title = "Effect of transplantation using GDD",
+       x = "Δ days shifted onset (high − low)",
+       y = "Phenological stage",
+       color = "Biotic interactions"
+  )+
+  
+  geom_text(aes(label = sig),
+            vjust = -1, position = position_dodge(width = 0.7),
+            show.legend = FALSE)
+onset_all_stages_gdd_cool
+
+# ggsave(filename = "Output/Onset/GDD_effect_transplantation_bud_flower_fruit_NOR_CHE_all_in_one.png", 
+#        plot = onset_all_stages_gdd_cool, width = 15, height = 10, units = "in")
+
+
+
+
+
+
+
+
+
 
 
 
