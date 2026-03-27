@@ -153,5 +153,48 @@ nor_delta_raw_cool_gdd_fruit
 #        plot = nor_delta_raw_cool_gdd_fruit, width = 10, height = 8, units = "in")
 
 
+# this shows the effect of transplantation within each group of biotic interactions
+
+
+
+# Absolute fuiting onsets GDD to see effect of interactions ---------------
+# to see the effect of neighbors which is significant
+
+# Get emmeans for site × competition
+emm_abs_fruit <- emmeans(
+  m_onset_gdd_ambi_fruit,
+  ~ site * treat_competition,
+  lmer.df = "satterthwaite"
+)
+
+# Convert to data frame 
+emm_abs_fruit_df <- as.data.frame(emm_abs_fruit)
+
+# Plot absolute GDD
+p_abs_fruit <- ggplot(emm_abs_fruit_df,
+                      aes(x = site,
+                          y = emmean,
+                          color = treat_competition,
+                          group = treat_competition)) +
+  
+  geom_point(size = 6, position = position_dodge(width = 0.2)) +
+  
+  geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL),
+                width = 0.1,
+                position = position_dodge(width = 0.2)) +
+  
+  geom_line(position = position_dodge(width = 0.2), linewidth = 1) +
+  
+  labs(
+    x = "Site",
+    y = "GDD to fruiting onset",
+    color = "Biotic interactions",
+    title = "Absolute GDD required for fruiting onset (NOR)"
+  ) +
+  
+  scale_color_manual(values = c("#528B8B", "#CD950C"))
+p_abs_fruit
+
+
 
 
