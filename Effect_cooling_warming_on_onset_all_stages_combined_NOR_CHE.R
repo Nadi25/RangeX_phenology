@@ -317,6 +317,142 @@ onset_all_stages_gdd_cool
 
 
 
+# Combined plot with effect of transplantation, biotic interaction --------
+# source all the effect cooling scripts
+
+source("Effect_cooling_on_budding_onset_NOR_CHE.R")
+
+source("Effect_cooling_on_flowering_onset_NOR_CHE.R")
+
+source("Effect_cooling_on_fruiting_onset_NOR_CHE.R")
+
+
+stage_colors <- c(
+  "Budding"   = "#7FBF4F",   
+  "Flowering" = "#4F9EC9",   
+  "Fruiting"  =  "#F4A636"   
+)
+
+stage_colors <- c(
+  "Budding"   = "#4F9EC9",   
+  "Flowering" = "pink3",   
+  "Fruiting"  =  "#F4A636"   
+)
+
+
+df_cooling_bud   <- df_cooling_bud   |> mutate(stage = "Budding")
+df_comp_bud      <- df_comp_bud      |> mutate(stage = "Budding")
+df_interaction_bud <- df_interaction_bud |> mutate(stage = "Budding")
+
+df_cooling_flower <- df_cooling |> mutate(stage = "Flowering")
+df_comp_flower    <- df_comp    |> mutate(stage = "Flowering")
+df_interaction_flower <- df_interaction |> mutate(stage = "Flowering")
+
+df_cooling_fruit <- df_cooling_fruit |> mutate(stage = "Fruiting")
+df_comp_fruit    <- df_comp_fruit    |> mutate(stage = "Fruiting")
+df_interaction_fruit <- df_interaction_fruit |> mutate(stage = "Fruiting")
+
+
+plot_df_all <- bind_rows(
+  df_cooling_bud, df_comp_bud, df_interaction_bud,
+  df_cooling_flower, df_comp_flower, df_interaction_flower,
+  df_cooling_fruit, df_comp_fruit, df_interaction_fruit
+) |>
+  select(region, effect, group, estimate, lower.CL, upper.CL, stars, stage)
+plot_df_all
+
+
+plot_df_all <- plot_df_all |>
+  mutate(
+    x_group = case_when(
+      effect == "Transplantation" ~ group,        # with / without
+      effect == "Biotic interactions" ~ group,    # hi / lo
+      effect == "Interaction" ~ "all interaction"
+    )
+  )
+plot_df_all
+
+plot_df_all <- plot_df_all |>
+  mutate(effect = factor(effect,
+                         levels = c("Transplantation",
+                                    "Biotic interactions",
+                                    "Interaction")))
+
+
+
+plot_df_all <- plot_df_all |>
+  mutate(
+    group = case_when(
+      group == "with" ~ "with bi",
+      group == "without" ~ "without bi",
+      group == "hi" ~ "high site",
+      group == "lo" ~ "low site",
+      group == "all interactions" ~ "site × bi",
+      TRUE ~ group
+    )
+  ) |>
+  mutate(
+    group = stringr::str_wrap(group, width = 12)
+  ) |>
+  mutate(
+    group = factor(group,
+                   levels = stringr::str_wrap(
+                     c("site × bi",
+                       "with bi",
+                       "without bi",
+                       "low site",
+                       "high site"),
+                     width = 12
+                   ))
+  )
+
+
+
+
+cooling_all <- ggplot(plot_df_all,
+                      aes(x = group, y = estimate, color = stage, shape  = region)) +
+  
+  geom_point(size = 6,
+             position = position_dodge(width = 0.6)) +
+  
+  geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL),
+                width = 0.1, linewidth = 1, 
+                position = position_dodge(width = 0.6)) +
+  
+  geom_text(aes(y = upper.CL, label = stars),
+            position = position_dodge(width = 0.6),
+            vjust = -0.3,
+            size = 7,
+            show.legend = FALSE) +
+  
+  facet_grid(effect ~ region, scales = "free_y") +
+  
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  
+  labs(x = NULL,
+       y = "Shift in onset (days)",
+       color = "Phenological stage")+
+  
+  scale_color_manual(values = stage_colors)+
+  
+  theme(
+    axis.text.x = element_text(size = 20),
+    axis.text.y = element_text(size = 20)
+  ) +
+  
+  scale_shape_manual(values = c("Norway" = 16, "Switzerland" = 17))+
+  guides(shape = "none")
+
+cooling_all
+
+
+
+# ggsave(filename = "Output/Onset/Onset_cooling_effect_NOR_CHE_all_interactions.png", 
+#        plot = cooling_all, width = 17, height = 16, units = "in")
+
+
+
+
 
 
 

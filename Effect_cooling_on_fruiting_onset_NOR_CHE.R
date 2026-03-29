@@ -209,6 +209,111 @@ nor_che_delta_raw_cool_fruit
 
 
 
+# Plot with interactions --------------------------------------------------
+
+emm_full_fruit <- emmeans(
+  m_onset_fruit_cooling,
+  ~ site * treat_competition | region)
+
+
+contr_cooling_fruit <- contrast(
+  emm_full_fruit,
+  method = list("hi - lo" = c(1, -1)),
+  by = c("region", "treat_competition"),
+  simple = "site"
+)
+
+
+df_cooling_fruit <- as.data.frame(summary(contr_cooling_fruit, infer = TRUE)) |>
+  mutate(effect = "Transplantation",
+         group = treat_competition)
+
+
+contr_comp_fruit <- contrast(
+  emm_full_fruit,
+  method = list("with - without" = c(1, -1)),
+  by = c("region", "site"),
+  simple = "treat_competition"
+)
+
+
+df_comp_fruit <- as.data.frame(summary(contr_comp_fruit, infer = TRUE)) |>
+  mutate(effect = "Biotic interactions",
+         group = site)
+
+
+
+contr_interaction_fruit <- contrast(
+  emm_full_fruit,
+  interaction = "pairwise"
+)
+
+df_interaction_fruit <- as.data.frame(summary(contr_interaction_fruit, infer = TRUE)) |>
+  mutate(effect = "Interaction",
+         group = "all interactions")
+
+#
+
+add_stars <- function(df){
+  df |>
+    mutate(
+      stars = case_when(
+        p.value < 0.001 ~ "***",
+        p.value < 0.01  ~ "**",
+        p.value < 0.05  ~ "*",
+        TRUE ~ "n.s."
+      )
+    )
+}
+
+df_cooling_fruit     <- add_stars(df_cooling_fruit)
+df_comp_fruit       <- add_stars(df_comp_fruit)
+df_interaction_fruit <- add_stars(df_interaction_fruit)
+
+plot_df_fruit <- bind_rows(
+  df_cooling_fruit     |> select(region, effect, group, estimate, lower.CL, upper.CL, stars),
+  df_comp_fruit        |> select(region, effect, group, estimate, lower.CL, upper.CL, stars),
+  df_interaction_fruit |> select(region, effect, group, estimate, lower.CL, upper.CL, stars)
+)
+
+plot_df_fruit <- plot_df_fruit |>
+  mutate(effect = factor(effect,
+                         levels = c("Transplantation",
+                                    "Biotic interactions",
+                                    "Interaction")))
+
+
+cooling__fruit_interaction <- ggplot(plot_df_fruit,
+                                     aes(x = group, y = estimate, color = group)) +
+  
+  geom_point(size = 5) +
+  geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL),
+                width = 0.1) +
+  
+  facet_grid(effect ~ region, scales = "free_y") +
+  
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  
+  geom_text(aes(y = upper.CL, label = stars),
+            vjust = 0.1,
+            size = 8,
+            position = position_dodge(width = 0.5),
+            show.legend = FALSE) +
+  
+  theme(
+    axis.text.x = element_text(size = 20),
+    axis.text.y = element_text(size = 20)
+  ) +
+  
+  labs(x = NULL,
+       y = "Effect size (days)",
+       color = "Condition")
+cooling__fruit_interaction
+
+
+ggsave(filename = "Output/Onset/Fruiting_onset_cooling_effect_NOR_CHE_interaction.png", 
+       plot = cooling__fruit_interaction, width = 12, height = 15, units = "in")
+
 
 
 

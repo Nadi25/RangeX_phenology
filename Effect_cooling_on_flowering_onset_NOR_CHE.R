@@ -172,6 +172,125 @@ nor_che_delta_raw_cool
 
 
 
+# Plot with interactions --------------------------------------------------
+
+emm_full <- emmeans(
+  m_onset_n_c_cooling,
+  ~ site * treat_competition | region)
+
+
+contr_cooling <- contrast(
+  emm_full,
+  method = list("hi - lo" = c(1, -1)),
+  by = c("region", "treat_competition"),
+  simple = "site"
+)
+
+
+df_cooling <- as.data.frame(summary(contr_cooling, infer = TRUE)) |>
+  mutate(effect = "Transplantation",
+         group = treat_competition)
+
+
+contr_comp <- contrast(
+  emm_full,
+  method = list("with - without" = c(1, -1)),
+  by = c("region", "site"),
+  simple = "treat_competition"
+)
+
+
+df_comp <- as.data.frame(summary(contr_comp, infer = TRUE)) |>
+  mutate(effect = "Biotic interactions",
+         group = site)
+
+
+levels(flowering_onset_n_c_cool$site)
+levels(flowering_onset_n_c_cool$treat_competition)
+
+
+contr_interaction <- contrast(
+  emm_full,
+  interaction = "pairwise"
+)
+
+df_interaction <- as.data.frame(summary(contr_interaction, infer = TRUE)) |>
+  mutate(effect = "Interaction",
+         group = "all interactions")
+
+#
+
+add_stars <- function(df){
+  df |>
+    mutate(
+      stars = case_when(
+        p.value < 0.001 ~ "***",
+        p.value < 0.01  ~ "**",
+        p.value < 0.05  ~ "*",
+        TRUE ~ "n.s."
+      )
+    )
+}
+
+df_cooling     <- add_stars(df_cooling)
+df_comp        <- add_stars(df_comp)
+df_interaction <- add_stars(df_interaction)
+
+plot_df <- bind_rows(
+  df_cooling     |> select(region, effect, group, estimate, lower.CL, upper.CL, stars),
+  df_comp        |> select(region, effect, group, estimate, lower.CL, upper.CL, stars),
+  df_interaction |> select(region, effect, group, estimate, lower.CL, upper.CL, stars)
+)
+
+plot_df <- plot_df |>
+  mutate(effect = factor(effect,
+                         levels = c("Transplantation",
+                                    "Biotic interactions",
+                                    "Interaction")))
+#
+delta_raw <- flowering_onset_n_c_cool |>
+  pivot_wider(names_from = c(site, treat_competition),
+              values_from = onset) |>
+  mutate(
+    cooling_with    = hi_with - lo_with,
+    cooling_without = hi_without - lo_without,
+    interaction     = cooling_with - cooling_without
+  )
+
+
+cooling_flower_interaction <- ggplot(plot_df,
+                                     aes(x = group, y = estimate, color = group)) +
+  
+  geom_point(size = 5) +
+  geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL),
+                width = 0.1) +
+  
+  facet_grid(effect ~ region, scales = "free_y") +
+  
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  
+  geom_text(aes(y = upper.CL, label = stars),
+            vjust = 0.1,
+            size = 8,
+            position = position_dodge(width = 0.5),
+            show.legend = FALSE) +
+  
+  theme(
+    axis.text.x = element_text(size = 20),
+    axis.text.y = element_text(size = 20)
+  ) +
+  
+  labs(x = NULL,
+       y = "Effect size (days)",
+       color = "Condition")
+cooling_flower_interaction
+
+
+ggsave(filename = "Output/Onset/Flowering_onset_cooling_effect_NOR_CHE_interaction.png", 
+       plot = cooling_flower_interaction, width = 12, height = 15, units = "in")
+
+
+
 
 
 
