@@ -20,7 +20,7 @@ library(see)
 source("Data_preparation_phenology_NOR_CHE_combined.R")
 
 
-# filter only nor ------------------------------------------------------
+# filter only che ------------------------------------------------------
 phenology_che <- phenology |> 
   filter(region == "Switzerland")
 
