@@ -445,17 +445,143 @@ cooling_all <- ggplot(plot_df_all,
 
 cooling_all
 
-
-
 # ggsave(filename = "Output/Onset/Onset_cooling_effect_NOR_CHE_all_interactions.png", 
 #        plot = cooling_all, width = 17, height = 16, units = "in")
 
+cooling_all2 <- cooling_all + coord_flip()
+cooling_all2
+
+# ggsave(filename = "Output/Onset/Onset_cooling_effect_NOR_CHE_all_interactions2.png", 
+#        plot = cooling_all2, width = 17, height = 16, units = "in")
 
 
 
+# GDD ---------------------------------------------------------------------
+
+# Combined plot with effect of transplantation, biotic interaction using GDD --------
+# source all the effect cooling gdd scripts
+
+source("GDD_Cooling_budding_onset_NOR_CHE.R")
+
+source("GDD_Cooling_flowering_onset_NOR_CHE.R")
+
+source("GDD_Cooling_fruiting_onset_NOR_CHE.R")
+
+
+stage_colors <- c(
+  "Budding"   = "#4F9EC9",   
+  "Flowering" = "pink3",   
+  "Fruiting"  =  "#F4A636"   
+)
+
+
+plot_df_gdd_bud  <- plot_df_gdd_bud   |> mutate(stage = "Budding")
+
+plot_df_gdd_flower <- plot_df_gdd_flower |> mutate(stage = "Flowering")
+
+plot_df_gdd_fruit <- plot_df_gdd_fruit |> mutate(stage = "Fruiting")
+
+
+plot_df_all <- bind_rows(
+  plot_df_gdd_bud,
+  plot_df_gdd_flower,
+  plot_df_gdd_fruit
+) |>
+  select(region, effect, group, estimate, lower.CL, upper.CL, stars, stage)
+plot_df_all
+
+
+# plot_df_all <- plot_df_all |>
+#   mutate(
+#     effect = case_when(
+#       effect == "Transplantation" ~ group,        # with / without
+#       effect == "Biotic interactions" ~ group,    # hi / lo
+#       effect == "Interaction" ~ "all interactions"
+#     )
+#   )
+# plot_df_all
+
+plot_df_all <- plot_df_all |>
+  mutate(effect = factor(effect,
+                         levels = c("Transplantation",
+                                    "Biotic interactions",
+                                    "Interaction")))
+
+plot_df_all <- plot_df_all |>
+  mutate(
+    group = case_when(
+      group == "with" ~ "with bi",
+      group == "without" ~ "without bi",
+      group == "hi" ~ "high site",
+      group == "lo" ~ "low site",
+      group == "all interactions" ~ "site × bi",
+      TRUE ~ group
+    )
+  ) |>
+  mutate(
+    group = stringr::str_wrap(group, width = 12)
+  ) |>
+  mutate(
+    group = factor(group,
+                   levels = stringr::str_wrap(
+                     c("site × bi",
+                       "with bi",
+                       "without bi",
+                       "low site",
+                       "high site"),
+                     width = 12
+                   ))
+  )
+plot_df_all
+
+cooling_all_gdd <- ggplot(plot_df_all,
+                          aes(x = group, y = estimate, color = stage, shape  = region)) +
+  
+  geom_point(size = 6,
+             position = position_dodge(width = 0.6)) +
+  
+  geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL),
+                width = 0.1, linewidth = 1, 
+                position = position_dodge(width = 0.6)) +
+  
+  geom_text(aes(y = upper.CL, label = stars),
+            position = position_dodge(width = 0.6),
+            vjust = -0.3,
+            size = 7,
+            show.legend = FALSE) +
+  
+  facet_grid(effect ~ region, scales = "free_y") +
+  
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  
+  labs(x = NULL,
+       y = "Shift in onset (GDD)",
+       color = "Phenological stage")+
+  
+  scale_color_manual(values = stage_colors)+
+  
+  theme(
+    axis.text.x = element_text(size = 20),
+    axis.text.y = element_text(size = 20)
+  ) +
+  
+  scale_shape_manual(values = c("Norway" = 16, "Switzerland" = 17))+
+  guides(shape = "none")
+
+cooling_all_gdd
 
 
 
+# ggsave(filename = "Output/Onset/GDD_onset_cooling_effect_NOR_CHE_all_interactions.png", 
+#        plot = cooling_all_gdd, width = 17, height = 16, units = "in")
+
+
+# flip axis looks better
+cooling_all_gdd2 <- cooling_all_gdd + coord_flip()
+cooling_all_gdd2
+
+# ggsave(filename = "Output/Onset/GDD_onset_cooling_effect_NOR_CHE_all_interactions2.png", 
+#        plot = cooling_all_gdd2, width = 17, height = 16, units = "in")
 
 
 
