@@ -237,15 +237,128 @@ onset_all_stages_warming <- ggplot(contr_all_warm,
     limits = c(-18, 30))
 onset_all_stages_warming
 
-ggsave(filename = "Output/Onset/Effect_warming_bud_flower_fruit_NOR_CHE_all_in_one.png", 
-       plot = onset_all_stages_warming, width = 15, height = 10, units = "in")
+# ggsave(filename = "Output/Onset/Effect_warming_bud_flower_fruit_NOR_CHE_all_in_one.png", 
+#        plot = onset_all_stages_warming, width = 15, height = 10, units = "in")
 
 
 
 
+# Warming interaction -----------------------------------------------------
+
+# Combined plot with effect of warming, biotic interaction --------
+# source all the effect warming scripts
+
+source("Effect_warming_on_budding_onset_NOR_CHE.R")
+
+source("Effect_warming_on_flowering_onset_NOR_CHE.R")
+
+source("Effect_warming_on_fruiting_onset_NOR_CHE.R")
 
 
-# GDD ---------------------------------------------------------------------
+stage_colors <- c(
+  "Budding"   = "#4F9EC9",   
+  "Flowering" = "pink3",   
+  "Fruiting"  =  "#F4A636"   
+)
+
+
+plot_df_warm_bud  <- plot_df_warm_bud   |> mutate(stage = "Budding")
+
+plot_df_warm_flower <- plot_df_warm_flower |> mutate(stage = "Flowering")
+
+plot_df_warm_fruit <- plot_df_warm_fruit |> mutate(stage = "Fruiting")
+
+
+plot_df_all_warm <- bind_rows(
+  plot_df_warm_bud,
+  plot_df_warm_flower,
+  plot_df_warm_fruit
+) |>
+  select(region, effect, group, estimate, lower.CL, upper.CL, stars, stage)
+plot_df_all_warm
+
+
+
+plot_df_all_warm <- plot_df_all_warm |>
+  mutate(effect = factor(effect,
+                         levels = c("Warming",
+                                    "Biotic interactions",
+                                    "Interaction")))
+
+plot_df_all_warm <- plot_df_all_warm |>
+  mutate(
+    group = case_when(
+      group == "with" ~ "with bi",
+      group == "without" ~ "without bi",
+      group == "warm" ~ "warmed",
+      group == "ambi" ~ "ambient",
+      group == "all interactions" ~ "warming × bi",
+      TRUE ~ group
+    )
+  ) |>
+  mutate(
+    group = stringr::str_wrap(group, width = 12)
+  ) |>
+  mutate(
+    group = factor(group,
+                   levels = stringr::str_wrap(
+                     c("warming × bi",
+                       "with bi",
+                       "without bi",
+                       "warmed",
+                       "ambient"),
+                     width = 12
+                   ))
+  )
+plot_df_all_warm
+
+warming_all <- ggplot(plot_df_all_warm,
+                      aes(x = group, y = estimate, color = stage, shape  = region)) +
+  
+  geom_point(size = 6,
+             position = position_dodge(width = 0.6)) +
+  
+  geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL),
+                width = 0.1, linewidth = 1, 
+                position = position_dodge(width = 0.6)) +
+  
+  geom_text(aes(y = upper.CL, label = stars),
+            position = position_dodge(width = 0.6),
+            vjust = -0.3,
+            size = 7,
+            show.legend = FALSE) +
+  
+  facet_grid(effect ~ region, scales = "free_y") +
+  
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  
+  labs(x = NULL,
+       y = "Shift in onset (days)",
+       color = "Phenological stage")+
+  
+  scale_color_manual(values = stage_colors)+
+  
+  theme(
+    axis.text.x = element_text(size = 20),
+    axis.text.y = element_text(size = 20)
+  ) +
+  
+  scale_shape_manual(values = c("Norway" = 16, "Switzerland" = 17))+
+  guides(shape = "none")
+
+warming_all
+
+
+# flip axis looks better
+warming_all <- warming_all + coord_flip()
+warming_all
+
+# ggsave(filename = "Output/Onset/Onset_warming_effect_NOR_CHE_all_interactions.png", 
+#        plot = warming_all, width = 17, height = 16, units = "in")
+
+
+
+# GDD NOR ---------------------------------------------------------------------
 
 source("GDD_Cooling_budding_onset_NOR.R")
 
@@ -255,9 +368,7 @@ source("GDD_Cooling_fruiting_onset_NOR.R")
 
 
 
-
-
-# One figure warming all stages -------------------------------------------
+# One figure all stages -------------------------------------------
 contrast_df_nor_gdd_ambi_bud$stage <- "Budding"
 contrast_df_nor_gdd_ambi$stage <- "Flowering"
 contrast_df_nor_gdd_ambi_fruit$stage <- "Fruiting"
@@ -316,6 +427,8 @@ onset_all_stages_gdd_cool
 
 
 
+
+# Interactions ------------------------------------------------------------
 
 # Combined plot with effect of transplantation, biotic interaction --------
 # source all the effect cooling scripts

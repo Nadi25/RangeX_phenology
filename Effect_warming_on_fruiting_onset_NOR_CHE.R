@@ -184,9 +184,120 @@ nor_che_delta_raw_warm_fruit <- ggplot() +
 nor_che_delta_raw_warm_fruit
 
 # 
-ggsave(filename = "Output/Onset/Fruiting_onset_warming_effect_NOR_CHE.png", 
-       plot = nor_che_delta_raw_warm_fruit, width = 12, height = 8, units = "in")
+# ggsave(filename = "Output/Onset/Fruiting_onset_warming_effect_NOR_CHE.png", 
+#        plot = nor_che_delta_raw_warm_fruit, width = 12, height = 8, units = "in")
 
+
+
+# Plot with interactions --------------------------------------------------
+
+emm_full_warm_fruit <- emmeans(
+  m_onset_fruiting_warming,
+  ~ treat_warming * treat_competition | region)
+
+
+contr_warm_fruit <- contrast(
+  emm_full_warm_fruit,
+  method = list("warm - ambi" = c(-1, 1)),
+  by = c("region", "treat_competition"),
+  simple = "treat_warming"
+)
+
+
+df_warm_fruit <- as.data.frame(summary(contr_warm_fruit, infer = TRUE)) |>
+  mutate(effect = "Warming",
+         group = treat_competition)
+
+
+contr_comp_warm_fruit <- contrast(
+  emm_full_warm_fruit,
+  method = list("with - without" = c(1, -1)),
+  by = c("region", "treat_warming"),
+  simple = "treat_competition"
+)
+
+
+df_comp_warm_fruit <- as.data.frame(summary(contr_comp_warm_fruit, infer = TRUE)) |>
+  mutate(effect = "Biotic interactions",
+         group = treat_warming)
+
+
+
+contr_interaction_warm_fruit <- contrast(
+  emm_full_warm_fruit,
+  interaction = "pairwise"
+)
+
+df_interaction_warm_fruit <- as.data.frame(summary(contr_interaction_warm_fruit, infer = TRUE)) |>
+  mutate(effect = "Interaction",
+         group = "all interactions")
+
+#
+
+add_stars <- function(df){
+  df |>
+    mutate(
+      stars = case_when(
+        p.value < 0.001 ~ "***",
+        p.value < 0.01  ~ "**",
+        p.value < 0.05  ~ "*",
+        TRUE ~ "n.s."
+      )
+    )
+}
+
+df_warm_fruit    <- add_stars(df_warm_fruit)
+df_comp_warm_fruit       <- add_stars(df_comp_warm_fruit)
+df_interaction_warm_fruit <- add_stars(df_interaction_warm_fruit)
+
+plot_df_warm_fruit <- bind_rows(
+  df_warm_fruit     |> select(region, effect, group, estimate, lower.CL, upper.CL, stars),
+  df_comp_warm_fruit        |> select(region, effect, group, estimate, lower.CL, upper.CL, stars),
+  df_interaction_warm_fruit |> select(region, effect, group, estimate, lower.CL, upper.CL, stars)
+)
+
+plot_df_warm_fruit <- plot_df_warm_fruit |>
+  mutate(effect = factor(effect,
+                         levels = c("Warming",
+                                    "Biotic interactions",
+                                    "Interaction")))
+
+plot_df_warm_fruit
+
+warming_fruiting_interaction <- ggplot(plot_df_warm_fruit,
+                                      aes(x = group, y = estimate, color = group)) +
+  
+  geom_point(size = 5) +
+  geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL),
+                width = 0.1) +
+  
+  facet_grid(effect ~ region, scales = "free_y") +
+  
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  
+  geom_text(aes(y = upper.CL, label = stars),
+            vjust = 0.1,
+            size = 8,
+            position = position_dodge(width = 0.5),
+            show.legend = FALSE) +
+  
+  theme(
+    axis.text.x = element_text(size = 20),
+    axis.text.y = element_text(size = 20)
+  ) +
+  
+  labs(x = NULL,
+       y = "Shifted onset (days)",
+       color = "Condition")
+warming_fruiting_interaction
+
+warming_fruiting_interaction <- warming_fruiting_interaction +
+  coord_flip()
+warming_fruiting_interaction
+
+
+# ggsave(filename = "Output/Onset/Fruiting_onset_warming_effect_NOR_CHE_interaction.png", 
+#        plot = warming_fruiting_interaction, width = 12, height = 15, units = "in")
 
 
 
