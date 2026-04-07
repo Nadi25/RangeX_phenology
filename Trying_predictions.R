@@ -3,6 +3,9 @@
 # Predictions for onset ---------------------------------------------------
 # https://bbolker.github.io/mixedmodels-misc/glmmFAQ.html#predictions-andor-confidence-or-prediction-intervals-on-predictions
 
+
+theme_set(theme_bw(base_size = 20))
+
 # Transplantation - budding -----------------------------------------------
 
 source("Effect_cooling_on_budding_onset_NOR_CHE.R")
@@ -277,7 +280,7 @@ newdat_cool_fruit
 
 
 # plot predicted onset ----------------------------------------------------
-pd <- position_dodge(width = 0.4) 
+pd <- position_dodge(width = 0.5) 
 
 fr <- ggplot(newdat_cool_fruit, aes(x=treat_competition, y=onset, 
                                    color=treat_competition, shape = site)) +
@@ -324,14 +327,15 @@ plot_df_all <- bind_rows(
 plot_df_all
 
 
-
 b_f_fr <- ggplot(plot_df_all, aes(x=treat_competition, y=onset, 
-                                    color=stage, shape = site)) +
-  geom_point(position = pd)+
+                                    color = stage, shape = site)) +
+  geom_point(position = pd, size = 4, stroke = 1.2)+
   facet_wrap(~ region)+
   geom_errorbar(aes(ymin= plo, ymax= phi), width=.2,
                 position = pd)+
+  #geom_line(aes(group = interaction(stage, site)), position = pd)+
   scale_color_manual(values = stage_colors)+
+  scale_shape_manual(values = c("hi" = 24, "lo" = 21))+
   labs(
     x = "Biotic interactions",
     y = "Predicted onset (julian days)",
@@ -343,9 +347,56 @@ print(b_f_fr)
 
 
 
+plot_df_all <- plot_df_all |>
+  mutate(
+    shape_code = case_when(
+      site == "hi" & treat_competition == "with" ~ 17,
+      site == "hi" & treat_competition == "without" ~ 2,
+      site == "lo" & treat_competition == "with" ~ 16,
+      site == "lo" & treat_competition == "without" ~ 1
+    )
+  )
+plot_df_all
+
+b_f_fr <- ggplot(plot_df_all, aes(
+  x = treat_competition,
+  y = onset,
+  color = stage,
+  shape = factor(shape_code)
+)) +
+  
+  geom_point(position = pd, size = 4, stroke = 1.2) +
+  
+  geom_errorbar(aes(ymin = plo, ymax = phi),
+                width = .2,
+                position = pd) +
+  
+  facet_wrap(~ region) +
+  
+  scale_color_manual(values = stage_colors) +
+  
+  scale_shape_manual(
+    values = c("1" = 1, "2" = 2, "16" = 16, "17" = 17),
+    labels = c(
+      "1" = "lo site, without",
+      "16" = "lo site, with",
+      "2" = "hi site, without",
+      "17" = "hi site, with"
+    )
+  ) +
+  
+  labs(
+    x = "Biotic interactions",
+    y = "Predicted onset (julian days)",
+    title = "Effect of transplantation on onset across regions",
+    shape = "Site × biotic interactions",
+    color = "Phenological stage")+
+  guides(shape = "none")
+print(b_f_fr)
 
 
-
+# ggsave(filename = "Output/Onset/Transplantation_onset_bud_flower_fruit_predictions.png", 
+#        plot = b_f_fr, width = 13, height = 10, units = "in")
 
 
 
