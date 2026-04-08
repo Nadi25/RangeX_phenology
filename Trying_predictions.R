@@ -390,8 +390,7 @@ b_f_fr <- ggplot(plot_df_all, aes(
     y = "Predicted onset (julian days)",
     title = "Effect of transplantation on onset across regions",
     shape = "Site × biotic interactions",
-    color = "Phenological stage")+
-  guides(shape = "none")
+    color = "Phenological stage")
 print(b_f_fr)
 
 
@@ -402,9 +401,181 @@ print(b_f_fr)
 
 
 
+# trying to get significance stars -------------------------------------------------
+
+library(emmeans)
+
+emm_bud <- emmeans(m_onset_bud_cooling, ~ treat_competition | region * site)
+
+contrast_comp_bud <- contrast(emm_bud, method = "pairwise")
+summary(contrast_comp_bud)
+
+
+emm_flower <- emmeans(m_onset_n_c_cooling, ~ treat_competition | region * site)
+
+contrast_comp_flower <- contrast(emm_flower, method = "pairwise")
+summary(contrast_comp_flower)
+
+
+emm_fruit <- emmeans(m_onset_fruit_cooling, ~ treat_competition | region * site)
+
+contrast_comp_fruit <- contrast(emm_fruit, method = "pairwise")
+summary(contrast_comp_fruit)
 
 
 
+
+clean_contrasts <- function(contrast_df, stage_name) {
+  contrast_df |>
+    as.data.frame() |>
+    mutate(
+      stage = stage_name,
+      stars = case_when(
+        p.value < 0.001 ~ "***",
+        p.value < 0.01  ~ "**",
+        p.value < 0.05  ~ "*",
+        TRUE ~ ""
+      )
+    ) |>
+    # emmeans names the comparison "with - without"
+    separate(contrast, into = c("with", "without"), sep = " - ") |>
+    select(region, site, stage, stars)
+}
+
+
+stars_bud    <- clean_contrasts(contrast_comp_bud,    "Budding")
+stars_flower <- clean_contrasts(contrast_comp_flower, "Flowering")
+stars_fruit  <- clean_contrasts(contrast_comp_fruit,  "Fruiting")
+
+stars_all <- bind_rows(stars_bud, stars_flower, stars_fruit)
+stars_all
+
+
+plot_df_all <- plot_df_all |>
+  left_join(stars_all, by = c("region", "site", "stage"))
+plot_df_all
+
+stars_for_plot <- plot_df_all |>
+  filter(treat_competition == "with")
+stars_for_plot
+
+
+
+ggplot(plot_df_all, aes(
+  x = treat_competition,
+  y = onset,
+  color = stage,
+  shape = factor(shape_code)
+)) +
+  
+  geom_point(position = pd, size = 4, stroke = 1.2) +
+  # geom_line(aes(group = interaction(stage, site)),
+  #           position = pd,
+  #           alpha = 0.6)+
+  
+  geom_errorbar(aes(ymin = plo, ymax = phi),
+                width = .2,
+                position = pd) +
+  
+  facet_wrap(~ region) +
+  
+  scale_color_manual(values = stage_colors) +
+  
+  scale_shape_manual(
+    values = c("1" = 1, "2" = 2, "16" = 16, "17" = 17),
+    labels = c(
+      "1" = "lo site, without",
+      "16" = "lo site, with",
+      "2" = "hi site, without",
+      "17" = "hi site, with"
+    )
+  ) +
+  
+  labs(
+    x = "Biotic interactions",
+    y = "Predicted onset (julian days)",
+    title = "Effect of transplantation on onset across regions",
+    shape = "Site × biotic interactions",
+    color = "Phenological stage")+
+  guides(shape = "none")+
+  geom_text(
+  data = stars_for_plot,
+  aes(
+    x = treat_competition,
+    y = onset + 1,   # adjust upward offset
+    label = stars
+  ),
+  color = "black",
+  size = 6,
+  vjust = 0,
+  position = pd
+)
+
+
+##
+plot_df_all2 <- plot_df_all |>
+  mutate(
+    x_num = as.numeric(factor(treat_competition)),
+    dodge_id = as.numeric(factor(stage))  # dodge by stage
+  )
+plot_df_all2
+
+dodge_width <- 0.2
+
+ggplot(plot_df_all2, aes(
+  y = onset,
+  color = stage,
+  shape = factor(shape_code)
+)) +
+  
+  # lines (manually dodged)
+  geom_line(aes(
+    x = x_num + (dodge_id - 2) * dodge_width,
+    group = interaction(stage, site)
+  ),
+  linewidth = 0.8,
+  alpha = 0.7) +
+  
+  # points
+  geom_point(aes(
+    x = x_num + (dodge_id - 2) * dodge_width
+  ),
+  size = 4, stroke = 1.2) +
+  
+  # errorbars
+  geom_errorbar(aes(
+    x = x_num + (dodge_id - 2) * dodge_width,
+    ymin = plo, ymax = phi
+  ),
+  width = .1) +
+  
+  scale_x_continuous(
+    breaks = c(1, 2),
+    labels = c("without", "with")
+  ) +
+  
+  facet_wrap(~ region) +
+  
+  scale_color_manual(values = stage_colors) +
+  
+  scale_shape_manual(
+    values = c("1" = 1, "2" = 2, "16" = 16, "17" = 17)
+  ) +
+  
+  labs(
+    x = "Biotic interactions",
+    y = "Predicted onset (julian days)"
+  )
+
+
+
+
+
+
+
+
+
+#####
 
 
 
