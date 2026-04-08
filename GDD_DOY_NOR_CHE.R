@@ -5,8 +5,11 @@
 
 # plot gdd against calender day to see how warth is accumumlating
 
+
 source("Data_preparation_climate_station_CHE.R")
 source("Data_preparation_climate_station_NOR.R")
+
+theme_set(theme_bw(base_size = 20))
 
 
 climate_gdd_che$region <- "Switzerland"
@@ -38,8 +41,8 @@ cum_gdd_doy <- ggplot(climate_all,
 cum_gdd_doy
 
 
-ggsave(filename = "Output/Onset/GDD_DOY_comparison_NOR_CHE.png", 
-       plot = cum_gdd_doy, width = 12, height = 10, units = "in")
+# ggsave(filename = "Output/Onset/GDD_DOY_comparison_NOR_CHE.png", 
+#        plot = cum_gdd_doy, width = 12, height = 10, units = "in")
 
 
 

@@ -97,6 +97,7 @@ m_onset_gdd_ambi_bud <- lmerTest::lmer(onset ~ region * site * treat_competition
                                           data = budding_onset_gdd_ambi)
 summary(m_onset_gdd_ambi_bud)
 
+car::Anova(m_onset_gdd_ambi_bud)
 
 model_performance(m_onset_gdd_ambi_bud)
 check_collinearity(m_onset_gdd_ambi_bud)
