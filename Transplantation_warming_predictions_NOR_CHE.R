@@ -549,7 +549,7 @@ b_f_fr2 <- ggplot(plot_df_all2, aes(
     x = "Biotic interactions",
     y = "Predicted onset (julian days)",
     title = "Effect of transplantation and warming on onset across regions",
-    shape = "Treatment site × warming",   # ← clean legend title
+    shape = "Treatment site × warming",   
     color = "Phenological stage"
   )
 
@@ -558,6 +558,72 @@ print(b_f_fr2)
 
 # ggsave(filename = "Output/Onset/Transplantation_Warming_onset_bud_flower_fruit_predictions.png", 
 #        plot = b_f_fr2, width = 18, height = 10, units = "in")
+
+
+
+
+
+# add lines ---------------------------------------------------------------
+# not sure if that makes it better
+plot_df_all3 <- plot_df_all2 |>
+  mutate(
+    x_num = ifelse(treat_competition == "with", 1, 2),
+    
+    group_id = as.numeric(interaction(stage, treatment_site_temp)),
+    
+    # center groups around each x
+    x_plot = x_num + (group_id - mean(group_id)) * 0.08
+  )
+plot_df_all3
+
+
+ggplot(plot_df_all3, aes(
+  x = x_plot,
+  y = onset,
+  color = stage,
+  shape = treatment_site_temp,
+  group = interaction(stage, treatment_site_temp)
+)) +
+  
+  geom_line(linewidth = 0.8, alpha = 0.7) +
+  
+  geom_point(size = 4, stroke = 1.2) +
+  
+  geom_errorbar(aes(ymin = plo, ymax = phi),
+                width = 0.05) +
+  
+  scale_x_continuous(
+    breaks = c(1, 2),
+    labels = c("with", "without")
+  ) +
+  
+  facet_wrap(~ region) +
+  
+  scale_color_manual(values = stage_colors) +
+  
+  scale_shape_manual(
+    values = c(
+      "lo_ambi" = 16,
+      "hi_ambi" = 2,
+      "hi_warm" = 17
+    )
+  ) +
+  
+  labs(
+    x = "Biotic interactions",
+    y = "Predicted onset (julian days)",
+    title = "Effect of transplantation and warming on onset across regions"
+  )
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -571,8 +637,8 @@ region_colors <- c(
 b_f_fr3 <- ggplot(plot_df_all2, aes(
   x = treat_competition,
   y = onset,
-  color = region,              # ← color by region
-  shape = treatment_site_temp  # ← shape by treatment
+  color = region,              
+  shape = treatment_site_temp  
 )) +
   
   geom_point(position = pd, size = 4, stroke = 1.2) +
@@ -581,15 +647,15 @@ b_f_fr3 <- ggplot(plot_df_all2, aes(
                 width = .2,
                 position = pd) +
   
-  facet_wrap(~ stage) +        # ← facet by stage
+  facet_wrap(~ stage) +     
   
-  scale_color_manual(values = region_colors) +   # ← correct palette
+  scale_color_manual(values = region_colors) +   
   
   scale_shape_manual(
     values = c(
       "lo_ambi" = 16,   # circle
-      "hi_ambi" = 2,    # triangle
-      "hi_warm" = 17    # square or whatever you prefer
+      "hi_ambi" = 17,    # triangle
+      "hi_warm" = 2    # square 
     )
   ) +
   
