@@ -100,7 +100,7 @@ onset_fruit <- phenology2 |>
   filter(phenology_stage == "No_FloWithrd", value > 0) |>
   group_by(region, treatment_site_temp, treat_competition, species, block_ID, unique_plot_ID, unique_plant_ID, phenology_stage) |>
   summarise(onset = min(jday), .groups = "drop") |>
-  # remove groups where flowering never occurred
+  # remove groups where fruiting never occurred
   filter(is.finite(onset))
 
 m_fruit <- lmerTest::lmer(onset ~ region * treatment_site_temp * treat_competition + 
@@ -111,6 +111,24 @@ summary(m_fruit)
 model_performance(m_fruit)
 check_collinearity(m_fruit)
 #check_model(m_fruit)
+
+
+# seed ---------------------------------------------------------------------
+onset_seed <- phenology2 |>
+  filter(phenology_stage == "No_Seeds", value > 0) |>
+  group_by(region, treatment_site_temp, treat_competition, species, block_ID, unique_plot_ID, unique_plant_ID, phenology_stage) |>
+  summarise(onset = min(jday), .groups = "drop") |>
+  # remove groups where seeds never occurred
+  filter(is.finite(onset))
+
+m_seed <- lmerTest::lmer(onset ~ region * treatment_site_temp * treat_competition + 
+                            (1|species) + (1|block_ID),
+                          data = onset_seed)
+summary(m_seed)
+
+model_performance(m_seed)
+check_collinearity(m_seed)
+#check_model(m_seed)
 
 
 
@@ -348,6 +366,81 @@ print(fr)
 
 
 
+# seed ---------------------------------------------------------------------
+
+# create new matrix for predicted data ------------------------------------
+newdat_seed <- expand.grid(
+  region = c("Norway", "Switzerland"),
+  treatment_site_temp = c("lo_ambi", "hi_ambi", "hi_warm"),
+  treat_competition = c("with", "without"),
+  onset = 0
+)
+newdat_seed
+
+
+
+# predict  ----------------------------------------------------------------
+newdat_seed$onset <- predict(
+  m_seed,
+  newdata = newdat_seed,
+  re.form = NA 
+)
+newdat_seed
+
+
+# make model matrix -------------------------------------------------------
+mm_seed <- model.matrix(terms(m_seed), newdat_seed)
+mm_seed
+
+
+pvar1_seed <- diag(mm_seed %*% tcrossprod(vcov(m_seed), mm_seed))
+# tvar1 <- pvar1+VarCorr(m_onset_fruit_cooling)$species[1]  ## must be adapted for more complex models
+
+
+# 2. EXTRACT RANDOM EFFECT VARIANCES
+# VarCorr returns variance-covariance matrices for each group
+var_species_seed <- as.numeric(VarCorr(m_seed)$species)
+var_block_seed <- as.numeric(VarCorr(m_seed)$block_ID)
+
+# 3. CALCULATE TOTAL VARIANCE
+# This is fixed-effect uncertainty + variance between sites + variance between blocks
+# If you want the interval for a NEW observation (individual point), add sigma(fm1)^2 as well
+tvar1_seed <- pvar1_seed + var_species_seed + var_block_seed + sigma(m_seed)^2
+
+# 4. CALCULATE INTERVALS
+cmult <- 2 # is roughly twice standard error
+
+
+newdat_seed <- data.frame(
+  newdat_seed
+  , plo = newdat_seed$onset-cmult*sqrt(pvar1_fruit) # fixed effects only, confidence interval
+  , phi = newdat_seed$onset+cmult*sqrt(pvar1_fruit)
+  , tlo = newdat_seed$onset-cmult*sqrt(tvar1_fruit) # takes fixed and random effects, prediction intervall
+  , thi = newdat_seed$onset+cmult*sqrt(tvar1_fruit)
+)
+newdat_seed
+
+
+# plot predicted onset ----------------------------------------------------
+pd <- position_dodge(width = 0.4) 
+
+s <- ggplot(newdat_seed, aes(x=treat_competition, y=onset, 
+                               color=treat_competition, shape = treatment_site_temp )) +
+  geom_point(position = pd)+
+  facet_wrap(~ region)+
+  geom_errorbar(aes(ymin= plo, ymax= phi), width=.2,
+                position = pd)+
+  scale_color_manual(values = c(
+    "with" = "#528B8B",
+    "without" = "#CD950C"
+  ))+
+  labs(
+    x = "Biotic interactions",
+    y = "Predicted onset (seed)",
+    title = "Effect of transplantation on seed onset across regions"
+  )
+print(s)
+
 
 
 # combine all stages into one plot ----------------------------------------
@@ -355,7 +448,8 @@ print(fr)
 stage_colors <- c(
   "Budding"   = "#4F9EC9",   
   "Flowering" = "pink3",   
-  "Fruiting"  =  "#F4A636"   
+  "Fruiting"  =  "#F4A636",
+  "Seeds" = "grey50"
 )
 
 plot_df_bud  <- newdat_bud   |> mutate(stage = "Budding")
@@ -364,11 +458,13 @@ plot_df_flower <- newdat_flower |> mutate(stage = "Flowering")
 
 plot_df_fruit <- newdat_fruit |> mutate(stage = "Fruiting")
 
+plot_df_seed <- newdat_seed |> mutate(stage = "Seeds")
 
 plot_df_all <- bind_rows(
   plot_df_bud,
   plot_df_flower,
-  plot_df_fruit
+  plot_df_fruit,
+  plot_df_seed
 )
 plot_df_all
 
@@ -556,7 +652,7 @@ b_f_fr2 <- ggplot(plot_df_all2, aes(
 print(b_f_fr2)
 
 
-# ggsave(filename = "Output/Onset/Transplantation_Warming_onset_bud_flower_fruit_predictions.png", 
+# ggsave(filename = "Output/Onset/Transplantation_Warming_onset_bud_flower_fruit_seed_predictions.png", 
 #        plot = b_f_fr2, width = 18, height = 10, units = "in")
 
 
@@ -647,7 +743,8 @@ b_f_fr3 <- ggplot(plot_df_all2, aes(
                 width = .2,
                 position = pd) +
   
-  facet_wrap(~ stage) +     
+  #facet_wrap(~ stage) + 
+  facet_grid(~ stage) +
   
   scale_color_manual(values = region_colors) +   
   
@@ -669,7 +766,7 @@ b_f_fr3 <- ggplot(plot_df_all2, aes(
 
 print(b_f_fr3)
 
-# ggsave(filename = "Output/Onset/Transplantation_Warming_onset_bud_flower_fruit_predictions2.png", 
+# ggsave(filename = "Output/Onset/Transplantation_Warming_onset_bud_flower_fruit_seeds_predictions2.png", 
 #        plot = b_f_fr3, width = 18, height = 10, units = "in")
 
 
