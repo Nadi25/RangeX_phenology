@@ -95,8 +95,8 @@ phenology <- phenology |>
 
 # Filter buds, flowers, infructescences -----------------------------------
 ## don't use seeds_collected
-phenology <- phenology |> 
-  filter(phenology$phenology_stage != "No_Seeds")
+# phenology <- phenology |> 
+#   filter(phenology$phenology_stage != "No_Seeds")
 
 # combined treatment column -----------------------------------------------
 phenology$treatment <- paste(phenology$site, phenology$treat_warming, phenology$treat_competition, sep = "_")
