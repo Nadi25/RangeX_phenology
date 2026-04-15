@@ -36,7 +36,7 @@ climate_22_daily <- climate_che_22 |>
 
 
 # define Tbase and growing season start  -------------------------
-Tbase <- 5 # base temperature for plants to grow
+Tbase <- 2 # base temperature for plants to grow
 Nconsec <- 5 # number of consecutive days above Tbase to define growing season start
 # 5 days above 5 degrees
 

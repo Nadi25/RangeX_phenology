@@ -27,13 +27,13 @@ unique(phenology_nor$date_measurement)
 
 source("Data_preparation_climate_station_NOR.R")
 
-# use 
-climate_gdd_pt
+# use climate_gdd instead of climate_gdd_pt because it is without filtering
+climate_gdd
 
 # combine gdd_cum and phenology_nor ------------------------------------
 phenology_with_gdd <- phenology_nor |> 
-  left_join(climate_gdd_pt |> 
-              select(site, date_measurement, GDD_cum),
+  left_join(climate_gdd |> 
+              select(site, date_measurement, GDD_cum, Tavg),
             by = c("site", "date_measurement"))
 
 
@@ -56,7 +56,7 @@ climate_gdd_che
 # combine gdd_cum and phenology_nor ------------------------------------
 phenology_with_gdd_che <- phenology_che |> 
   left_join(climate_gdd_che |> 
-              select(site, date_measurement, GDD_cum),
+              select(site, date_measurement, GDD_cum, Tavg),
             by = c("site", "date_measurement"))
 
 
@@ -464,7 +464,7 @@ b_f_fr_gdd <- ggplot(plot_df_gdd_all, aes(
 
 print(b_f_fr_gdd)
 
-# ggsave(filename = "Output/Onset/Transplantation_Warming_GDD_onset_bud_flower_fruit_predictions.png", 
+# ggsave(filename = "Output/Onset/Transplantation_Warming_GDD_onset_bud_flower_fruit_predictions_tbase2.png", 
 #        plot = b_f_fr_gdd, width = 18, height = 10, units = "in")
 
 
