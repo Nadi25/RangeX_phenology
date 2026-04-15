@@ -137,7 +137,7 @@ phenology_gdd_nor_che <- phenology_gdd_nor_che |>
   ))
 
 
-# calculate budding onset ------------------------------------------------
+# calculate fruiting onset ------------------------------------------------
 fruiting_onset_gdd_ambi <- phenology_gdd_nor_che |> 
   filter(phenology_stage == "No_FloWithrd", value > 0) |>
   group_by(region, site, species, unique_plant_ID, block_ID, treat_competition) |>
@@ -158,6 +158,29 @@ model_performance(m_gdd_fruit)
 check_collinearity(m_gdd_fruit)
 #check_model(m_gdd_fruit)
 
+
+# seeds ----------------------------------------------------------------
+
+# calculate seed onset ------------------------------------------------
+seed_onset_gdd_ambi <- phenology_gdd_nor_che |> 
+  filter(phenology_stage == "No_Seeds", value > 0) |>
+  group_by(region, site, species, unique_plant_ID, block_ID, treat_competition) |>
+  summarise(onset = min(GDD_cum, na.rm = TRUE), .groups = "drop") |>
+  # remove groups where flowering never occurred
+  filter(is.finite(onset))
+
+
+
+# model flowering onset nor che ------------------------------------------
+m_gdd_seed <- lmerTest::lmer(onset ~ region * site * treat_competition + 
+                                (1|species) + (1|block_ID),
+                              data = seed_onset_gdd_ambi)
+summary(m_gdd_seed)
+
+
+model_performance(m_gdd_seed)
+check_collinearity(m_gdd_seed)
+#check_model(m_gdd_seed)
 
 
 
@@ -390,11 +413,86 @@ fr <- ggplot(newdat_gdd_fruit, aes(x=treat_competition, y=onset,
   labs(
     x = "Biotic interactions",
     y = "Predicted onset GDD (fruiting)",
-    title = "Effect of transplantation on budding onset across regions"
+    title = "Effect of transplantation on fruiting onset across regions"
   )
 print(fr)
 
 
+
+# seed ---------------------------------------------------------------------
+
+# create new matrix for predicted data ------------------------------------
+newdat_gdd_seed <- expand.grid(
+  region = c("Norway", "Switzerland"),
+  site = c("lo", "hi"),
+  treat_competition = c("with", "without"),
+  onset = 0
+)
+newdat_gdd_seed
+
+
+
+# predict  ----------------------------------------------------------------
+newdat_gdd_seed$onset <- predict(
+  m_gdd_seed,
+  newdata = newdat_gdd_seed,
+  re.form = NA 
+)
+newdat_gdd_seed
+
+
+# make model matrix -------------------------------------------------------
+mm_gdd_seed <- model.matrix(terms(m_gdd_seed), newdat_gdd_seed)
+mm_gdd_seed
+
+
+pvar1_gdd_seed <- diag(mm_gdd_seed %*% tcrossprod(vcov(m_gdd_seed), mm_gdd_seed))
+# tvar1 <- pvar1+VarCorr(m_onset_fruit_cooling)$species[1]  ## must be adapted for more complex models
+
+
+# 2. EXTRACT RANDOM EFFECT VARIANCES
+# VarCorr returns variance-covariance matrices for each group
+var_species_gdd_seed <- as.numeric(VarCorr(m_gdd_seed)$species)
+var_block_gdd_seed <- as.numeric(VarCorr(m_gdd_seed)$block_ID)
+
+# 3. CALCULATE TOTAL VARIANCE
+# This is fixed-effect uncertainty + variance between sites + variance between blocks
+# If you want the interval for a NEW observation (individual point), add sigma(fm1)^2 as well
+tvar1_gdd_seed <- pvar1_gdd_seed + var_species_gdd_seed + var_block_gdd_seed + sigma(m_gdd_seed)^2
+
+# 4. CALCULATE INTERVALS
+cmult <- 2 # is roughly twice standard error
+
+
+newdat_gdd_seed <- data.frame(
+  newdat_gdd_seed
+  , plo = newdat_gdd_seed$onset-cmult*sqrt(pvar1_gdd_fruit) # fixed effects only, confidence interval
+  , phi = newdat_gdd_seed$onset+cmult*sqrt(pvar1_gdd_fruit)
+  , tlo = newdat_gdd_seed$onset-cmult*sqrt(tvar1_gdd_fruit) # takes fixed and random effects, prediction intervall
+  , thi = newdat_gdd_seed$onset+cmult*sqrt(tvar1_gdd_fruit)
+)
+newdat_gdd_seed
+
+
+# plot predicted onset ----------------------------------------------------
+pd <- position_dodge(width = 0.4) 
+
+s <- ggplot(newdat_gdd_seed, aes(x=treat_competition, y=onset, 
+                                   color=treat_competition, shape = site )) +
+  geom_point(position = pd)+
+  facet_wrap(~ region)+
+  geom_errorbar(aes(ymin= plo, ymax= phi), width=.2,
+                position = pd)+
+  scale_color_manual(values = c(
+    "with" = "#528B8B",
+    "without" = "#CD950C"
+  ))+
+  labs(
+    x = "Biotic interactions",
+    y = "Predicted onset GDD (seed)",
+    title = "Effect of transplantation on seed onset across regions"
+  )
+print(s)
 
 
 
@@ -403,7 +501,8 @@ print(fr)
 stage_colors <- c(
   "Budding"   = "#4F9EC9",   
   "Flowering" = "pink3",   
-  "Fruiting"  =  "#F4A636"   
+  "Fruiting"  =  "#F4A636",
+  "Seeds" = "grey50"  
 )
 
 plot_df_gdd_bud  <- newdat_gdd_bud   |> mutate(stage = "Budding")
@@ -412,11 +511,14 @@ plot_df_gdd_flower <- newdat_gdd_flower |> mutate(stage = "Flowering")
 
 plot_df_gdd_fruit <- newdat_gdd_fruit |> mutate(stage = "Fruiting")
 
+plot_df_gdd_seed <- newdat_gdd_seed |> mutate(stage = "Seeds")
+
 
 plot_df_gdd_all <- bind_rows(
   plot_df_gdd_bud,
   plot_df_gdd_flower,
-  plot_df_gdd_fruit
+  plot_df_gdd_fruit,
+  plot_df_gdd_seed
 )
 plot_df_gdd_all
 
@@ -443,7 +545,7 @@ b_f_fr_gdd <- ggplot(plot_df_gdd_all, aes(
                 width = .2,
                 position = pd) +
   
-  facet_wrap(~ stage) +     
+  facet_grid(~ stage) +     
   
   scale_color_manual(values = region_colors) +   
   
@@ -464,7 +566,7 @@ b_f_fr_gdd <- ggplot(plot_df_gdd_all, aes(
 
 print(b_f_fr_gdd)
 
-# ggsave(filename = "Output/Onset/Transplantation_Warming_GDD_onset_bud_flower_fruit_predictions_tbase2.png", 
+# ggsave(filename = "Output/Onset/Transplantation_Warming_GDD_onset_bud_flower_fruit_seed_predictions_tbase2.png", 
 #        plot = b_f_fr_gdd, width = 18, height = 10, units = "in")
 
 
