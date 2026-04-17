@@ -71,6 +71,11 @@ climate_che_22_pre <- climate_che_22 |>
     date_time <= as.Date("2022-06-13")
   )
 
+# climate_che_22_pre <- climate_che_22 |>
+#   filter(
+#     date_time >= as.Date("2022-05-14"),
+#     date_time <= as.Date("2022-05-31")
+#   )
 
 # combine
 climate_all <- bind_rows(climate_che_22_pre, climate_nor_23_pre)
@@ -323,8 +328,94 @@ ggplot(sens_summary,
 
 
 
+# models ------------------------------------------------------------------
+
+# bud
+
+m_sens_bud <- lmerTest::lmer(temp_sens ~ region * treat_competition + 
+                            (1|species),
+                          data = sens_bud)
+summary(m_sens_bud)
+
+model_performance(m_sens_bud)
 
 
+
+# make predictions for each stage -----------------------------------------
+
+# bud ---------------------------------------------------------------------
+
+# create new matrix for predicted data ------------------------------------
+newdat_sens_bud <- expand.grid(
+  region = c("Norway", "Switzerland"),
+  treat_competition = c("with", "without"),
+  temp_sens = 0
+)
+newdat_sens_bud
+
+
+
+# predict  ----------------------------------------------------------------
+newdat_sens_bud$temp_sens <- predict(
+  m_sens_bud,
+  newdata = newdat_sens_bud,
+  re.form = NA 
+)
+newdat_sens_bud
+
+
+# make model matrix -------------------------------------------------------
+mm_sens_bud <- model.matrix(terms(m_sens_bud), newdat_sens_bud)
+mm_sens_bud
+
+
+pvar1_sens_bud <- diag(mm_sens_bud %*% tcrossprod(vcov(m_sens_bud), mm_sens_bud))
+# tvar1 <- pvar1+VarCorr(m_onset_bud_cooling)$species[1]  ## must be adapted for more complex models
+
+
+# 2. EXTRACT RANDOM EFFECT VARIANCES
+# VarCorr returns variance-covariance matrices for each group
+var_species_sens_bud <- as.numeric(VarCorr(m_sens_bud)$species)
+#var_block_sens_bud <- as.numeric(VarCorr(m_bud)$block_ID)
+
+# 3. CALCULATE TOTAL VARIANCE
+# This is fixed-effect uncertainty + variance between sites + variance between blocks
+# If you want the interval for a NEW observation (individual point), add sigma(fm1)^2 as well
+tvar1_sens_bud <- pvar1_sens_bud + var_species_sens_bud + var_block_sens_bud + sigma(m_sens_bud)^2
+
+# 4. CALCULATE INTERVALS
+cmult <- 2 # is roughly twice standard error
+
+
+newdat_sens_bud <- data.frame(
+  newdat_sens_bud
+  , plo = newdat_sens_bud$temp_sens-cmult*sqrt(pvar1_sens_bud) # fixed effects only, confidence interval
+  , phi = newdat_sens_bud$temp_sens+cmult*sqrt(pvar1_sens_bud)
+  , tlo = newdat_sens_bud$temp_sens-cmult*sqrt(tvar1_sens_bud) # takes fixed and random effects, prediction intervall
+  , thi = newdat_sens_bud$temp_sens+cmult*sqrt(tvar1_sens_bud)
+)
+newdat_sens_bud
+
+
+# plot predicted onset ----------------------------------------------------
+pd <- position_dodge(width = 0.4) 
+
+p<- ggplot(newdat_sens_bud, aes(x=treat_competition, y= temp_sens, 
+                           color=treat_competition, shape = treatment_site_temp )) +
+  geom_point(position = pd)+
+  facet_wrap(~ region)+
+  geom_errorbar(aes(ymin= plo, ymax= phi), width=.2,
+                position = pd)+
+  scale_color_manual(values = c(
+    "with" = "#528B8B",
+    "without" = "#CD950C"
+  ))+
+  labs(
+    x = "Biotic interactions",
+    y = "Predicted onset (budding)",
+    title = "Effect of transplantation on budding onset across regions"
+  )
+print(p)
 
 
 

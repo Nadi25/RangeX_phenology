@@ -81,6 +81,8 @@ m_flower <- lmerTest::lmer(onset ~ region * treatment_site_temp * treat_competit
                         data = onset_flower)
 summary(m_flower)
 
+anova(m_flower)
+
 model_performance(m_flower)
 check_collinearity(m_flower)
 #check_model(m_flower)

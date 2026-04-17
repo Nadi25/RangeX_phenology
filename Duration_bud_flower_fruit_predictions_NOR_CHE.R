@@ -91,8 +91,15 @@ m_duration_bud <- lmerTest::lmer(duration_bud ~ region * treatment_site_temp * t
                                  + (1|species) + (1|block_ID),
                                  data = durations)
 summary(m_duration_bud)
+anova(m_duration_bud)
 
 model_performance(m_duration_bud)
+
+
+emm_bud <- emmeans(m_duration_bud, ~ treatment_site_temp * treat_competition)
+pairs(emm_bud)
+contrast(emm_bud, interaction = "pairwise")
+
 
 
 # model flowering duration ------------------------------------------
@@ -100,8 +107,13 @@ m_duration_flowering <- lmerTest::lmer(duration_flower ~ region * treatment_site
                                  + (1|species) + (1|block_ID),
                                  data = durations)
 summary(m_duration_flowering)
+anova(m_duration_flowering)
 
 model_performance(m_duration_flowering)
+
+emm_flower <- emmeans(m_duration_flowering, ~ treatment_site_temp * treat_competition)
+pairs(emm_flower)
+contrast(emm_flower, interaction = "pairwise")
 
 
 # model fruiting duration ------------------------------------------
@@ -112,6 +124,9 @@ summary(m_duration_fruiting)
 
 model_performance(m_duration_fruiting)
 
+emm_fruit <- emmeans(m_duration_fruiting, ~ treatment_site_temp * treat_competition)
+pairs(emm_fruit)
+contrast(emm_fruit, interaction = "pairwise")
 
 
 
@@ -342,20 +357,34 @@ pred_all$stage <- factor(pred_all$stage,
 
 pd <- position_dodge(width = 0.4)
 
+
+region_colors <- c(
+  "Norway" = "turquoise4",
+  "Switzerland" = "pink4"
+)
+
 duration <- ggplot(pred_all,
        aes(x = treat_competition,
            y = duration,
-           color = treat_competition,
+           color = region,
            shape = treatment_site_temp)) +
   geom_point(position = pd) +
   geom_errorbar(aes(ymin = plo, ymax = phi),
                 width = 0.2,
                 position = pd) +
-  facet_grid(stage ~ region) +
-  scale_color_manual(values = c(
-    "with" = "#528B8B",
-    "without" = "#CD950C"
-  )) +
+  facet_grid( ~ stage) +
+  scale_color_manual(values = region_colors) +
+  scale_shape_manual(
+    values = c(
+      "lo_ambi" = 16,   # circle
+      "hi_ambi" = 17,    # triangle
+      "hi_warm" = 2    # square 
+    )
+  ) +
+  # scale_color_manual(values = c(
+  #   "with" = "#528B8B",
+  #   "without" = "#CD950C"
+  # )) +
   labs(
     x = "Biotic interactions",
     y = "Predicted duration (days)",
@@ -363,7 +392,7 @@ duration <- ggplot(pred_all,
   )
 duration
 
-# ggsave(filename = "Output/Onset/Transplantation_Warming_duration_bud_flower_fruit_seeds_predictions.png", 
+# ggsave(filename = "Output/Onset/Transplantation_Warming_duration_bud_flower_fruit_seeds_predictions2.png", 
 #        plot = duration, width = 15, height = 12, units = "in")
 
 
