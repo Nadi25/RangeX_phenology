@@ -3,15 +3,15 @@
 
 # Temperature sensitivity -------------------------------------------------
 
-# load library ---------------------------------------------------------
-library(lme4)
-library(ggeffects)
-library(broom.mixed)
-library(emmeans)
+# load library ------------------------------------------------------------
+library(conflicted)
+conflict_prefer_all("dplyr", quiet = TRUE)
+library(tidyverse)
 library(lubridate)
+library(lme4)
 library(performance)
 library(see)
-
+library(emmeans)
 
 # calcualte delta T -------------------------------------------------------
 
@@ -201,27 +201,28 @@ onset_seed <- phenology3 |>
 
 
 
-# Average onset per site --------------------------------------------------
+# Average onset per site, species and treatment --------------------------------------------------
+# could do per plot as well
 onset_bud_mean <- onset_bud |>
-  group_by(region, site, year, treat_competition, species) |>
+  group_by(region, site, year, treat_competition, species, block_ID) |>
   summarise(onset = mean(onset, na.rm = TRUE),
             .groups = "drop")
 onset_bud_mean
 
 onset_flower_mean <- onset_flower |>
-  group_by(region, site, year, treat_competition, species) |>
+  group_by(region, site, year, treat_competition, species, block_ID) |>
   summarise(onset = mean(onset, na.rm = TRUE),
             .groups = "drop")
 onset_flower_mean
 
 onset_fruit_mean <- onset_fruit |>
-  group_by(region, site, year, treat_competition, species) |>
+  group_by(region, site, year, treat_competition, species, block_ID) |>
   summarise(onset = mean(onset, na.rm = TRUE),
             .groups = "drop")
 onset_fruit_mean
 
 onset_seed_mean <- onset_seed |>
-  group_by(region, site, year, treat_competition, species) |>
+  group_by(region, site, year, treat_competition, species, block_ID) |>
   summarise(onset = mean(onset, na.rm = TRUE),
             .groups = "drop")
 onset_seed_mean
@@ -328,17 +329,39 @@ ggplot(sens_summary,
 
 
 
-# models ------------------------------------------------------------------
+# sensitivity models ------------------------------------------------------------------
 
 # bud
-
 m_sens_bud <- lmerTest::lmer(temp_sens ~ region * treat_competition + 
-                            (1|species),
+                            (1|species) + (1|block_ID),
                           data = sens_bud)
 summary(m_sens_bud)
 
 model_performance(m_sens_bud)
 
+# flower
+m_sens_flower <- lmerTest::lmer(temp_sens ~ region * treat_competition + 
+                               (1|species) + (1|block_ID),
+                             data = sens_flower)
+summary(m_sens_flower)
+
+model_performance(m_sens_flower)
+
+# fruit
+m_sens_fruit <- lmerTest::lmer(temp_sens ~ region * treat_competition + 
+                                  (1|species) + (1|block_ID),
+                                data = sens_fruit)
+summary(m_sens_fruit)
+
+model_performance(m_sens_fruit)
+
+# seeds
+m_sens_seed <- lmerTest::lmer(temp_sens ~ region * treat_competition + 
+                                 (1|species) + (1|block_ID),
+                               data = sens_seed)
+summary(m_sens_seed)
+
+model_performance(m_sens_seed)
 
 
 # make predictions for each stage -----------------------------------------
@@ -376,7 +399,7 @@ pvar1_sens_bud <- diag(mm_sens_bud %*% tcrossprod(vcov(m_sens_bud), mm_sens_bud)
 # 2. EXTRACT RANDOM EFFECT VARIANCES
 # VarCorr returns variance-covariance matrices for each group
 var_species_sens_bud <- as.numeric(VarCorr(m_sens_bud)$species)
-#var_block_sens_bud <- as.numeric(VarCorr(m_bud)$block_ID)
+var_block_sens_bud <- as.numeric(VarCorr(m_sens_bud)$block_ID)
 
 # 3. CALCULATE TOTAL VARIANCE
 # This is fixed-effect uncertainty + variance between sites + variance between blocks
@@ -400,8 +423,8 @@ newdat_sens_bud
 # plot predicted onset ----------------------------------------------------
 pd <- position_dodge(width = 0.4) 
 
-p<- ggplot(newdat_sens_bud, aes(x=treat_competition, y= temp_sens, 
-                           color=treat_competition, shape = treatment_site_temp )) +
+b<- ggplot(newdat_sens_bud, aes(x=treat_competition, y= temp_sens, 
+                           color=treat_competition)) +
   geom_point(position = pd)+
   facet_wrap(~ region)+
   geom_errorbar(aes(ymin= plo, ymax= phi), width=.2,
@@ -412,10 +435,248 @@ p<- ggplot(newdat_sens_bud, aes(x=treat_competition, y= temp_sens,
   ))+
   labs(
     x = "Biotic interactions",
-    y = "Predicted onset (budding)",
+    y = "Predicted temperature sensitivity (budding)",
     title = "Effect of transplantation on budding onset across regions"
   )
-print(p)
+print(b)
+
+
+# flower ---------------------------------------------------------------------
+newdat_sens_flower <- expand.grid(
+  region = c("Norway", "Switzerland"),
+  treat_competition = c("with", "without"),
+  temp_sens = 0
+)
+
+newdat_sens_flower$temp_sens <- predict(
+  m_sens_flower,
+  newdata = newdat_sens_flower,
+  re.form = NA 
+)
+newdat_sens_flower
+
+mm_sens_flower <- model.matrix(terms(m_sens_flower), newdat_sens_flower)
+
+pvar1_sens_flower <- diag(mm_sens_flower %*% tcrossprod(vcov(m_sens_flower), mm_sens_flower))
+
+var_species_sens_flower <- as.numeric(VarCorr(m_sens_flower)$species)
+var_block_sens_flower <- as.numeric(VarCorr(m_sens_flower)$block_ID)
+
+tvar1_sens_flower <- pvar1_sens_flower + var_species_sens_flower + var_block_sens_flower + sigma(m_sens_flower)^2
+
+cmult <- 2
+
+newdat_sens_flower <- data.frame(
+  newdat_sens_flower,
+  plo = newdat_sens_flower$temp_sens - cmult * sqrt(pvar1_sens_flower),
+  phi = newdat_sens_flower$temp_sens + cmult * sqrt(pvar1_sens_flower),
+  tlo = newdat_sens_flower$temp_sens - cmult * sqrt(tvar1_sens_flower),
+  thi = newdat_sens_flower$temp_sens + cmult * sqrt(tvar1_sens_flower)
+)
+newdat_sens_flower
+
+pd <- position_dodge(width = 0.4)
+
+f <- ggplot(newdat_sens_flower, aes(x = treat_competition, y = temp_sens, color = treat_competition)) +
+  geom_point(position = pd) +
+  facet_wrap(~ region) +
+  geom_errorbar(aes(ymin = plo, ymax = phi), width = .2, position = pd) +
+  scale_color_manual(values = c("with" = "#528B8B", "without" = "#CD950C")) +
+  labs(
+    x = "Biotic interactions",
+    y = "Predicted temperature sensitivity (flowering)",
+    title = "Effect of transplantation on flowering onset across regions"
+  )
+print(f)
+
+# fruit ---------------------------------------------------------------------
+newdat_sens_fruit <- expand.grid(
+  region = c("Norway", "Switzerland"),
+  treat_competition = c("with", "without"),
+  temp_sens = 0
+)
+
+newdat_sens_fruit$temp_sens <- predict(
+  m_sens_fruit,
+  newdata = newdat_sens_fruit,
+  re.form = NA 
+)
+
+mm_sens_fruit <- model.matrix(terms(m_sens_fruit), newdat_sens_fruit)
+
+pvar1_sens_fruit <- diag(mm_sens_fruit %*% tcrossprod(vcov(m_sens_fruit), mm_sens_fruit))
+
+var_species_sens_fruit <- as.numeric(VarCorr(m_sens_fruit)$species)
+var_block_sens_fruit <- as.numeric(VarCorr(m_sens_fruit)$block_ID)
+
+tvar1_sens_fruit <- pvar1_sens_fruit + var_species_sens_fruit + var_block_sens_fruit + sigma(m_sens_fruit)^2
+
+cmult <- 2
+
+newdat_sens_fruit <- data.frame(
+  newdat_sens_fruit,
+  plo = newdat_sens_fruit$temp_sens - cmult * sqrt(pvar1_sens_fruit),
+  phi = newdat_sens_fruit$temp_sens + cmult * sqrt(pvar1_sens_fruit),
+  tlo = newdat_sens_fruit$temp_sens - cmult * sqrt(tvar1_sens_fruit),
+  thi = newdat_sens_fruit$temp_sens + cmult * sqrt(tvar1_sens_fruit)
+)
+
+pd <- position_dodge(width = 0.4)
+
+fr <- ggplot(newdat_sens_fruit, aes(x = treat_competition, y = temp_sens, color = treat_competition)) +
+  geom_point(position = pd) +
+  facet_wrap(~ region) +
+  geom_errorbar(aes(ymin = plo, ymax = phi), width = .2, position = pd) +
+  scale_color_manual(values = c("with" = "#528B8B", "without" = "#CD950C")) +
+  labs(
+    x = "Biotic interactions",
+    y = "Predicted temperature sensitivity (fruiting)",
+    title = "Effect of transplantation on fruiting onset across regions"
+  )
+print(fr)
+
+
+# seed ---------------------------------------------------------------------
+newdat_sens_seed <- expand.grid(
+  region = c("Norway", "Switzerland"),
+  treat_competition = c("with", "without"),
+  temp_sens = 0
+)
+
+newdat_sens_seed$temp_sens <- predict(
+  m_sens_seed,
+  newdata = newdat_sens_seed,
+  re.form = NA 
+)
+newdat_sens_seed
+
+mm_sens_seed <- model.matrix(terms(m_sens_seed), newdat_sens_seed)
+
+pvar1_sens_seed <- diag(mm_sens_seed %*% tcrossprod(vcov(m_sens_seed), mm_sens_seed))
+
+var_species_sens_seed <- as.numeric(VarCorr(m_sens_seed)$species)
+var_block_sens_seed <- as.numeric(VarCorr(m_sens_seed)$block_ID)
+
+tvar1_sens_seed <- pvar1_sens_seed + var_species_sens_seed + var_block_sens_seed + sigma(m_sens_seed)^2
+
+cmult <- 2
+
+newdat_sens_seed <- data.frame(
+  newdat_sens_seed,
+  plo = newdat_sens_seed$temp_sens - cmult * sqrt(pvar1_sens_seed),
+  phi = newdat_sens_seed$temp_sens + cmult * sqrt(pvar1_sens_seed),
+  tlo = newdat_sens_seed$temp_sens - cmult * sqrt(tvar1_sens_seed),
+  thi = newdat_sens_seed$temp_sens + cmult * sqrt(tvar1_sens_seed)
+)
+newdat_sens_seed
+
+
+pd <- position_dodge(width = 0.4)
+
+s <- ggplot(newdat_sens_seed, aes(x = treat_competition, y = temp_sens, color = treat_competition)) +
+  geom_point(position = pd) +
+  facet_wrap(~ region) +
+  geom_errorbar(aes(ymin = plo, ymax = phi), width = .2, position = pd) +
+  scale_color_manual(values = c("with" = "#528B8B", "without" = "#CD950C")) +
+  labs(
+    x = "Biotic interactions",
+    y = "Predicted temperature sensitivity (seed set)",
+    title = "Effect of transplantation on seed onset across regions"
+  )
+print(s)
+
+
+
+
+# combine all stages into one plot ----------------------------------------
+
+stage_colors <- c(
+  "Budding"   = "#4F9EC9",   
+  "Flowering" = "pink3",   
+  "Fruiting"  =  "#F4A636",
+  "Seeds" = "grey50"
+)
+
+plot_df_sens_bud  <- newdat_sens_bud   |> mutate(stage = "Budding")
+
+plot_df_sens_flower <- newdat_sens_flower |> mutate(stage = "Flowering")
+
+plot_df_sens_fruit <- newdat_sens_fruit |> mutate(stage = "Fruiting")
+
+plot_df_sens_seed <- newdat_sens_seed |> mutate(stage = "Seeds")
+
+plot_df_sens_all <- bind_rows(
+  plot_df_sens_bud,
+  plot_df_sens_flower,
+  plot_df_sens_fruit,
+  plot_df_sens_seed
+)
+plot_df_sens_all
+
+
+
+
+# plot --------------------------------------------------------------------
+pd <- position_dodge(width = 0.6) 
+
+b_f_fr_s <- ggplot(plot_df_sens_all, aes(
+  x = treat_competition,
+  y = temp_sens,
+  color = stage
+)) +
+  
+  geom_point(position = pd, size = 4, stroke = 1.2) +
+  
+  geom_errorbar(aes(ymin = plo, ymax = phi),
+                width = .2,
+                position = pd) +
+  
+  facet_wrap(~ region) +
+  
+  scale_color_manual(values = stage_colors) +
+  labs(
+    x = "Biotic interactions",
+    y = "Predicted temperature sensitivity (days per °C)",
+    title = "Effect of transplantation on onset across regions",
+    color = "Phenological stage"
+  )
+print(b_f_fr_s)
+
+
+
+# or plot facet by stage --------------------------------------------------
+region_colors <- c(
+  "Norway" = "turquoise4",
+  "Switzerland" = "pink4"
+)
+
+b_f_fr_s2 <- ggplot(plot_df_sens_all, aes(
+  x = treat_competition,
+  y = temp_sens,
+  color = region
+)) +
+  
+  geom_point(position = pd, size = 4, stroke = 1.2) +
+  
+  geom_errorbar(aes(ymin = plo, ymax = phi),
+                width = .2,
+                position = pd) +
+  
+  #facet_wrap(~ stage) + 
+  facet_grid(~ stage) +
+  
+  scale_color_manual(values = region_colors) +
+  
+  labs(
+    x = "Biotic interactions",
+    y = "Predicted temperature sensitivity (days per °C)",
+    title = "Effect of transplantation on onset across regions",
+    color = "Region"
+  )
+print(b_f_fr_s2)
+
+
+
 
 
 
