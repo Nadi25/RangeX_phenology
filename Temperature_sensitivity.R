@@ -336,6 +336,7 @@ m_sens_bud <- lmerTest::lmer(temp_sens ~ region * treat_competition +
                             (1|species),
                           data = sens_bud)
 summary(m_sens_bud)
+anova(m_sens_bud)
 
 model_performance(m_sens_bud)
 
@@ -344,6 +345,7 @@ m_sens_flower <- lmerTest::lmer(temp_sens ~ region * treat_competition +
                                (1|species),
                              data = sens_flower)
 summary(m_sens_flower)
+anova(m_sens_flower)
 
 model_performance(m_sens_flower)
 
@@ -352,6 +354,7 @@ m_sens_fruit <- lmerTest::lmer(temp_sens ~ region * treat_competition +
                                   (1|species),
                                 data = sens_fruit)
 summary(m_sens_fruit)
+anova(m_sens_fruit)
 
 model_performance(m_sens_fruit)
 
@@ -360,6 +363,7 @@ m_sens_seed <- lmerTest::lmer(temp_sens ~ region * treat_competition +
                                  (1|species),
                                data = sens_seed)
 summary(m_sens_seed)
+anova(m_sens_seed)
 
 model_performance(m_sens_seed)
 
@@ -676,7 +680,9 @@ b_f_fr_s2 <- ggplot(plot_df_sens_all, aes(
 print(b_f_fr_s2)
 
 
-
+# ggsave(filename = "Output/Onset/Temperature_sensitivity_bud_flower_fruit_seed_onset_NOR_CHE.png", 
+#        plot = b_f_fr_s2,
+#        width = 15, height = 10, units = "in")
 
 
 
