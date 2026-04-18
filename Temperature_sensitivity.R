@@ -204,25 +204,25 @@ onset_seed <- phenology3 |>
 # Average onset per site, species and treatment --------------------------------------------------
 # could do per plot as well
 onset_bud_mean <- onset_bud |>
-  group_by(region, site, year, treat_competition, species, block_ID) |>
+  group_by(region, site, year, treat_competition, species,) |>
   summarise(onset = mean(onset, na.rm = TRUE),
             .groups = "drop")
 onset_bud_mean
 
 onset_flower_mean <- onset_flower |>
-  group_by(region, site, year, treat_competition, species, block_ID) |>
+  group_by(region, site, year, treat_competition, species) |>
   summarise(onset = mean(onset, na.rm = TRUE),
             .groups = "drop")
 onset_flower_mean
 
 onset_fruit_mean <- onset_fruit |>
-  group_by(region, site, year, treat_competition, species, block_ID) |>
+  group_by(region, site, year, treat_competition, species) |>
   summarise(onset = mean(onset, na.rm = TRUE),
             .groups = "drop")
 onset_fruit_mean
 
 onset_seed_mean <- onset_seed |>
-  group_by(region, site, year, treat_competition, species, block_ID) |>
+  group_by(region, site, year, treat_competition, species) |>
   summarise(onset = mean(onset, na.rm = TRUE),
             .groups = "drop")
 onset_seed_mean
@@ -333,7 +333,7 @@ ggplot(sens_summary,
 
 # bud
 m_sens_bud <- lmerTest::lmer(temp_sens ~ region * treat_competition + 
-                            (1|species) + (1|block_ID),
+                            (1|species),
                           data = sens_bud)
 summary(m_sens_bud)
 
@@ -341,7 +341,7 @@ model_performance(m_sens_bud)
 
 # flower
 m_sens_flower <- lmerTest::lmer(temp_sens ~ region * treat_competition + 
-                               (1|species) + (1|block_ID),
+                               (1|species),
                              data = sens_flower)
 summary(m_sens_flower)
 
@@ -349,7 +349,7 @@ model_performance(m_sens_flower)
 
 # fruit
 m_sens_fruit <- lmerTest::lmer(temp_sens ~ region * treat_competition + 
-                                  (1|species) + (1|block_ID),
+                                  (1|species),
                                 data = sens_fruit)
 summary(m_sens_fruit)
 
@@ -357,7 +357,7 @@ model_performance(m_sens_fruit)
 
 # seeds
 m_sens_seed <- lmerTest::lmer(temp_sens ~ region * treat_competition + 
-                                 (1|species) + (1|block_ID),
+                                 (1|species),
                                data = sens_seed)
 summary(m_sens_seed)
 
@@ -398,13 +398,13 @@ pvar1_sens_bud <- diag(mm_sens_bud %*% tcrossprod(vcov(m_sens_bud), mm_sens_bud)
 
 # 2. EXTRACT RANDOM EFFECT VARIANCES
 # VarCorr returns variance-covariance matrices for each group
-var_species_sens_bud <- as.numeric(VarCorr(m_sens_bud)$species)
-var_block_sens_bud <- as.numeric(VarCorr(m_sens_bud)$block_ID)
+tvar1_sens_bud <- as.numeric(VarCorr(m_sens_bud)$species)
+#var_block_sens_bud <- as.numeric(VarCorr(m_sens_bud)$block_ID)
 
 # 3. CALCULATE TOTAL VARIANCE
 # This is fixed-effect uncertainty + variance between sites + variance between blocks
 # If you want the interval for a NEW observation (individual point), add sigma(fm1)^2 as well
-tvar1_sens_bud <- pvar1_sens_bud + var_species_sens_bud + var_block_sens_bud + sigma(m_sens_bud)^2
+#tvar1_sens_bud <- pvar1_sens_bud + var_species_sens_bud + var_block_sens_bud + sigma(m_sens_bud)^2
 
 # 4. CALCULATE INTERVALS
 cmult <- 2 # is roughly twice standard error
@@ -459,10 +459,10 @@ mm_sens_flower <- model.matrix(terms(m_sens_flower), newdat_sens_flower)
 
 pvar1_sens_flower <- diag(mm_sens_flower %*% tcrossprod(vcov(m_sens_flower), mm_sens_flower))
 
-var_species_sens_flower <- as.numeric(VarCorr(m_sens_flower)$species)
-var_block_sens_flower <- as.numeric(VarCorr(m_sens_flower)$block_ID)
+tvar1_sens_flower <- as.numeric(VarCorr(m_sens_flower)$species)
+#var_block_sens_flower <- as.numeric(VarCorr(m_sens_flower)$block_ID)
 
-tvar1_sens_flower <- pvar1_sens_flower + var_species_sens_flower + var_block_sens_flower + sigma(m_sens_flower)^2
+#tvar1_sens_flower <- pvar1_sens_flower + var_species_sens_flower + var_block_sens_flower + sigma(m_sens_flower)^2
 
 cmult <- 2
 
@@ -506,10 +506,10 @@ mm_sens_fruit <- model.matrix(terms(m_sens_fruit), newdat_sens_fruit)
 
 pvar1_sens_fruit <- diag(mm_sens_fruit %*% tcrossprod(vcov(m_sens_fruit), mm_sens_fruit))
 
-var_species_sens_fruit <- as.numeric(VarCorr(m_sens_fruit)$species)
-var_block_sens_fruit <- as.numeric(VarCorr(m_sens_fruit)$block_ID)
+tvar1_sens_fruit <- as.numeric(VarCorr(m_sens_fruit)$species)
+#var_block_sens_fruit <- as.numeric(VarCorr(m_sens_fruit)$block_ID)
 
-tvar1_sens_fruit <- pvar1_sens_fruit + var_species_sens_fruit + var_block_sens_fruit + sigma(m_sens_fruit)^2
+#tvar1_sens_fruit <- pvar1_sens_fruit + var_species_sens_fruit + var_block_sens_fruit + sigma(m_sens_fruit)^2
 
 cmult <- 2
 
@@ -554,10 +554,10 @@ mm_sens_seed <- model.matrix(terms(m_sens_seed), newdat_sens_seed)
 
 pvar1_sens_seed <- diag(mm_sens_seed %*% tcrossprod(vcov(m_sens_seed), mm_sens_seed))
 
-var_species_sens_seed <- as.numeric(VarCorr(m_sens_seed)$species)
-var_block_sens_seed <- as.numeric(VarCorr(m_sens_seed)$block_ID)
+tvar1_sens_seed <- as.numeric(VarCorr(m_sens_seed)$species)
+#var_block_sens_seed <- as.numeric(VarCorr(m_sens_seed)$block_ID)
 
-tvar1_sens_seed <- pvar1_sens_seed + var_species_sens_seed + var_block_sens_seed + sigma(m_sens_seed)^2
+#tvar1_sens_seed <- pvar1_sens_seed + var_species_sens_seed + var_block_sens_seed + sigma(m_sens_seed)^2
 
 cmult <- 2
 
