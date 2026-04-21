@@ -28,7 +28,7 @@ climate_all <- climate_all |>
 
 cum_gdd_doy <- ggplot(climate_all,
        aes(x = jday, y = GDD_cum,
-           color = site, linetype = region)) +
+           color = region, linetype = site)) +
   
   geom_line(linewidth = 1.2) +
   
@@ -37,13 +37,12 @@ cum_gdd_doy <- ggplot(climate_all,
        color = "Site",
        linetype = "Site") +
   
-  scale_color_manual(values = c("blue", "pink2"))
+  scale_color_manual(values = c("turquoise4", "pink4"))
 cum_gdd_doy
 
 
-# ggsave(filename = "Output/Onset/GDD_DOY_comparison_NOR_CHE.png", 
+# ggsave(filename = "Output/Onset/GDD_DOY_comparison_NOR_CHE_baseT2.png", 
 #        plot = cum_gdd_doy, width = 12, height = 10, units = "in")
-
 
 
 
