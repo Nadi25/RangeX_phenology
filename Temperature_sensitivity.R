@@ -20,6 +20,10 @@ library(emmeans)
 
 # can only do from mid april because che starts from 13.04.22
 
+# che hi:	13/05/2022	12/10/2022
+# che lo:	12/04/2022	18/10/2022
+
+
 # when does onset start at each site
 # first_onset_bud
 # # A tibble: 4 × 4
@@ -76,6 +80,37 @@ climate_che_22_pre <- climate_che_22 |>
 #     date_time >= as.Date("2022-05-14"),
 #     date_time <= as.Date("2022-05-31")
 #   )
+
+
+# 23 day time frame before the first budding onset
+# except for che hi
+climate_che_22_pre <- climate_che_22 |>
+  filter(
+    (site == "lo" & date_time >= as.Date("2022-04-12") & date_time <= as.Date("2022-05-04")) |
+      (site == "hi" & date_time >= as.Date("2022-05-13") & date_time <= as.Date("2022-06-05"))
+  )
+
+climate_nor_23_pre <- climate_23 |>
+  filter(
+    (site == "lo" & date_time >= as.Date("2023-04-19") & date_time <= as.Date("2023-05-12")) |
+      (site == "hi" & date_time >= as.Date("2023-05-15") & date_time <= as.Date("2023-06-07"))
+  )
+
+
+# 14 day time frame before the first budding onset
+# except for che hi
+climate_che_22_pre <- climate_che_22 |>
+  filter(
+    (site == "lo" & date_time >= as.Date("2022-04-20") & date_time <= as.Date("2022-05-04")) |
+      (site == "hi" & date_time >= as.Date("2022-04-30") & date_time <= as.Date("2022-06-05"))
+  )
+
+climate_nor_23_pre <- climate_23 |>
+  filter(
+    (site == "lo" & date_time >= as.Date("2023-04-28") & date_time <= as.Date("2023-05-12")) |
+      (site == "hi" & date_time >= as.Date("2023-05-24") & date_time <= as.Date("2023-06-07"))
+  )
+
 
 # combine
 climate_all <- bind_rows(climate_che_22_pre, climate_nor_23_pre)
@@ -204,7 +239,7 @@ onset_seed <- phenology3 |>
 # Average onset per site, species and treatment --------------------------------------------------
 # could do per plot as well
 onset_bud_mean <- onset_bud |>
-  group_by(region, site, year, treat_competition, species,) |>
+  group_by(region, site, year, treat_competition, species) |>
   summarise(onset = mean(onset, na.rm = TRUE),
             .groups = "drop")
 onset_bud_mean
