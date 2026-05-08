@@ -84,6 +84,24 @@ climate_gdd_che <- climate_gdd_che |>
 
 
 
+# control plot ------------------------------------------------------------
+ggplot(climate_gdd_che,
+       aes(x = date_measurement,
+           y = GDD_cum,
+           color = site)) +
+  geom_line(size = 1.2) +
+  
+  geom_vline(
+    xintercept = as.Date(c("2022-05-04", "2022-05-14")),
+    linetype = "dashed"
+  ) +
+  
+  labs(
+    x = "Date",
+    y = "Cumulative GDD",
+    title = "Swiss cumulative GDD development"
+  ) 
+
 
 
 
