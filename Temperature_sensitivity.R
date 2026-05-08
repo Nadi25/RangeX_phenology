@@ -53,10 +53,86 @@ library(emmeans)
 # 4 Switzerland lo     2022         135 = 15.05
 
 
+
+# tomst availability
+# NOR lo: 12.05 and 19.06
+# NOR hi: 08.06 and 20.06
+
+
+
 # source climate scripts --------------------------------------------------
 source("Data_preparation_climate_station_CHE.R")
 
 source("Data_preparation_climate_station_NOR.R")
+
+
+
+# che
+climate_gdd_che
+
+climate_gdd_che <- climate_gdd_che |>
+  mutate(
+    jday = yday(date_measurement)
+  )
+
+# 4 Switzerland lo     2022         124 = 04.05
+
+gdd_cum_che_lo <- 91.05
+
+# 3 Switzerland hi     2022         134 = 14.05
+
+gdd_cum_che_hi <- 0.00
+
+
+
+
+# nor
+climate_gdd
+
+climate_gdd <- climate_gdd |>
+  mutate(
+    jday = yday(date_measurement)
+  )
+
+
+# 2 Norway      lo     2023         132 = 12.05
+# lo 2023-05-12 16.2 4.8 10.50 2023-01-11 8.50 149.30 132
+
+gdd_cum_nor_lo <- 149.30
+
+# 1 Norway      hi     2023         158 = 07.06
+# hi 2023-06-07 16.7 5.9 11.30 2023-04-15 9.30 181.00 158
+
+gdd_cum_nor_hi <- 181.00
+
+
+
+pre_gdd <- tibble(
+  region = c("Switzerland", "Switzerland",
+             "Norway", "Norway"),
+  
+  site = c("hi", "lo",
+           "hi", "lo"),
+  
+  year = c(2022, 2022,
+           2023, 2023),
+  
+  GDD_cum = c(
+    0.00,    # CHE hi
+    91.05,   # CHE lo
+    181.00,  # NOR hi
+    149.30   # NOR lo
+  )
+)
+
+pre_gdd
+
+
+
+
+
+
+
 
 # combine nor and che -----------------------------------------------------
 climate_23
@@ -277,6 +353,15 @@ sens_bud <- onset_bud_mean |>
   )
 sens_bud
 
+# gdd
+sens_bud_gdd <- onset_bud_mean |>
+  left_join(pre_climate, by = c("region","site", "year")) |>
+  pivot_wider(names_from = site,
+              values_from = c(onset, Tmean)) |>
+  mutate(
+    temp_sens = (onset_lo - onset_hi) / ( - Tmean_hi)
+  )
+sens_bud
 
 sens_flower <- onset_flower_mean |>
   left_join(pre_climate, by = c("region","site", "year")) |>
