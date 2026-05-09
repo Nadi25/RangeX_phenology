@@ -127,8 +127,9 @@ pre_gdd <- tibble(
 
 pre_gdd
 
-
-
+pre_gdd_nor <- pre_gdd |> 
+  filter(region == "Norway")
+pre_gdd_nor
 
 
 
@@ -353,16 +354,6 @@ sens_bud <- onset_bud_mean |>
   )
 sens_bud
 
-# gdd
-sens_bud_gdd <- onset_bud_mean |>
-  left_join(pre_climate, by = c("region","site", "year")) |>
-  pivot_wider(names_from = site,
-              values_from = c(onset, Tmean)) |>
-  mutate(
-    temp_sens = (onset_lo - onset_hi) / ( - Tmean_hi)
-  )
-sens_bud
-
 sens_flower <- onset_flower_mean |>
   left_join(pre_climate, by = c("region","site", "year")) |>
   pivot_wider(names_from = site,
@@ -402,9 +393,62 @@ sens_all
 
 
 
+# GDD ---------------------------------------------------------------------
+
+# gdd nor
+# bud
+sens_bud_gdd_nor <- onset_bud_mean |>
+  left_join(pre_gdd_nor, by = c("region","site", "year")) |>
+  pivot_wider(names_from = site,
+              values_from = c(onset, GDD_cum)) |>
+  mutate(
+    temp_sens = (onset_lo - onset_hi) / (GDD_cum_lo - GDD_cum_hi)
+  )
+sens_bud_gdd_nor
+
+# flower
+sens_flower_gdd_nor <- onset_flower_mean |>
+  left_join(pre_gdd_nor, by = c("region","site", "year")) |>
+  pivot_wider(names_from = site,
+              values_from = c(onset, GDD_cum)) |>
+  mutate(
+    temp_sens = (onset_lo - onset_hi) / (GDD_cum_lo - GDD_cum_hi)
+  )
+sens_flower_gdd_nor
+
+# fruit
+sens_fruit_gdd_nor <- onset_fruit_mean |>
+  left_join(pre_gdd_nor, by = c("region","site", "year")) |>
+  pivot_wider(names_from = site,
+              values_from = c(onset, GDD_cum)) |>
+  mutate(
+    temp_sens = (onset_lo - onset_hi) / (GDD_cum_lo - GDD_cum_hi)
+  )
+sens_fruit_gdd_nor
+
+# seed
+sens_seed_gdd_nor <- onset_seed_mean |>
+  left_join(pre_gdd_nor, by = c("region","site", "year")) |>
+  pivot_wider(names_from = site,
+              values_from = c(onset, GDD_cum)) |>
+  mutate(
+    temp_sens = (onset_lo - onset_hi) / (GDD_cum_lo - GDD_cum_hi)
+  )
+sens_seed_gdd_nor
+
+# combine
+sens_all_gdd_nor <- bind_rows(
+  sens_bud_gdd_nor   |> mutate(stage = "bud"),
+  sens_flower_gdd_nor|> mutate(stage = "flower"),
+  sens_fruit_gdd_nor |> mutate(stage = "fruit"),
+  sens_seed_gdd_nor  |> mutate(stage = "seed")
+)
+sens_all_gdd_nor
 
 
-# plot  -------------------------------------------------------------------
+
+
+# plot with pre temp average -------------------------------------------------------------------
 
 ggplot(sens_all,
        aes(x = stage,
