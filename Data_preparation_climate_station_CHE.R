@@ -106,5 +106,86 @@ ggplot(climate_gdd_che,
 
 
 
+# combine tomst with climate station --------------------------------------
+# use early season tomst until 13.04
+# and climate station from when available
+
+source("Data_preparation_TMS4_CHE.R")
+
+
+climate_tomst_22_site
+
+climate_tomst_22_site <- climate_tomst_22_site |> 
+  rename(Tavg = Tavg_tms)
+
+climate_22_daily
+
+
+# climate_tomst_pre <- climate_tomst_22_site |>
+#   filter(date < as.Date("2022-05-13"))
+
+# use both sites until tomst is available 
+# so that low site is not accumulating a lot more heat than hi
+climate_tomst_pre <- climate_tomst_22_site |>
+  filter(case_when(site == "lo" ~ date < as.Date("2022-04-12"),
+                   site == "hi" ~ date < as.Date("2022-05-13")))
+
+
+
+
+climate_che_combined <- bind_rows(
+  climate_tomst_pre,
+  climate_22_daily
+) |>
+  arrange(site, date)
+
+ggplot(climate_che_combined,
+       aes(x = date, y = Tavg, color = site)) +
+  geom_line() 
+
+
+
+
+# 1) indicator: Tavg > Tbase
+clim_flag_che_comb <- climate_che_combined |> 
+  arrange(site, date) |> 
+  mutate(is_warm = (Tavg > Tbase))
+
+
+# find out start of growing season -------------------------------------
+# 2) compute run of Nconsec TRUE per site and find first date
+season_start_che_comb <- clim_flag_che_comb |> 
+  group_by(site) |> 
+  mutate(run_N = slider::slide_dbl(is_warm, ~ ifelse(sum(.x) == length(.x), 1, 0),
+                                   .before = Nconsec - 1, .complete = TRUE)) |> 
+  # run_N == 1 on the last day of a full Nconsec-run of TRUEs
+  filter(run_N == 1) |> 
+  summarise(season_start = min(date), .groups = "drop")
+season_start_che_comb
+
+# 1 hi    2022-03-28  
+# 2 lo    2022-03-26  
+
+# calculate gdd per site ----------------------------------------------
+# 3) join start dates back and calculate GDD from that start in april
+climate_gdd_che_comb <- climate_che_combined |> 
+  left_join(season_start_che_comb, by = "site") |> 
+  filter(!is.na(season_start)) |> 
+  group_by(site) |> 
+  arrange(date) |> 
+  mutate(
+    # only accumulate on/after season_start
+    GDD_day = if_else(date >= season_start, pmax(0, Tavg - Tbase), 0),
+    GDD_cum = cumsum(GDD_day)
+  ) |> 
+  ungroup()
+climate_gdd_che_comb
+
+# rename date to date_measurement --------------------------------------
+# to match phenology
+climate_gdd_che_comb <- climate_gdd_che_comb |> 
+  rename("date_measurement" = "date")
+
+
 
 
