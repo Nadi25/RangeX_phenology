@@ -51,11 +51,13 @@ unique(phenology_che$date_measurement)
 source("Data_preparation_climate_station_CHE.R")
 
 # use 
-climate_gdd_che
+# climate_gdd_che
+# uses tms data for beginning until May and then climate station
+climate_gdd_che_comb
 
 # combine gdd_cum and phenology_nor ------------------------------------
 phenology_with_gdd_che <- phenology_che |> 
-  left_join(climate_gdd_che |> 
+  left_join(climate_gdd_che_comb |> 
               select(site, date_measurement, GDD_cum, Tavg),
             by = c("site", "date_measurement"))
 
