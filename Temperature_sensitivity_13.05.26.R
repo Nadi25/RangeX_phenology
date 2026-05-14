@@ -197,43 +197,35 @@ get_mean_onset <- function(data, stage_name) {
 # calculate mean onset per species and plot for all stages ----------------
 onset_bud    <- get_mean_onset(phenology3, "No_Buds")
 onset_flower <- get_mean_onset(phenology3, "No_FloOpen")
-onset_fruit  <- get_mean_onset(phenology3, "No_Fruit")
-onset_seed   <- get_mean_onset(phenology3, "No_Seed")
+onset_fruit  <- get_mean_onset(phenology3, "No_FloWithrd")
+onset_seed   <- get_mean_onset(phenology3, "No_Seeds")
 
 # combine the fruiting stages nor and che to compare the onset
 # this is to be taken with caution because the stages are not the same
 # but for the onset it could be comparable
 
 
-# Average onset per site, species and treatment --------------------------------------------------
-# could do per plot as well
-onset_bud_mean <- onset_bud |>
-  group_by(region, site, year, treat_competition, species) |>
-  summarise(onset = mean(onset, na.rm = TRUE),
-            .groups = "drop")
-onset_bud_mean
 
-onset_flower_mean <- onset_flower |>
-  group_by(region, site, year, treat_competition, species) |>
-  summarise(onset = mean(onset, na.rm = TRUE),
-            .groups = "drop")
-onset_flower_mean
 
-onset_fruit_mean <- onset_fruit |>
-  group_by(region, site, year, treat_competition, species) |>
-  summarise(onset = mean(onset, na.rm = TRUE),
-            .groups = "drop")
-onset_fruit_mean
+# Average across species, site and treat -----------------------------------------
 
-onset_seed_mean <- onset_seed |>
-  group_by(region, site, year, treat_competition, species) |>
-  summarise(onset = mean(onset, na.rm = TRUE),
-            .groups = "drop")
-onset_seed_mean
+get_species_onset <- function(onset_data) {
+  onset_data |>
+    group_by(region, site, treat_competition, species) |>
+    summarise(
+      onset = mean(onset, na.rm = TRUE),
+      .groups = "drop"
+    )
+}
+
+onset_bud_mean    <- get_species_onset(onset_bud)
+onset_flower_mean <- get_species_onset(onset_flower)
+onset_fruit_mean  <- get_species_onset(onset_fruit)
+onset_seed_mean   <- get_species_onset(onset_seed)
 
 
 
-#
+
 
 
 # Calculate temperature sensitivity ---------------------------------------
@@ -242,7 +234,7 @@ onset_seed_mean
 # bud ---------------------------------------------------------------------
 sens_bud <- onset_bud_mean |>
   left_join(pre_climate1, by = c("region","site")) |>
-  group_by(site, species, ) |> 
+  group_by(site, species) |> 
   pivot_wider(names_from = site,
               values_from = c(onset, Tmean)) |>
   mutate(
@@ -253,16 +245,119 @@ sens_bud
 
 ggplot(sens_bud, aes(x = treat_competition, y = temp_sens, color = species)) +
   geom_point(position = position_jitter(width = 0.15, height = 0), size = 2, alpha = 0.85) +
-  theme_bw()+
+  facet_wrap(~region)
+
+
+# flower ---------------------------------------------------------------------
+sens_flower <- onset_flower_mean |>
+  left_join(pre_climate1, by = c("region","site")) |>
+  group_by(site, species) |> 
+  pivot_wider(names_from = site,
+              values_from = c(onset, Tmean)) |>
+  mutate(
+    temp_sens = (onset_lo - onset_hi) / (Tmean_lo - Tmean_hi)
+  )
+sens_flower
+
+ggplot(sens_flower, aes(x = treat_competition, y = temp_sens, color = species)) +
+  geom_point(position = position_jitter(width = 0.15, height = 0), size = 2, alpha = 0.85) +
+  facet_wrap(~region)
+
+
+# fruit ---------------------------------------------------------------------
+sens_fruit <- onset_fruit_mean |>
+  left_join(pre_climate1, by = c("region","site")) |>
+  group_by(site, species) |> 
+  pivot_wider(names_from = site,
+              values_from = c(onset, Tmean)) |>
+  mutate(
+    temp_sens = (onset_lo - onset_hi) / (Tmean_lo - Tmean_hi)
+  )
+sens_fruit
+
+ggplot(sens_fruit, aes(x = treat_competition, y = temp_sens, color = species)) +
+  geom_point(position = position_jitter(width = 0.15, height = 0), size = 2, alpha = 0.85) +
+  facet_wrap(~region)
+
+
+# seed ---------------------------------------------------------------------
+sens_seed <- onset_seed_mean |>
+  left_join(pre_climate1, by = c("region","site")) |>
+  group_by(site, species) |> 
+  pivot_wider(names_from = site,
+              values_from = c(onset, Tmean)) |>
+  mutate(
+    temp_sens = (onset_lo - onset_hi) / (Tmean_lo - Tmean_hi)
+  )
+sens_seed
+
+
+ggplot(sens_seed, aes(x = treat_competition, y = temp_sens, color = species)) +
+  geom_point(position = position_jitter(width = 0.15, height = 0), size = 2, alpha = 0.85) +
   facet_wrap(~region)
 
 
 
 
+# combine sens from all stages -------------------------------------------
+sens_all <- bind_rows(
+  sens_bud   |> mutate(stage = "bud"),
+  sens_flower|> mutate(stage = "flower"),
+  sens_fruit |> mutate(stage = "fruit"),
+  sens_seed  |> mutate(stage = "seed")
+)
+sens_all
 
 
 
+# quick control plot ------------------------------------------------------
+ggplot(sens_all,
+       aes(x = stage,
+           y = temp_sens,
+           color = treat_competition)) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_point(position = position_dodge(width = 0.4),
+             alpha = 0.7) 
 
+
+
+ggplot(sens_all,
+       aes(x = stage,
+           y = temp_sens,
+           color = treat_competition)) +
+  
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  
+  # individual species
+  geom_point(
+    position = position_jitterdodge(
+      jitter.width = 0.1,
+      dodge.width = 0.4
+    ),
+    alpha = 0.4
+  ) +
+  
+  # mean ± 95% CI
+  stat_summary(
+    fun.data = mean_cl_normal,
+    geom = "errorbar",
+    position = position_dodge(width = 0.4),
+    width = 0.15,
+    linewidth = 0.8
+  ) +
+  
+  stat_summary(
+    fun = mean,
+    geom = "point",
+    position = position_dodge(width = 0.4),
+    size = 3
+  ) +
+  
+  labs(
+    x = "Phenological stage",
+    y = expression("Temperature sensitivity (days " ~ degree*C^-1 * ")"),
+    color = "Competition"
+  )
 
 
 
