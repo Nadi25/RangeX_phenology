@@ -39,12 +39,8 @@ climate_che_combined
 # 1. 30 days before first mean budding onset
 # 1 Norway            172. # 21.06
 # 2 Switzerland       156. # 05.06
-climate_nor_23_pre1 <- climate_23_daily |>
-  filter(
-    date >= as.Date("2023-05-14"),
-    date <= as.Date("2023-06-12")
-  )
 
+# NOR
 climate_nor_23_pre1 <- climate_23_daily |>
   filter(
     date >= as.Date("2023-05-21"),
@@ -54,12 +50,7 @@ climate_nor_23_pre1 <- climate_23_daily |>
 climate_nor_23_pre1 <- climate_nor_23_pre1 |> 
   mutate(region = "Norway")
 
-climate_che_22_pre1 <- climate_che_combined |>
-  filter(
-    date >= as.Date("2022-04-29"),
-    date <= as.Date("2022-05-28")
-  )
-
+# CHE
 climate_che_22_pre1 <- climate_che_combined |>
   filter(
     date >= as.Date("2022-05-05"),
@@ -90,6 +81,15 @@ names(phenology)
 # set theme for plots for presentation ------------------------------------
 theme_set(theme_bw(base_size = 20))
 
+
+# rename infructescence stage of NOR to FlowWithrd ------------------------
+# this will be the fruiting stage
+# combine the fruiting stages nor and che to compare the onset
+# this is to be taken with caution because the stages are not the same
+# but for the onset it could be comparable
+phenology <- phenology |>
+  mutate(phenology_stage = recode(phenology_stage,
+                                  "No_Infructescences" = "No_FloWithrd"))
 
 # and get julian days ---------------------------------------------------
 # yday(date)
@@ -225,71 +225,44 @@ onset_seed_mean   <- get_species_onset(onset_seed)
 
 
 
-
-
-
 # Calculate temperature sensitivity ---------------------------------------
+# function to get temp sens
+get_temp_sens <- function(onset_mean_data, pre_climate_data) {
+  onset_mean_data |>
+    left_join(pre_climate_data, by = c("region","site")) |>
+    group_by(region, species, treat_competition ) |>  # or group by site and species?
+    pivot_wider(names_from = site,
+                values_from = c(onset, Tmean)) |>
+    mutate(
+      temp_sens = (onset_lo - onset_hi) / (Tmean_lo - Tmean_hi)
+    )
+}
 
 
-# bud ---------------------------------------------------------------------
-sens_bud <- onset_bud_mean |>
-  left_join(pre_climate1, by = c("region","site")) |>
-  group_by(site, species) |> 
-  pivot_wider(names_from = site,
-              values_from = c(onset, Tmean)) |>
-  mutate(
-    temp_sens = (onset_lo - onset_hi) / (Tmean_lo - Tmean_hi)
-  )
-sens_bud
+
+# temperature sensitivity 30 days window ----------------------------------
+# get temp sens per stage for pre_climate1 = 30 days
+sens_bud_30    <- get_temp_sens(onset_bud_mean, pre_climate1)
+sens_flower_30    <- get_temp_sens(onset_flower_mean, pre_climate1)
+sens_fruit_30    <- get_temp_sens(onset_fruit_mean, pre_climate1)
+sens_seed_30   <- get_temp_sens(onset_seed_mean, pre_climate1)
 
 
+
+# control plots sensitivity -----------------------------------------------
 ggplot(sens_bud, aes(x = treat_competition, y = temp_sens, color = species)) +
   geom_point(position = position_jitter(width = 0.15, height = 0), size = 2, alpha = 0.85) +
   facet_wrap(~region)
 
-
-# flower ---------------------------------------------------------------------
-sens_flower <- onset_flower_mean |>
-  left_join(pre_climate1, by = c("region","site")) |>
-  group_by(site, species) |> 
-  pivot_wider(names_from = site,
-              values_from = c(onset, Tmean)) |>
-  mutate(
-    temp_sens = (onset_lo - onset_hi) / (Tmean_lo - Tmean_hi)
-  )
-sens_flower
 
 ggplot(sens_flower, aes(x = treat_competition, y = temp_sens, color = species)) +
   geom_point(position = position_jitter(width = 0.15, height = 0), size = 2, alpha = 0.85) +
   facet_wrap(~region)
 
 
-# fruit ---------------------------------------------------------------------
-sens_fruit <- onset_fruit_mean |>
-  left_join(pre_climate1, by = c("region","site")) |>
-  group_by(site, species) |> 
-  pivot_wider(names_from = site,
-              values_from = c(onset, Tmean)) |>
-  mutate(
-    temp_sens = (onset_lo - onset_hi) / (Tmean_lo - Tmean_hi)
-  )
-sens_fruit
-
 ggplot(sens_fruit, aes(x = treat_competition, y = temp_sens, color = species)) +
   geom_point(position = position_jitter(width = 0.15, height = 0), size = 2, alpha = 0.85) +
   facet_wrap(~region)
-
-
-# seed ---------------------------------------------------------------------
-sens_seed <- onset_seed_mean |>
-  left_join(pre_climate1, by = c("region","site")) |>
-  group_by(site, species) |> 
-  pivot_wider(names_from = site,
-              values_from = c(onset, Tmean)) |>
-  mutate(
-    temp_sens = (onset_lo - onset_hi) / (Tmean_lo - Tmean_hi)
-  )
-sens_seed
 
 
 ggplot(sens_seed, aes(x = treat_competition, y = temp_sens, color = species)) +
@@ -300,18 +273,18 @@ ggplot(sens_seed, aes(x = treat_competition, y = temp_sens, color = species)) +
 
 
 # combine sens from all stages -------------------------------------------
-sens_all <- bind_rows(
-  sens_bud   |> mutate(stage = "bud"),
-  sens_flower|> mutate(stage = "flower"),
-  sens_fruit |> mutate(stage = "fruit"),
-  sens_seed  |> mutate(stage = "seed")
+sens_all_30 <- bind_rows(
+  sens_bud_30   |> mutate(stage = "Budding"),
+  sens_flower_30|> mutate(stage = "Flowering"),
+  sens_fruit_30 |> mutate(stage = "Fruiting"),
+  sens_seed_30  |> mutate(stage = "Seeds")
 )
-sens_all
+sens_all_30
 
 
 
 # quick control plot ------------------------------------------------------
-ggplot(sens_all,
+ggplot(sens_all_30,
        aes(x = stage,
            y = temp_sens,
            color = treat_competition)) +
@@ -320,8 +293,8 @@ ggplot(sens_all,
              alpha = 0.7) 
 
 
-
-ggplot(sens_all,
+# plot the raw sens data 
+ggplot(sens_all_30,
        aes(x = stage,
            y = temp_sens,
            color = treat_competition)) +
@@ -334,7 +307,7 @@ ggplot(sens_all,
       jitter.width = 0.1,
       dodge.width = 0.4
     ),
-    alpha = 0.4
+    alpha = 0.3
   ) +
   
   # mean ± 95% CI
@@ -350,15 +323,200 @@ ggplot(sens_all,
     fun = mean,
     geom = "point",
     position = position_dodge(width = 0.4),
-    size = 3
+    size = 4
   ) +
   
   labs(
     x = "Phenological stage",
-    y = expression("Temperature sensitivity (days " ~ degree*C^-1 * ")"),
-    color = "Competition"
-  )
+    y = expression("Temperature sensitivity (days / °C)"),
+    color = "Biotic interactions"
+  )+
+  facet_wrap(~ region)
 
+
+
+# sensitivity models ------------------------------------------------------------------
+# function for fitting the model per stage
+fit_sens_model <- function(sens_data) {
+  
+  model <- lmerTest::lmer(
+    temp_sens ~ region * treat_competition + (1 | species),
+    data = sens_data
+  )
+  
+  return(model)
+}
+
+# fit the models
+m_sens_bud_30    <- fit_sens_model(sens_bud_30)
+m_sens_flower_30 <- fit_sens_model(sens_flower_30)
+m_sens_fruit_30  <- fit_sens_model(sens_fruit_30)
+m_sens_seed_30   <- fit_sens_model(sens_seed_30)
+
+
+
+# check model outputs -----------------------------------------------------
+# bud
+summary(m_sens_bud_30)
+anova(m_sens_bud_30)
+model_performance(m_sens_bud_30)
+#check_model(m_sens_bud_30)
+
+# flower
+summary(m_sens_flower_30)
+anova(m_sens_flower_30)
+model_performance(m_sens_flower_30)
+
+# fruit
+summary(m_sens_fruit_30)
+anova(m_sens_fruit_30)
+model_performance(m_sens_fruit_30)
+
+
+# seeds
+summary(m_sens_seed_30)
+anova(m_sens_seed_30)
+model_performance(m_sens_seed_30)
+
+
+
+
+
+
+# predict sensitivity for each stage with function ------------------------
+
+make_sens_predictions <- function(model) {
+  
+  # 1. new data
+  newdat <- expand.grid(
+    region = c("Norway", "Switzerland"),
+    treat_competition = c("with", "without"),
+    temp_sens = 0
+  )
+  
+  # 2. fixed-effect predictions
+  newdat$temp_sens <- predict(
+    model,
+    newdata = newdat,
+    re.form = NA
+  )
+  
+  # 3. model matrix
+  mm <- model.matrix(terms(model), newdat)
+  
+  # 4. fixed-effect variance
+  pvar <- diag(mm %*% tcrossprod(vcov(model), mm))
+  
+  # 5. confidence intervals
+  cmult <- 2
+  
+  newdat <- newdat |>
+    mutate(
+      plo = temp_sens - cmult * sqrt(pvar),
+      phi = temp_sens + cmult * sqrt(pvar)
+    )
+  
+  return(newdat)
+}
+
+
+pred_bud_30    <- make_sens_predictions(m_sens_bud_30)
+pred_flower_30 <- make_sens_predictions(m_sens_flower_30)
+pred_fruit_30  <- make_sens_predictions(m_sens_fruit_30)
+pred_seed_30   <- make_sens_predictions(m_sens_seed_30)
+
+
+plot_predictions_30 <- bind_rows(
+  pred_bud_30    |> mutate(stage = "Budding"),
+  pred_flower_30 |> mutate(stage = "Flowering"),
+  pred_fruit_30  |> mutate(stage = "Fruiting"),
+  pred_seed_30   |> mutate(stage = "Seeds")
+)
+plot_predictions_30
+
+
+
+# Plot temp sensitivity of all stages -------------------------------------
+ggplot(plot_predictions_30,
+       aes(x = treat_competition,
+           y = temp_sens,
+           color = treat_competition)) +
+  
+  geom_point(size = 3) +
+  
+  geom_errorbar(
+    aes(ymin = plo, ymax = phi),
+    width = 0.15
+  ) +
+  
+  facet_grid(region ~ stage) +
+  
+  scale_color_manual(values = c(
+    "with" = "#528B8B",
+    "without" = "#CD950C"
+  )) +
+  
+  labs(
+    x = "Biotic interactions",
+    y = expression("Predicted temperature sensitivity (days/°C)")
+  )+
+  theme(legend.position = "none")
+
+
+
+
+
+ggplot() +
+  
+  # raw species values
+  geom_jitter(
+    data = sens_all_30,
+    aes(
+      x = treat_competition,
+      y = temp_sens,
+      color = treat_competition
+    ),
+    width = 0.08,
+    alpha = 0.25
+  ) +
+  
+  # model predictions
+  geom_point(
+    data = plot_predictions_30,
+    aes(
+      x = treat_competition,
+      y = temp_sens,
+      color = treat_competition
+    ),
+    size = 3
+  ) +
+  
+  geom_errorbar(
+    data = plot_predictions_30,
+    aes(
+      x = treat_competition,
+      ymin = plo,
+      ymax = phi,
+      color = treat_competition
+    ),
+    width = 0.12
+  ) +
+  
+  facet_grid(region ~ stage) +
+  
+  scale_color_manual(values = c(
+    "with" = "#528B8B",
+    "without" = "#CD950C"
+  )) +
+  
+  labs(
+    x = "Biotic interactions",
+    y = expression("Temperature sensitivity (days/"*degree*"C)")
+  ) +
+  theme(
+    legend.position = "none"
+  )+
+  geom_hline(yintercept=0, linetype = "dashed")
 
 
 
