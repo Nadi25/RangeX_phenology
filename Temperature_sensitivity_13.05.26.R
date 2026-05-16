@@ -36,7 +36,8 @@ climate_che_combined
 
 # filter time period for pre-season window --------------------------------
 
-# 1. 30 days before first mean budding onset
+# x days before first mean budding onset
+# mean per region
 # 1 Norway            172. # 21.06
 # 2 Switzerland       156. # 05.06
 
@@ -49,7 +50,6 @@ climate_nor_23_pre30 <- climate_23_daily |>
     date <= as.Date("2023-06-20")
   ) |> 
   mutate(region = "Norway")
-
 
 
 # CHE
@@ -73,7 +73,6 @@ pre_climate30
 
 
 # preclimate 14 - 14 days ------------------------------------------------------------
-
 # NOR
 climate_nor_23_pre14 <- climate_23_daily |>
   filter(
@@ -106,7 +105,6 @@ pre_climate14
 
 
 # preclimate 60 - 60 days ------------------------------------------------------------
-
 # NOR
 climate_nor_23_pre60 <- climate_23_daily |>
   filter(
@@ -140,7 +138,6 @@ pre_climate60
 
 
 # preclimate growing season mean ------------------------------------------
-
 # NOR
 climate_nor_23_pre_gs <- climate_23_daily |>
   filter(
@@ -230,13 +227,13 @@ first_onset_bud <- onset_bud |>
 first_onset_bud
 
 mean_onset_bud_species <- onset_bud |>
-  group_by(region, site, year, species) |>
+  group_by(region, site, species) |>
   summarise(mean_onset = mean(onset, na.rm = TRUE),
             .groups = "drop")
 mean_onset_bud_species
 
 mean_onset_bud <- onset_bud |>
-  group_by(region, site, year) |>
+  group_by(region, site) |>
   summarise(mean_onset = mean(onset, na.rm = TRUE),
             .groups = "drop")
 mean_onset_bud
@@ -246,11 +243,11 @@ mean_onset_bud
 # 3 Switzerland hi     2022       165. # 14.06
 # 4 Switzerland lo     2022       149. # 29.05
 
-mean_onset_bud_site <- onset_bud |>
+mean_onset_bud_region <- onset_bud |>
   group_by(region) |>
   summarise(mean_onset = mean(onset, na.rm = TRUE),
             .groups = "drop")
-mean_onset_bud_site
+mean_onset_bud_region
 
 # 1 Norway            172. # 21.06
 # 2 Switzerland       156. # 05.06
@@ -1496,6 +1493,371 @@ AIC(m_sens_seed_14, m_sens_seed_30, m_sens_seed_60, m_sens_seed_gs)
 
 
 # looks like the 60 day pre-climate window is the best
+
+
+
+
+
+
+# GDD ---------------------------------------------------------------------
+
+source("GDD_Cooling_bud_flower_fruit_predictions.R")
+# use 
+phenology_gdd_nor_che
+
+# function to calculate mean onset per plot ------------------------------
+# take the average onset for the three individuals per species in one plot
+# first budding date per individual
+# then average per plot
+get_mean_onset_gdd <- function(data, stage_name) {
+  
+  data |>
+    filter(
+      phenology_stage == stage_name,
+      value > 0
+    ) |>
+    
+    # first onset per individual
+    group_by(
+      region, site, treat_competition,
+      species, block_ID, unique_plot_ID,
+      unique_plant_ID
+    ) |>
+    summarise(
+      first_onset = min(GDD_cum),
+      .groups = "drop"
+    ) |>
+    
+    # mean onset across 3 individuals within plot
+    group_by(
+      region, site, treat_competition,
+      species, block_ID, unique_plot_ID
+    ) |>
+    summarise(
+      onset = mean(first_onset),
+      .groups = "drop"
+    )
+}
+
+
+# calculate mean onset per species and plot for all stages ----------------
+onset_bud_gdd    <- get_mean_onset_gdd(phenology_gdd_nor_che, "No_Buds")
+onset_flower_gdd <- get_mean_onset_gdd(phenology_gdd_nor_che, "No_FloOpen")
+onset_fruit_gdd  <- get_mean_onset_gdd(phenology_gdd_nor_che, "No_FloWithrd")
+onset_seed_gdd   <- get_mean_onset_gdd(phenology_gdd_nor_che, "No_Seeds")
+
+# combine the fruiting stages nor and che to compare the onset
+# this is to be taken with caution because the stages are not the same
+# but for the onset it could be comparable
+
+
+
+
+# Average across species, site and treat -----------------------------------------
+
+get_species_onset <- function(onset_data) {
+  onset_data |>
+    group_by(region, site, treat_competition, species) |>
+    summarise(
+      onset = mean(onset, na.rm = TRUE),
+      .groups = "drop"
+    )
+}
+
+onset_bud_mean_gdd    <- get_species_onset(onset_bud_gdd)
+onset_flower_mean_gdd <- get_species_onset(onset_flower_gdd)
+onset_fruit_mean_gdd  <- get_species_onset(onset_fruit_gdd)
+onset_seed_mean_gdd   <- get_species_onset(onset_seed_gdd)
+
+
+
+# Calculate temperature sensitivity ---------------------------------------
+# function to get temp sens
+get_temp_sens <- function(onset_mean_data, pre_climate_data) {
+  onset_mean_data |>
+    left_join(pre_climate_data, by = c("region","site")) |>
+    group_by(region, species, treat_competition ) |>  # or group by site and species?
+    pivot_wider(names_from = site,
+                values_from = c(onset, Tmean)) |>
+    mutate(
+      temp_sens = (onset_lo - onset_hi) / (Tmean_lo - Tmean_hi)
+    )
+}
+
+
+# GDD temperature sensitivity 60 days window ----------------------------------
+# get temp sens per stage for pre_climate = 60 days
+sens_bud_60_gdd    <- get_temp_sens(onset_bud_mean_gdd, pre_climate60)
+sens_flower_60_gdd    <- get_temp_sens(onset_flower_mean_gdd, pre_climate60)
+sens_fruit_60_gdd   <- get_temp_sens(onset_fruit_mean_gdd, pre_climate60)
+sens_seed_60_gdd   <- get_temp_sens(onset_seed_mean_gdd, pre_climate60)
+
+
+
+# control plots sensitivity -----------------------------------------------
+ggplot(sens_bud_60_gdd, aes(x = treat_competition, y = temp_sens, color = species)) +
+  geom_point(position = position_jitter(width = 0.15, height = 0), size = 2, alpha = 0.85) +
+  facet_wrap(~region)
+
+
+
+# combine sens from all stages -------------------------------------------
+sens_all_60_gdd <- bind_rows(
+  sens_bud_60_gdd   |> mutate(stage = "Budding"),
+  sens_flower_60_gdd|> mutate(stage = "Flowering"),
+  sens_fruit_60_gdd |> mutate(stage = "Fruiting"),
+  sens_seed_60_gdd  |> mutate(stage = "Seeds")
+)
+sens_all_60_gdd
+
+
+
+# quick control plot ------------------------------------------------------
+ggplot(sens_all_60_gdd,
+       aes(x = stage,
+           y = temp_sens,
+           color = treat_competition)) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_point(position = position_dodge(width = 0.4),
+             alpha = 0.7) 
+
+
+# plot the raw sens data 
+ggplot(sens_all_60_gdd,
+       aes(x = stage,
+           y = temp_sens,
+           color = treat_competition)) +
+  
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  
+  # individual species
+  geom_point(
+    position = position_jitterdodge(
+      jitter.width = 0.1,
+      dodge.width = 0.4
+    ),
+    alpha = 0.3
+  ) +
+  
+  # mean ± 95% CI
+  stat_summary(
+    fun.data = mean_cl_normal,
+    geom = "errorbar",
+    position = position_dodge(width = 0.4),
+    width = 0.15,
+    linewidth = 0.8
+  ) +
+  
+  stat_summary(
+    fun = mean,
+    geom = "point",
+    position = position_dodge(width = 0.4),
+    size = 4
+  ) +
+  
+  labs(
+    x = "Phenological stage",
+    y = expression("Temperature sensitivity (GDD / °C)"),
+    color = "Biotic interactions"
+  )+
+  facet_wrap(~ region)
+
+
+# fit the models
+m_sens_bud_60_gdd    <- fit_sens_model(sens_bud_60_gdd)
+m_sens_flower_60_gdd <- fit_sens_model(sens_flower_60_gdd)
+m_sens_fruit_60_gdd  <- fit_sens_model(sens_fruit_60_gdd)
+m_sens_seed_60_gdd   <- fit_sens_model(sens_seed_60_gdd)
+
+
+
+# check model outputs -----------------------------------------------------
+# bud
+summary(m_sens_bud_60_gdd)
+anova(m_sens_bud_60_gdd)
+model_performance(m_sens_bud_60_gdd)
+#check_model(m_sens_bud_60_gdd)
+
+# flower
+summary(m_sens_flower_60_gdd)
+anova(m_sens_flower_60_gdd)
+model_performance(m_sens_flower_60_gdd)
+
+# fruit
+summary(m_sens_fruit_60_gdd)
+anova(m_sens_fruit_60_gdd)
+model_performance(m_sens_fruit_60_gdd)
+
+
+# seeds
+summary(m_sens_seed_60_gdd)
+anova(m_sens_seed_60_gdd)
+model_performance(m_sens_seed_60_gdd)
+
+
+
+
+
+
+# predict sensitivity for each stage with function ------------------------
+
+make_sens_predictions <- function(model) {
+  
+  # 1. new data
+  newdat <- expand.grid(
+    region = c("Norway", "Switzerland"),
+    treat_competition = c("with", "without"),
+    temp_sens = 0
+  )
+  
+  # 2. fixed-effect predictions
+  newdat$temp_sens <- predict(
+    model,
+    newdata = newdat,
+    re.form = NA
+  )
+  
+  # 3. model matrix
+  mm <- model.matrix(terms(model), newdat)
+  
+  # 4. fixed-effect variance
+  pvar <- diag(mm %*% tcrossprod(vcov(model), mm))
+  
+  # 5. confidence intervals
+  cmult <- 2
+  
+  newdat <- newdat |>
+    mutate(
+      plo = temp_sens - cmult * sqrt(pvar),
+      phi = temp_sens + cmult * sqrt(pvar)
+    )
+  
+  return(newdat)
+}
+
+
+pred_bud_60_gdd    <- make_sens_predictions(m_sens_bud_60_gdd)
+pred_flower_60_gdd <- make_sens_predictions(m_sens_flower_60_gdd)
+pred_fruit_60_gdd  <- make_sens_predictions(m_sens_fruit_60_gdd)
+pred_seed_60_gdd   <- make_sens_predictions(m_sens_seed_60_gdd)
+
+
+plot_predictions_60_gdd <- bind_rows(
+  pred_bud_60_gdd    |> mutate(stage = "Budding"),
+  pred_flower_60_gdd |> mutate(stage = "Flowering"),
+  pred_fruit_60_gdd  |> mutate(stage = "Fruiting"),
+  pred_seed_60_gdd   |> mutate(stage = "Seeds")
+)
+plot_predictions_60_gdd
+
+
+
+# Plot temp sensitivity of all stages -------------------------------------
+ggplot(plot_predictions_60_gdd,
+       aes(x = treat_competition,
+           y = temp_sens,
+           color = treat_competition)) +
+  
+  geom_point(size = 3) +
+  
+  geom_errorbar(
+    aes(ymin = plo, ymax = phi),
+    width = 0.15
+  ) +
+  
+  facet_grid(region ~ stage) +
+  
+  scale_color_manual(values = c(
+    "with" = "#528B8B",
+    "without" = "#CD950C"
+  )) +
+  
+  labs(
+    x = "Biotic interactions",
+    y = expression("Predicted temperature sensitivity (GDD/°C)")
+  )+
+  theme(legend.position = "none")
+
+
+
+
+
+temp_sens_60_gdd <- ggplot() +
+  
+  # raw species values
+  geom_jitter(
+    data = sens_all_60_gdd,
+    aes(
+      x = treat_competition,
+      y = temp_sens,
+      color = treat_competition
+    ),
+    width = 0.08,
+    alpha = 0.25
+  ) +
+  
+  # model predictions
+  geom_point(
+    data = plot_predictions_60_gdd,
+    aes(
+      x = treat_competition,
+      y = temp_sens,
+      color = treat_competition
+    ),
+    size = 3
+  ) +
+  
+  geom_errorbar(
+    data = plot_predictions_60_gdd,
+    aes(
+      x = treat_competition,
+      ymin = plo,
+      ymax = phi,
+      color = treat_competition
+    ),
+    width = 0.12
+  ) +
+  
+  facet_grid(region ~ stage) +
+  
+  scale_color_manual(values = c(
+    "with" = "#528B8B",
+    "without" = "#CD950C"
+  )) +
+  
+  labs(
+    x = "Biotic interactions",
+    y = expression("Temperature sensitivity (GDD/"*degree*"C)")
+  ) +
+  theme(
+    legend.position = "none"
+  )+
+  geom_hline(yintercept=0, linetype = "dashed")
+temp_sens_60_gdd
+
+# ggsave(filename = "Output/Sensitivity/Temperature_sensitivity_GDD_60_bud_flower_fruit_seed_onset_NOR_CHE.png", 
+#       plot = temp_sens_60_gdd,
+#        width = 15, height = 10, units = "in")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
