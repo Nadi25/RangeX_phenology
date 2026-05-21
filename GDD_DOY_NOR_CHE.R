@@ -12,8 +12,11 @@ source("Data_preparation_climate_station_NOR.R")
 theme_set(theme_bw(base_size = 20))
 
 
-climate_gdd_che$region <- "Switzerland climate station"
-climate_gdd$region <- "Norway climate station"
+climate_gdd_che$type <- "Switzerland climate station"
+climate_gdd$type <- "Norway climate station"
+
+climate_gdd_che$region <- "Switzerland"
+climate_gdd$region <- "Norway"
 
 climate_gdd_nor <- climate_gdd
 
@@ -53,7 +56,8 @@ cum_gdd_doy
 source("Data_preparation_TMS4_CHE.R")
 
 
-climate_gdd_che_tms$region <- "Switzerland TMS4"
+climate_gdd_che_tms$type <- "Switzerland TMS4"
+climate_gdd_che_tms$region <- "Switzerland"
 
 
 
@@ -111,7 +115,7 @@ ggplot(compare_temp,
 
 
 # join datasets
-compare_temp2 <- climate_tomst_22_daily |>
+compare_temp2 <- climate_tomst_22_site |>
   left_join(
     climate_22_daily,
     by = c("site", "date")
@@ -154,7 +158,8 @@ ggplot(compare_temp2,
 
 # add combined tms climate station  ---------------------------------------
 
-climate_gdd_che_comb$region <- "Switzerland comb"
+climate_gdd_che_comb$type <- "Switzerland comb"
+climate_gdd_che_comb$region <- "Switzerland comb" # if we keep that we can have three panels, 2 for che
 
 
 climate_all3 <- bind_rows(climate_gdd_che, climate_gdd_nor, climate_gdd_che_tms, climate_gdd_che_comb)
@@ -178,6 +183,61 @@ cum_gdd_doy3 <- ggplot(climate_all3,
   
   scale_color_manual(values = c("turquoise4", "pink4", "red", "blue"))
 cum_gdd_doy3
+
+# ggsave(filename = "Output/Onset/GDD_DOY_Tb2_climate_tms_NOR_CHE.png", 
+#       plot = cum_gdd_doy3,
+#        width = 15, height = 10, units = "in")
+
+
+
+
+
+cum_gdd_doy4 <- ggplot(climate_all3,
+                       aes(x = jday, y = GDD_cum,
+                           color = region, linetype = site)) +
+  
+  geom_line(linewidth = 1.2) +
+  facet_grid(~ type)+
+  
+  labs(x = "Day of year",
+       y = "Cumulative temperature in GDD",
+       color = "Site",
+       linetype = "Site") +
+  
+  scale_color_manual(values = c("turquoise4", "pink4", "red", "blue"))
+cum_gdd_doy4
+
+# ggsave(filename = "Output/Onset/GDD_DOY_Tb2_climate_tms_NOR_CHE.png", 
+#       plot = cum_gdd_doy3,
+#        width = 15, height = 10, units = "in")
+
+
+ggplot(climate_all3,
+       aes(x = jday, y = GDD_cum,
+           color = type, linetype = site)) +
+  
+  geom_line(linewidth = 1.2) +
+  facet_grid(~ region)+
+  
+  labs(x = "Day of year",
+       y = "Cumulative temperature in GDD",
+       color = "Site",
+       linetype = "Site") +
+  
+  + geom_vline(data = switch_dates,
+               aes(xintercept = switch_jday,
+                   color = site),
+               linetype = "dashed",
+               alpha = 0.7,
+               inherit.aes = FALSE)+
+  
+  scale_color_manual(values = c("turquoise4", "pink4", "red", "blue"))
+
+
+
+
+
+
 
 
 
