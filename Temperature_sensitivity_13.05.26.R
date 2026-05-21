@@ -13,7 +13,7 @@ library(emmeans)
 
 
 
-# calcualte delta T -------------------------------------------------------
+# calculate delta T -------------------------------------------------------
 
 # mean temperature per site
 # timeframe before the first phenological event
@@ -307,7 +307,7 @@ onset_seed   <- get_mean_onset(phenology3, "No_Seeds")
 
 get_species_onset <- function(onset_data) {
   onset_data |>
-    group_by(region, site, treat_competition, species) |>
+    group_by(region, site, treat_competition, species, block_ID) |>
     summarise(
       onset = mean(onset, na.rm = TRUE),
       .groups = "drop"
@@ -326,7 +326,7 @@ onset_seed_mean   <- get_species_onset(onset_seed)
 get_temp_sens <- function(onset_mean_data, pre_climate_data) {
   onset_mean_data |>
     left_join(pre_climate_data, by = c("region","site")) |>
-    group_by(region, species, treat_competition ) |>  # or group by site and species?
+    group_by(region, species, treat_competition, block_ID) |>  # or group by site and species?
     pivot_wider(names_from = site,
                 values_from = c(onset, Tmean)) |>
     mutate(
@@ -436,7 +436,7 @@ ggplot(sens_all_30,
 fit_sens_model <- function(sens_data) {
   
   model <- lmerTest::lmer(
-    temp_sens ~ region * treat_competition + (1 | species),
+    temp_sens ~ region * treat_competition + (1 | species) + (1 | block_ID),
     data = sens_data
   )
   
@@ -503,7 +503,14 @@ make_sens_predictions <- function(model) {
   # 4. fixed-effect variance
   pvar <- diag(mm %*% tcrossprod(vcov(model), mm))
   
-  # 5. confidence intervals
+  # 5. random effects
+  var_species <- as.numeric(VarCorr(model)$species)
+  var_block <- as.numeric(VarCorr(model)$block_ID)
+  
+  # 6. total variance
+  tvar1 <- pvar + var_species + var_block + sigma(model)^2
+  
+  # 7. confidence intervals
   cmult <- 2
   
   newdat <- newdat |>
@@ -514,6 +521,17 @@ make_sens_predictions <- function(model) {
   
   return(newdat)
 }
+
+
+# 2. EXTRACT RANDOM EFFECT VARIANCES
+# VarCorr returns variance-covariance matrices for each group
+#tvar1_sens_bud <- as.numeric(VarCorr(m_sens_bud)$species)
+#var_block_sens_bud <- as.numeric(VarCorr(m_sens_bud)$block_ID)
+
+# 3. CALCULATE TOTAL VARIANCE
+# This is fixed-effect uncertainty + variance between sites + variance between blocks
+# If you want the interval for a NEW observation (individual point), add sigma(fm1)^2 as well
+#tvar1_sens_bud <- pvar1_sens_bud + var_species_sens_bud + var_block_sens_bud + sigma(m_sens_bud)^2
 
 
 pred_bud_30    <- make_sens_predictions(m_sens_bud_30)
@@ -573,7 +591,7 @@ temp_sens_30 <- ggplot() +
       color = treat_competition
     ),
     width = 0.08,
-    alpha = 0.25
+    alpha = 0.15
   ) +
   
   # model predictions
@@ -768,41 +786,6 @@ model_performance(m_sens_seed_14)
 
 
 # predict sensitivity for each stage with function ------------------------
-
-make_sens_predictions <- function(model) {
-  
-  # 1. new data
-  newdat <- expand.grid(
-    region = c("Norway", "Switzerland"),
-    treat_competition = c("with", "without"),
-    temp_sens = 0
-  )
-  
-  # 2. fixed-effect predictions
-  newdat$temp_sens <- predict(
-    model,
-    newdata = newdat,
-    re.form = NA
-  )
-  
-  # 3. model matrix
-  mm <- model.matrix(terms(model), newdat)
-  
-  # 4. fixed-effect variance
-  pvar <- diag(mm %*% tcrossprod(vcov(model), mm))
-  
-  # 5. confidence intervals
-  cmult <- 2
-  
-  newdat <- newdat |>
-    mutate(
-      plo = temp_sens - cmult * sqrt(pvar),
-      phi = temp_sens + cmult * sqrt(pvar)
-    )
-  
-  return(newdat)
-}
-
 
 pred_bud_14    <- make_sens_predictions(m_sens_bud_14)
 pred_flower_14 <- make_sens_predictions(m_sens_flower_14)
@@ -1008,16 +991,6 @@ ggplot(sens_all_60,
 
 
 # sensitivity models ------------------------------------------------------------------
-# function for fitting the model per stage
-fit_sens_model <- function(sens_data) {
-  
-  model <- lmerTest::lmer(
-    temp_sens ~ region * treat_competition + (1 | species),
-    data = sens_data
-  )
-  
-  return(model)
-}
 
 # fit the models
 m_sens_bud_60    <- fit_sens_model(sens_bud_60)
@@ -1056,41 +1029,6 @@ model_performance(m_sens_seed_60)
 
 
 # predict sensitivity for each stage with function ------------------------
-
-make_sens_predictions <- function(model) {
-  
-  # 1. new data
-  newdat <- expand.grid(
-    region = c("Norway", "Switzerland"),
-    treat_competition = c("with", "without"),
-    temp_sens = 0
-  )
-  
-  # 2. fixed-effect predictions
-  newdat$temp_sens <- predict(
-    model,
-    newdata = newdat,
-    re.form = NA
-  )
-  
-  # 3. model matrix
-  mm <- model.matrix(terms(model), newdat)
-  
-  # 4. fixed-effect variance
-  pvar <- diag(mm %*% tcrossprod(vcov(model), mm))
-  
-  # 5. confidence intervals
-  cmult <- 2
-  
-  newdat <- newdat |>
-    mutate(
-      plo = temp_sens - cmult * sqrt(pvar),
-      phi = temp_sens + cmult * sqrt(pvar)
-    )
-  
-  return(newdat)
-}
-
 
 pred_bud_60    <- make_sens_predictions(m_sens_bud_60)
 pred_flower_60 <- make_sens_predictions(m_sens_flower_60)
@@ -1293,17 +1231,6 @@ ggplot(sens_all_gs,
 
 
 # sensitivity models ------------------------------------------------------------------
-# function for fitting the model per stage
-fit_sens_model <- function(sens_data) {
-  
-  model <- lmerTest::lmer(
-    temp_sens ~ region * treat_competition + (1 | species),
-    data = sens_data
-  )
-  
-  return(model)
-}
-
 # fit the models
 m_sens_bud_gs    <- fit_sens_model(sens_bud_gs)
 m_sens_flower_gs <- fit_sens_model(sens_flower_gs)
@@ -1341,42 +1268,6 @@ model_performance(m_sens_seed_gs)
 
 
 # predict sensitivity for each stage with function ------------------------
-
-make_sens_predictions <- function(model) {
-  
-  # 1. new data
-  newdat <- expand.grid(
-    region = c("Norway", "Switzerland"),
-    treat_competition = c("with", "without"),
-    temp_sens = 0
-  )
-  
-  # 2. fixed-effect predictions
-  newdat$temp_sens <- predict(
-    model,
-    newdata = newdat,
-    re.form = NA
-  )
-  
-  # 3. model matrix
-  mm <- model.matrix(terms(model), newdat)
-  
-  # 4. fixed-effect variance
-  pvar <- diag(mm %*% tcrossprod(vcov(model), mm))
-  
-  # 5. confidence intervals
-  cmult <- 2
-  
-  newdat <- newdat |>
-    mutate(
-      plo = temp_sens - cmult * sqrt(pvar),
-      phi = temp_sens + cmult * sqrt(pvar)
-    )
-  
-  return(newdat)
-}
-
-
 pred_bud_gs    <- make_sens_predictions(m_sens_bud_gs)
 pred_flower_gs <- make_sens_predictions(m_sens_flower_gs)
 pred_fruit_gs  <- make_sens_predictions(m_sens_fruit_gs)
@@ -1554,16 +1445,6 @@ onset_seed_gdd   <- get_mean_onset_gdd(phenology_gdd_nor_che, "No_Seeds")
 
 
 # Average across species, site and treat -----------------------------------------
-
-get_species_onset <- function(onset_data) {
-  onset_data |>
-    group_by(region, site, treat_competition, species) |>
-    summarise(
-      onset = mean(onset, na.rm = TRUE),
-      .groups = "drop"
-    )
-}
-
 onset_bud_mean_gdd    <- get_species_onset(onset_bud_gdd)
 onset_flower_mean_gdd <- get_species_onset(onset_flower_gdd)
 onset_fruit_mean_gdd  <- get_species_onset(onset_fruit_gdd)
@@ -1572,18 +1453,6 @@ onset_seed_mean_gdd   <- get_species_onset(onset_seed_gdd)
 
 
 # Calculate temperature sensitivity ---------------------------------------
-# function to get temp sens
-get_temp_sens <- function(onset_mean_data, pre_climate_data) {
-  onset_mean_data |>
-    left_join(pre_climate_data, by = c("region","site")) |>
-    group_by(region, species, treat_competition ) |>  # or group by site and species?
-    pivot_wider(names_from = site,
-                values_from = c(onset, Tmean)) |>
-    mutate(
-      temp_sens = (onset_lo - onset_hi) / (Tmean_lo - Tmean_hi)
-    )
-}
-
 
 # GDD temperature sensitivity 60 days window ----------------------------------
 # get temp sens per stage for pre_climate = 60 days
@@ -1700,42 +1569,6 @@ model_performance(m_sens_seed_60_gdd)
 
 
 # predict sensitivity for each stage with function ------------------------
-
-make_sens_predictions <- function(model) {
-  
-  # 1. new data
-  newdat <- expand.grid(
-    region = c("Norway", "Switzerland"),
-    treat_competition = c("with", "without"),
-    temp_sens = 0
-  )
-  
-  # 2. fixed-effect predictions
-  newdat$temp_sens <- predict(
-    model,
-    newdata = newdat,
-    re.form = NA
-  )
-  
-  # 3. model matrix
-  mm <- model.matrix(terms(model), newdat)
-  
-  # 4. fixed-effect variance
-  pvar <- diag(mm %*% tcrossprod(vcov(model), mm))
-  
-  # 5. confidence intervals
-  cmult <- 2
-  
-  newdat <- newdat |>
-    mutate(
-      plo = temp_sens - cmult * sqrt(pvar),
-      phi = temp_sens + cmult * sqrt(pvar)
-    )
-  
-  return(newdat)
-}
-
-
 pred_bud_60_gdd    <- make_sens_predictions(m_sens_bud_60_gdd)
 pred_flower_60_gdd <- make_sens_predictions(m_sens_flower_60_gdd)
 pred_fruit_60_gdd  <- make_sens_predictions(m_sens_fruit_60_gdd)
