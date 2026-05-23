@@ -230,13 +230,39 @@ ggplot(climate_all3,
 
 
 
+# Plot showing NOR and CHE comb -------------------------------------------
+
+climate_gdd_nor$logger <- "weather station"
+
+climate_gdd_che_comb$region <- "Switzerland"
+
+climate_all4 <- bind_rows(climate_gdd_nor, climate_gdd_che_comb)
+
+climate_all4 <- climate_all4 |>
+  mutate(jday = lubridate::yday(date_measurement))
 
 
 
 
+cum_gdd_doy4 <- ggplot(climate_all4,
+       aes(x = jday, y = GDD_cum,
+           color = logger, linetype = site)) +
+  
+  geom_line(linewidth = 1.2) +
+  facet_wrap(~ region)+
+  
+  labs(x = "Day of year (DOY)",
+       y = "Cumulative temperature (GDD)",
+       color = "Logger",
+       linetype = "Site") +
+  
+  scale_color_manual(values = c("red", "blue"))
+cum_gdd_doy4
 
 
-
+# ggsave(filename = "Output/Onset/GDD_DOY_Tb2_climate_tms_NOR_CHE.png", 
+#       plot = cum_gdd_doy4,
+#        width = 16, height = 10, units = "in")
 
 
 
