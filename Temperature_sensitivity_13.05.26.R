@@ -142,7 +142,7 @@ pre_climate60
 climate_nor_23_pre_gs <- climate_23_daily |>
   filter(
     date >= as.Date("2023-04-01"),
-    date <= as.Date("2023-10-31")
+    date <= as.Date("2023-09-30")
   ) |> 
   mutate(region = "Norway")
 
@@ -151,7 +151,7 @@ climate_nor_23_pre_gs <- climate_23_daily |>
 climate_che_22_pre_gs <- climate_che_combined |>
   filter(
     date >= as.Date("2022-04-01"),
-    date <= as.Date("2022-10-31")
+    date <= as.Date("2022-09-30")
   ) |> 
   mutate(region = "Switzerland")
 
@@ -550,7 +550,7 @@ plot_predictions_30
 
 
 
-# Plot temp sensitivity of all stages -------------------------------------
+# Plot temp sensitivity of all stages 30 days -------------------------------------
 ggplot(plot_predictions_30,
        aes(x = treat_competition,
            y = temp_sens,
@@ -590,8 +590,8 @@ temp_sens_30 <- ggplot() +
       y = temp_sens,
       color = treat_competition
     ),
-    width = 0.08,
-    alpha = 0.15
+    width = 0.2,
+    alpha = 0.2
   ) +
   
   # model predictions
@@ -803,7 +803,7 @@ plot_predictions_14
 
 
 
-# Plot temp sensitivity of all stages -------------------------------------
+# Plot temp sensitivity of all stages 14 days -------------------------------------
 ggplot(plot_predictions_14,
        aes(x = treat_competition,
            y = temp_sens,
@@ -843,8 +843,8 @@ temp_sens_14 <- ggplot() +
       y = temp_sens,
       color = treat_competition
     ),
-    width = 0.08,
-    alpha = 0.25
+    width = 0.2,
+    alpha = 0.2
   ) +
   
   # model predictions
@@ -1046,7 +1046,7 @@ plot_predictions_60
 
 
 
-# Plot temp sensitivity of all stages -------------------------------------
+# Plot temp sensitivity of all stages 60 days -------------------------------------
 ggplot(plot_predictions_60,
        aes(x = treat_competition,
            y = temp_sens,
@@ -1086,8 +1086,8 @@ temp_sens_60 <- ggplot() +
       y = temp_sens,
       color = treat_competition
     ),
-    width = 0.08,
-    alpha = 0.25
+    width = 0.2,
+    alpha = 0.2
   ) +
   
   # model predictions
@@ -1284,7 +1284,7 @@ plot_predictions_gs
 
 
 
-# Plot temp sensitivity of all stages -------------------------------------
+# Plot temp sensitivity of all stages growing season -------------------------------------
 ggplot(plot_predictions_gs,
        aes(x = treat_competition,
            y = temp_sens,
@@ -1324,8 +1324,8 @@ temp_sens_gs <- ggplot() +
       y = temp_sens,
       color = treat_competition
     ),
-    width = 0.08,
-    alpha = 0.25
+    width = 0.2,
+    alpha = 0.2
   ) +
   
   # model predictions
@@ -1372,7 +1372,7 @@ temp_sens_gs
 #        width = 15, height = 10, units = "in")
 
 
-# which pre-climate is best -----------------------------------------------
+# AIC which pre-climate is best -----------------------------------------------
 
 AIC(m_sens_bud_14, m_sens_bud_30, m_sens_bud_60, m_sens_bud_gs)
 
@@ -1625,8 +1625,8 @@ temp_sens_60_gdd <- ggplot() +
       y = temp_sens,
       color = treat_competition
     ),
-    width = 0.08,
-    alpha = 0.25
+    width = 0.2,
+    alpha = 0.15
   ) +
   
   # model predictions
