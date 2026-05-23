@@ -127,12 +127,17 @@ climate_22_daily
 # use both sites until tomst is available 
 # so that low site is not accumulating a lot more heat than hi
 climate_tomst_pre <- climate_tomst_22_site |>
-  filter(case_when(site == "lo" ~ date < as.Date("2022-04-12"),
-                   site == "hi" ~ date < as.Date("2022-05-13")))
+  filter(case_when(site == "lo" ~ date <= as.Date("2022-04-12"),
+                   site == "hi" ~ date <= as.Date("2022-05-13")))
 
 
 
+# add column indicating logger origin --------------------------------------
+climate_tomst_pre$logger <- "tms4"
 
+climate_22_daily$logger <- "weather station"
+  
+  
 climate_che_combined <- bind_rows(
   climate_tomst_pre,
   climate_22_daily
