@@ -224,13 +224,6 @@ ggplot(climate_all3,
        color = "Site",
        linetype = "Site") +
   
-  + geom_vline(data = switch_dates,
-               aes(xintercept = switch_jday,
-                   color = site),
-               linetype = "dashed",
-               alpha = 0.7,
-               inherit.aes = FALSE)+
-  
   scale_color_manual(values = c("turquoise4", "pink4", "red", "blue"))
 
 
