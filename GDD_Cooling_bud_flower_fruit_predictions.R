@@ -568,10 +568,46 @@ b_f_fr_gdd <- ggplot(plot_df_gdd_all, aes(
 
 print(b_f_fr_gdd)
 
-# ggsave(filename = "Output/Onset/Transplantation_Warming_GDD_onset_bud_flower_fruit_seed_predictions_tbase2.png", 
+# ggsave(filename = "Output/Onset/GDD_Transplantation_Warming_Onset_bud_flower_fruit_seed_predictions_tbase2.png", 
 #        plot = b_f_fr_gdd, width = 18, height = 10, units = "in")
 
 
 
 
+b_f_fr_gdd2 <- ggplot(plot_df_gdd_all, aes(
+  x = treat_competition,
+  y = onset,
+  color = treat_competition,              
+  shape = site  
+)) +
+  
+  geom_point(position = pd, size = 4, stroke = 1.2) +
+  
+  geom_errorbar(aes(ymin = plo, ymax = phi),
+                width = .2,
+                position = pd) +
+  
+  facet_grid(region ~ stage) +
+  scale_color_manual(values = c(
+    "with" = "#528B8B",
+    "without" = "#CD950C"
+  )) +
+  
+  #scale_color_manual(values = region_colors) +   
+  
+  scale_shape_manual(
+    values = c(
+      "lo" = 16,   # circle
+      "hi" = 17    # triangle
+    )
+  ) +
+  
+  labs(
+    x = "Biotic interactions",
+    y = "Predicted onset (GDD)",
+    title = "Effect of transplantation on onset across regions",
+    shape = "Site",
+    color = "Region"
+  )
 
+print(b_f_fr_gdd2)
