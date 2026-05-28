@@ -47,6 +47,9 @@ get_mean_onset <- function(data, stage_name, onset_type) {
 
 
 # Average across species, site and treat -----------------------------------------
+# this is not needed or at least it doesnt change from get_mean_onset
+# because unique_plot_ID is essentially treat_comp
+# but we still need an average across the plots
 get_species_onset <- function(onset_data) {
   onset_data |>
     group_by(region, site, treat_competition, species, block_ID) |>
@@ -191,6 +194,8 @@ make_sens_predictions3 <- function(model) {
   
   return(newdat)
 }
+
+
 
 
 # plot --------------------------------------------------------------------
