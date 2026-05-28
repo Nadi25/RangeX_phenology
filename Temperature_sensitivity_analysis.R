@@ -161,10 +161,10 @@ mean_onset_bud_region
 
 
 # calculate mean onset per species and plot for all stages ----------------
-onset_bud    <- get_mean_onset(phenology3, "No_Buds")
-onset_flower <- get_mean_onset(phenology3, "No_FloOpen")
-onset_fruit  <- get_mean_onset(phenology3, "No_FloWithrd")
-onset_seed   <- get_mean_onset(phenology3, "No_Seeds")
+onset_bud    <- get_mean_onset(phenology3, "No_Buds", "jday")
+onset_flower <- get_mean_onset(phenology3, "No_FloOpen", "jday")
+onset_fruit  <- get_mean_onset(phenology3, "No_FloWithrd", "jday")
+onset_seed   <- get_mean_onset(phenology3, "No_Seeds", "jday")
 
 # combine the fruiting stages nor and che to compare the onset
 # this is to be taken with caution because the stages are not the same
@@ -338,6 +338,12 @@ pred_seed_gs_nor   <- make_sens_predictions(m_sens_seed_gs_nor)
 # ggpredict
 pred_bud_gs_nor2    <- make_sens_predictions2(m_sens_bud_gs_nor)
 
+pred_bud_gs_nor3    <- make_sens_predictions3(m_sens_bud_gs_nor)
+
+
+
+
+
 
 # CHE ---------------------------------------------------------------------
 # manual
@@ -365,6 +371,27 @@ plot_predictions_gs
 
 
 
+# GDD ---------------------------------------------------------------------
+
+# source script where GDD is combined with phenology ----------------------
+source("GDD_Cooling_bud_flower_fruit_predictions.R")
+# use 
+phenology_gdd_nor_che
 
 
+# calculate mean onset per species and plot for all stages ----------------
+onset_bud_gdd    <- get_mean_onset(phenology_gdd_nor_che, "No_Buds", "GDD_cum")
+onset_flower_gdd <- get_mean_onset(phenology_gdd_nor_che, "No_FloOpen", "GDD_cum")
+onset_fruit_gdd  <- get_mean_onset(phenology_gdd_nor_che, "No_FloWithrd", "GDD_cum")
+onset_seed_gdd   <- get_mean_onset(phenology_gdd_nor_che, "No_Seeds", "GDD_cum")
+
+
+# Average across species, site and treat -----------------------------------------
+onset_bud_mean_gdd    <- get_species_onset(onset_bud_gdd)
+onset_flower_mean_gdd <- get_species_onset(onset_flower_gdd)
+onset_fruit_mean_gdd  <- get_species_onset(onset_fruit_gdd)
+onset_seed_mean_gdd   <- get_species_onset(onset_seed_gdd)
+
+
+# why is that the same values when we average per species
 
