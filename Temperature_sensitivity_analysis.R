@@ -24,6 +24,7 @@ library(lme4)
 library(performance)
 library(see)
 library(emmeans)
+library(ggeffects)
 
 
 # source script with functions --------------------------------------------
@@ -179,7 +180,7 @@ onset_bud_mean    <- get_species_onset(onset_bud)
 onset_flower_mean <- get_species_onset(onset_flower)
 onset_fruit_mean  <- get_species_onset(onset_fruit)
 onset_seed_mean   <- get_species_onset(onset_seed)
-
+# this doesn't change the values
 
 
 # Calculate temperature sensitivity ---------------------------------------
@@ -338,10 +339,8 @@ pred_seed_gs_nor   <- make_sens_predictions(m_sens_seed_gs_nor)
 # ggpredict
 pred_bud_gs_nor2    <- make_sens_predictions2(m_sens_bud_gs_nor)
 
+# predict
 pred_bud_gs_nor3    <- make_sens_predictions3(m_sens_bud_gs_nor)
-
-
-
 
 
 
@@ -386,12 +385,132 @@ onset_fruit_gdd  <- get_mean_onset(phenology_gdd_nor_che, "No_FloWithrd", "GDD_c
 onset_seed_gdd   <- get_mean_onset(phenology_gdd_nor_che, "No_Seeds", "GDD_cum")
 
 
+
+
+
 # Average across species, site and treat -----------------------------------------
 onset_bud_mean_gdd    <- get_species_onset(onset_bud_gdd)
 onset_flower_mean_gdd <- get_species_onset(onset_flower_gdd)
 onset_fruit_mean_gdd  <- get_species_onset(onset_fruit_gdd)
 onset_seed_mean_gdd   <- get_species_onset(onset_seed_gdd)
+# this doesn't change the values
 
 
-# why is that the same values when we average per species
+# Calculate temperature sensitivity ---------------------------------------
+# growing season mean ----------------------------------
+# get temp sens per stage while using the same delta T 
+sens_bud_gs_gdd   <- get_temp_sens(onset_bud_mean_gdd, temperature_mean_gs)
+sens_flower_gs_gdd    <- get_temp_sens(onset_flower_mean_gdd, temperature_mean_gs)
+sens_fruit_gs_gdd    <- get_temp_sens(onset_fruit_mean_gdd, temperature_mean_gs)
+sens_seed_gs_gdd   <- get_temp_sens(onset_seed_mean_gdd, temperature_mean_gs)
+
+
+
+
+# control plot sensitivity ------------------------------------------------
+p_bud_gdd <- control_plot_temp_sens(sens_bud_gs_gdd)
+p_bud_gdd 
+p_flower_gdd  <- control_plot_temp_sens(sens_flower_gs_gdd)
+p_flower_gdd 
+p_fruit_gdd  <- control_plot_temp_sens(sens_fruit_gs_gdd)
+p_fruit_gdd 
+p_seed_gdd  <- control_plot_temp_sens(sens_seed_gs_gdd)
+p_seed_gdd 
+
+
+
+# combine sens from all stages -------------------------------------------
+sens_all_gs_gdd <- bind_rows(
+  sens_bud_gs_gdd   |> mutate(stage = "Budding"),
+  sens_flower_gs_gdd|> mutate(stage = "Flowering"),
+  sens_fruit_gs_gdd |> mutate(stage = "Fruiting"),
+  sens_seed_gs_gdd  |> mutate(stage = "Seeds")
+)
+sens_all_gs_gdd
+
+
+# quick control plot ------------------------------------------------------
+# plot the raw sens data 
+ggplot(sens_all_gs_gdd,
+       aes(x = stage,
+           y = temp_sens,
+           color = treat_competition)) +
+  
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  
+  # individual species
+  geom_point(
+    position = position_jitterdodge(
+      jitter.width = 0.1,
+      dodge.width = 0.4
+    ),
+    alpha = 0.3
+  ) +
+  
+  # mean ± 95% CI
+  stat_summary(
+    fun.data = mean_cl_normal,
+    geom = "errorbar",
+    position = position_dodge(width = 0.4),
+    width = 0.15,
+    linewidth = 0.8
+  ) +
+  
+  stat_summary(
+    fun = mean,
+    geom = "point",
+    position = position_dodge(width = 0.4),
+    size = 4
+  ) +
+  
+  labs(
+    x = "Phenological stage",
+    y = expression("Temperature sensitivity (days / °C)"),
+    color = "Biotic interactions"
+  )+
+  facet_wrap(~ region)
+
+
+
+# sensitivity models ------------------------------------------------------------------
+
+# NOR ---------------------------------------------------------------------
+# fit the models per stage for Norway
+m_sens_bud_gs_gdd_nor    <- fit_sens_model(sens_bud_gs_gdd, "Norway")
+m_sens_flower_gs_gdd_nor <- fit_sens_model(sens_flower_gs_gdd, "Norway")
+m_sens_fruit_gs_gdd_nor  <- fit_sens_model(sens_fruit_gs_gdd, "Norway")
+m_sens_seed_gs_gdd_nor   <- fit_sens_model(sens_seed_gs_gdd, "Norway")
+
+# check model output
+summary(m_sens_bud_gs_gdd_nor)
+anova(m_sens_bud_gs_gdd_nor)
+model_performance(m_sens_bud_gs_gdd_nor)
+#check_model(m_sens_bud_gs_gdd_nor)
+
+summary(m_sens_flower_gs_gdd_nor)
+anova(m_sens_flower_gs_gdd_nor)
+model_performance(m_sens_flower_gs_gdd_nor)
+#check_model(m_sens_flower_gs_gdd_nor)
+
+summary(m_sens_fruit_gs_gdd_nor)
+anova(m_sens_fruit_gs_gdd_nor)
+model_performance(m_sens_fruit_gs_gdd_nor)
+#check_model(m_sens_fruit_gs_gdd_nor)
+
+summary(m_sens_seed_gs_gdd_nor)
+anova(m_sens_seed_gs_gdd_nor)
+model_performance(m_sens_seed_gs_gdd_nor)
+#check_model(m_sens_seed_gs_gdd_nor)
+
+
+
+
+
+
+
+
+
+
+
+
 
