@@ -1,4 +1,5 @@
 
+# 01_temp_sens ------------------------------------------------------------
 
 
 # Functions for temperature sensitivity analysis --------------------------
@@ -56,9 +57,9 @@ get_species_onset <- function(onset_data) {
 
 # Calculate temperature sensitivity ---------------------------------------
 # function to get temp sens
-get_temp_sens <- function(onset_mean_data, pre_climate_data) {
+get_temp_sens <- function(onset_mean_data, temperature_data) {
   onset_mean_data |>
-    left_join(pre_climate_data, by = c("region","site")) |>
+    left_join(temperature_data, by = c("region","site")) |>
     group_by(region, species, treat_competition, block_ID) |>  # or group by site and species?
     pivot_wider(names_from = site,
                 values_from = c(onset, Tmean)) |>
@@ -68,24 +69,37 @@ get_temp_sens <- function(onset_mean_data, pre_climate_data) {
 }
 
 
-# sensitivity model ------------------------------------------------------------------
-# function for fitting the model per stage
-fit_sens_model <- function(sens_data) {
-  
-  model <- lmerTest::lmer(
-    temp_sens ~ region * treat_competition + (1 | species) + (1 | block_ID),
-    data = sens_data
-  )
-  
-  return(model)
+# control plots sensitivity -----------------------------------------------
+control_plot_temp_sens <- function(sensitivity_data) {
+  ggplot(sensitivity_data, aes(x = treat_competition, y = temp_sens, color = species)) +
+    geom_point(position = position_jitter(width = 0.15, height = 0), size = 2, alpha = 0.85) +
+    facet_wrap(~region)
 }
 
+
+
+
+# sensitivity model ------------------------------------------------------------------
+# function for fitting the model per stage
+# fit_sens_model <- function(sens_data) {
+#   
+#   model <- lmerTest::lmer(
+#     temp_sens ~ region * treat_competition + (1 | species) + (1 | block_ID),
+#     data = sens_data
+#   )
+#   
+#   return(model)
+# }
+
 # separately per region
-fit_sens_model <- function(sens_data) {
+# filter sensitivity dataset per region first
+fit_sens_model <- function(sens_data, region_name) {
+  sens_region <- sens_data |> 
+    filter(region == region_name)
   
   model <- lmerTest::lmer(
     temp_sens ~ treat_competition + (1 | species) + (1 | block_ID),
-    data = sens_data
+    data = sens_region
   )
   
   return(model)
@@ -130,12 +144,14 @@ make_sens_predictions <- function(model) {
   newdat <- newdat |>
     mutate(
       plo = temp_sens - cmult * sqrt(pvar),
-      phi = temp_sens + cmult * sqrt(pvar)
+      phi = temp_sens + cmult * sqrt(pvar),
+      tlo = temp_sens - cmult * sqrt(tvar1), # this is including the random effects
+      thi = temp_sens + cmult * sqrt(tvar1)
+      
     )
   
   return(newdat)
 }
-
 
 
 
@@ -157,11 +173,60 @@ make_sens_predictions2 <- function(model) {
 
 
 # plot --------------------------------------------------------------------
-
-
-
-
-
+plot_temp_sens_predictions <- function(sens_data_raw, sens_predictions) {
+  
+  ggplot() +
+    
+    # raw species values
+    geom_jitter(
+      data = sens_data_raw,
+      aes(
+        x = treat_competition,
+        y = temp_sens,
+        color = treat_competition
+      ),
+      width = 0.2,
+      alpha = 0.2
+    ) +
+    
+    # model predictions
+    geom_point(
+      data = sens_predictions,
+      aes(
+        x = treat_competition,
+        y = temp_sens,
+        color = treat_competition
+      ),
+      size = 3
+    ) +
+    
+    geom_errorbar(
+      data = sens_predictions,
+      aes(
+        x = treat_competition,
+        ymin = plo,
+        ymax = phi,
+        color = treat_competition
+      ),
+      width = 0.12
+    ) +
+    
+    facet_grid(region ~ stage) +
+    
+    scale_color_manual(values = c(
+      "with" = "#528B8B",
+      "without" = "#CD950C"
+    )) +
+    
+    labs(
+      x = "Biotic interactions",
+      y = expression("Temperature sensitivity (days/"*degree*"C)")
+    ) +
+    theme(
+      legend.position = "none"
+    )+
+    geom_hline(yintercept=0, linetype = "dashed")
+}
 
 
 
