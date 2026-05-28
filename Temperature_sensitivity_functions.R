@@ -9,7 +9,12 @@
 # take the average onset for the three individuals per species in one plot
 # first budding date per individual
 # then average per plot
-get_mean_onset <- function(data, stage_name) {
+
+# data = phenology3
+# stage_name = No_Buds, No_FloOpen, No_FloWithrd, No_Seeds
+# onset_type = jday or GDD_cum
+
+get_mean_onset <- function(data, stage_name, onset_type) {
   
   data |>
     filter(
@@ -24,7 +29,7 @@ get_mean_onset <- function(data, stage_name) {
       unique_plant_ID
     ) |>
     summarise(
-      first_onset = min(jday),
+      first_onset = min(.data[[onset_type]]),
       .groups = "drop"
     ) |>
     
@@ -38,8 +43,6 @@ get_mean_onset <- function(data, stage_name) {
       .groups = "drop"
     )
 }
-
-
 
 
 
@@ -169,7 +172,25 @@ make_sens_predictions2 <- function(model) {
 }
 
 
-
+make_sens_predictions3 <- function(model) {
+  
+  newdat <- data.frame(treat_competition = c("with", "without"))
+  
+  pred <- predict(
+    model,
+    newdat = newdat,
+    re.form = NA,
+    se.fit = TRUE
+  )
+  
+  newdat$fit <- pred$fit
+  newdat$se <- pred$se.fit
+  
+  newdat$lo <- newdat$fit - 1.96 * newdat$se
+  newdat$hi <- newdat$fit + 1.96 * newdat$se
+  
+  return(newdat)
+}
 
 
 # plot --------------------------------------------------------------------
