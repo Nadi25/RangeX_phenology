@@ -94,6 +94,7 @@ fit_sens_model <- function(sens_data) {
 
 
 # predict sensitivity for each stage with function ------------------------
+# https://bbolker.github.io/mixedmodels-misc/glmmFAQ.html#predictions-andor-confidence-or-prediction-intervals-on-predictions
 
 make_sens_predictions <- function(model) {
   
