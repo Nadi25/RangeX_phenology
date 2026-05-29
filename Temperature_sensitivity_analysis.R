@@ -505,12 +505,102 @@ model_performance(m_sens_seed_gs_gdd_nor)
 
 
 
+# CHE ---------------------------------------------------------------------
+# fit the models per stage for Switzerland
+m_sens_bud_gs_gdd_che    <- fit_sens_model(sens_bud_gs_gdd, "Switzerland")
+m_sens_flower_gs_gdd_che <- fit_sens_model(sens_flower_gs_gdd, "Switzerland")
+m_sens_fruit_gs_gdd_che  <- fit_sens_model(sens_fruit_gs_gdd, "Switzerland")
+m_sens_seed_gs_gdd_che   <- fit_sens_model(sens_seed_gs_gdd, "Switzerland")
+
+# check model output
+summary(m_sens_bud_gs_gdd_che)
+anova(m_sens_bud_gs_gdd_che)
+model_performance(m_sens_bud_gs_gdd_che)
+#check_model(m_sens_bud_gs_gdd_che)
+
+summary(m_sens_flower_gs_gdd_che)
+anova(m_sens_flower_gs_gdd_che)
+model_performance(m_sens_flower_gs_gdd_che)
+#check_model(m_sens_flower_gs_gdd_che)
+
+summary(m_sens_fruit_gs_gdd_che)
+anova(m_sens_fruit_gs_gdd_che)
+model_performance(m_sens_fruit_gs_gdd_che)
+#check_model(m_sens_fruit_gs_gdd_che)
+
+summary(m_sens_seed_gs_gdd_che)
+anova(m_sens_seed_gs_gdd_che)
+model_performance(m_sens_seed_gs_gdd_che)
+#check_model(m_sens_seed_gs_gdd_che)
+
+
+
+
+# predict sensitivity for each stage with function ------------------------
+# NOR ---------------------------------------------------------------------
+# manual
+pred_bud_gs_gdd_nor    <- make_sens_predictions(m_sens_bud_gs_gdd_nor)
+pred_flower_gs_gdd_nor <- make_sens_predictions(m_sens_flower_gs_gdd_nor)
+pred_fruit_gs_gdd_nor  <- make_sens_predictions(m_sens_fruit_gs_gdd_nor)
+pred_seed_gs_gdd_nor   <- make_sens_predictions(m_sens_seed_gs_gdd_nor)
+
+
+# ggpredict
+pred_bud_gs_gdd_nor2    <- make_sens_predictions2(m_sens_bud_gs_gdd_nor)
+pred_flower_gs_gdd_nor2 <- make_sens_predictions2(m_sens_flower_gs_gdd_nor)
+pred_fruit_gs_gdd_nor2  <- make_sens_predictions2(m_sens_fruit_gs_gdd_nor)
+pred_seed_gs_gdd_nor2   <- make_sens_predictions2(m_sens_seed_gs_gdd_nor)
 
 
 
 
 
+# CHE ---------------------------------------------------------------------
+# manual
+pred_bud_gs_gdd_che    <- make_sens_predictions(m_sens_bud_gs_gdd_che)
+pred_flower_gs_gdd_che <- make_sens_predictions(m_sens_flower_gs_gdd_che)
+pred_fruit_gs_gdd_che  <- make_sens_predictions(m_sens_fruit_gs_gdd_che)
+pred_seed_gs_gdd_che   <- make_sens_predictions(m_sens_seed_gs_gdd_che)
 
+# ggpredict
+pred_bud_gs_gdd_che2    <- make_sens_predictions2(m_sens_bud_gs_gdd_che)
+pred_flower_gs_gdd_che2 <- make_sens_predictions2(m_sens_flower_gs_gdd_che)
+pred_fruit_gs_gdd_che2  <- make_sens_predictions2(m_sens_fruit_gs_gdd_che)
+pred_seed_gs_gdd_che2   <- make_sens_predictions2(m_sens_seed_gs_gdd_che)
+
+
+# combine all predictions -------------------------------------------------
+plot_predictions_gs_gdd <- bind_rows(
+  pred_bud_gs_gdd_nor    |> mutate(stage = "Budding", region = "Norway"),
+  pred_flower_gs_gdd_nor |> mutate(stage = "Flowering", region = "Norway"),
+  pred_fruit_gs_gdd_nor  |> mutate(stage = "Fruiting", region = "Norway"),
+  pred_seed_gs_gdd_nor   |> mutate(stage = "Seeds", region = "Norway"),
+  pred_bud_gs_gdd_che    |> mutate(stage = "Budding", region = "Switzerland"),
+  pred_flower_gs_gdd_che |> mutate(stage = "Flowering", region = "Switzerland"),
+  pred_fruit_gs_gdd_che  |> mutate(stage = "Fruiting", region = "Switzerland"),
+  pred_seed_gs_gdd_che   |> mutate(stage = "Seeds", region = "Switzerland")
+)
+plot_predictions_gs_gdd
+
+# or with the ggpredict function
+plot_predictions_gs_gdd2 <- bind_rows(
+  pred_bud_gs_gdd_nor2    |> mutate(stage = "Budding", region = "Norway"),
+  pred_flower_gs_gdd_nor2 |> mutate(stage = "Flowering", region = "Norway"),
+  pred_fruit_gs_gdd_nor2  |> mutate(stage = "Fruiting", region = "Norway"),
+  pred_seed_gs_gdd_nor2   |> mutate(stage = "Seeds", region = "Norway"),
+  pred_bud_gs_gdd_che2    |> mutate(stage = "Budding", region = "Switzerland"),
+  pred_flower_gs_gdd_che2 |> mutate(stage = "Flowering", region = "Switzerland"),
+  pred_fruit_gs_gdd_che2  |> mutate(stage = "Fruiting", region = "Switzerland"),
+  pred_seed_gs_gdd_che2   |> mutate(stage = "Seeds", region = "Switzerland")
+)
+plot_predictions_gs_gdd2
+
+# rename column names 
+plot_predictions_gs_gdd2 <- plot_predictions_gs_gdd2 |> 
+  rename(treat_competition = x,
+         temp_sens = predicted,
+         plo = conf.low,
+         phi = conf.high)
 
 
 
