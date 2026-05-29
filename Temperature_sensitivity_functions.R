@@ -199,7 +199,7 @@ make_sens_predictions3 <- function(model) {
 
 
 # plot --------------------------------------------------------------------
-plot_temp_sens_predictions <- function(sens_data_raw, sens_predictions) {
+plot_temp_sens_predictions <- function(sens_data_raw, sens_predictions, ylab_text) {
   
   ggplot() +
     
@@ -246,7 +246,7 @@ plot_temp_sens_predictions <- function(sens_data_raw, sens_predictions) {
     
     labs(
       x = "Biotic interactions",
-      y = expression("Temperature sensitivity (days/"*degree*"C)")
+      y =  ylab_text # expression("Temperature sensitivity (days or GDD/"*degree*"C)")
     ) +
     theme(
       legend.position = "none"
