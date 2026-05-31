@@ -117,9 +117,22 @@ flower_number_pred <- make_predictions(m_flower_number)
 flower_number_pred
 
 
+# rename treat info -------------------------------------------------------
+flower_number_pred$treatment_site_temp <- 
+  recode(flower_number_pred$treatment_site_temp,
+  "lo_ambi" = "low ambient",
+  "hi_ambi" = "high ambient",
+  "hi_warm" = "high warm")
+
+max_flower_per_plant$treatment_site_temp <- 
+  recode(max_flower_per_plant$treatment_site_temp,
+  "lo_ambi" = "low ambient",
+  "hi_ambi" = "high ambient",
+  "hi_warm" = "high warm")
 
 
 
+# this should be new script
 # plot --------------------------------------------------
 pd <- position_dodge(width = 0.9) 
 
@@ -147,7 +160,7 @@ flow_no <- ggplot(flower_number_pred, aes(
       jitter.width = 0.15,
       dodge.width = 0.9
     ),
-    alpha = 0.1,
+    alpha = 0.05,
     size = 2,
     inherit.aes = FALSE
   )+
@@ -156,9 +169,9 @@ flow_no <- ggplot(flower_number_pred, aes(
   
   scale_shape_manual(
     values = c(
-      "lo_ambi" = 16,   # circle
-      "hi_ambi" = 17,    # triangle
-      "hi_warm" = 2    # square 
+      "low ambient" = 16,   # circle
+      "high ambient" = 17,    # triangle
+      "high warm" = 2    # square 
     )
   ) +
   
@@ -176,6 +189,13 @@ flow_no
 #       plot = flow_no, width = 12, height = 8, units = "in")
 
 
+flow_no +
+  geom_line(
+    data = flower_number_pred,
+    aes(x = treatment_site_temp, y = fit, color = treat_competition,
+        group = treat_competition),
+        position = pd) +
+  geom_violin(trim = FALSE)
 
 
 
@@ -183,14 +203,69 @@ flow_no
 
 
 
+# Plot with raw as violin ------------------------------------------------
 
+flow_no2 <- ggplot(flower_number_pred, aes(
+  x = treatment_site_temp,
+  y = fit,
+  color = treat_competition,
+  shape = treatment_site_temp
+)) +
+  
+  # model estimates
+  geom_point(position = pd, size = 4, stroke = 1.2) +
+  geom_errorbar(
+    aes(ymin = lower, ymax = upper),
+    width = .2,
+    position = pd
+  ) +
+  
+  # distribution of raw data
+  geom_violin(
+    data = max_flower_per_plant,
+    aes(
+      x = treatment_site_temp,
+      y = max_flower_number,
+      fill = treat_competition
+    ),
+    position = position_dodge(width = 0.9),
+    alpha = 0.25,
+    color = NA,
+    trim = TRUE # cuts of at 0 because we dont have negative flower no
+  ) +
+  
+  geom_line(
+    data = flower_number_pred,
+    aes(x = treatment_site_temp, y = fit, color = treat_competition,
+        group = treat_competition),
+    position = pd)+
+  
+  scale_color_manual(values = c("#528B8B", "#CD950C")) +
+  scale_fill_manual(values = c("#528B8B", "#CD950C")) +
+  
+  scale_shape_manual(
+    values = c(
+      "low ambient" = 16,
+      "high ambient" = 17,
+      "high warm" = 2
+    )
+  ) +
+  
+  labs(
+    x = "Site temperature treatment",
+    y = "(Predicted) max flower number",
+    title = "Effect of transplantation and warming on flower number",
+    shape = "Treatment site × warming",
+    color = "Biotic interactions",
+    fill = "Biotic interactions"
+  ) +
+  
+  guides(shape = "none")
 
+flow_no2
 
-
-
-
-
-
+# ggsave(filename = "Output/Biomass/Transplantation_warming_flower_number_predictions_NOR_glmer.nb_violin.png", 
+#       plot = flow_no2, width = 12, height = 8, units = "in")
 
 
 
