@@ -25,10 +25,8 @@ library(ggeffects)
 library(broom.mixed)
 library(emmeans)
 library(lubridate)
-library(glmmTMB)
+library(multcomp)
 
-# set theme for plots ------------------------------------
-theme_set(theme_bw())
 
 
 # source the phenology data -----------------------------------------------
@@ -45,6 +43,9 @@ source("Biomass_traits_correlation_per_species.R")
 
 # script that combines pred biomass with phenology
 source("Biomass_phenology_combine_species_models.R")
+
+# set theme for plots ------------------------------------
+theme_set(theme_bw())
 
 # add predicted species biomass to pheno data -------------------------------------
 bio_flower_species_unique <- bio_flower_species |>
@@ -93,7 +94,8 @@ max_flower_per_plant_bio <- phenology_bio_species2 |>
 
 
 # fit the model negative binomial  ------------------------------------
-# m_flower_number_bio <- glmer.nb(max_flower_number ~ treatment_site_temp * treat_competition + 
+# m_flower_number_bio <- glmer.nb(max_flower_number ~ treatment_site_temp * treat_competition *
+#
 #                                   pred_log_biomass_species + (1|species) + (1|block_ID),
 #                             data = max_flower_per_plant_bio,
 #                             control = glmerControl(optimizer = "bobyqa"))
@@ -103,19 +105,24 @@ max_flower_per_plant_bio <- phenology_bio_species2 |>
 
 
 
-m_flower_number_bio2 <- glmer.nb(max_flower_number ~ treatment_site_temp * treat_competition * 
+m_flower_number_bio2 <- glmer.nb(max_flower_number ~ treatment_site_temp * treat_competition + 
                                   pred_log_biomass_species + (1|species) + (1|block_ID),
                                 data = max_flower_per_plant_bio,
                                 control = glmerControl(optimizer = "bobyqa"))
 
 summary(m_flower_number_bio2)
 
+car::Anova(m_flower_number_bio2)
+
 #AIC(m_flower_number_bio, m_flower_number_bio2)
 
 
+summary(glht(m_flower_number_bio2,
+             linfct = mcp(treatment_site_temp = "Tukey")))
 
 
-
+emmeans(m_flower_number_bio2,
+        pairwise ~ treatment_site_temp * treat_competition)
 
 
 performance::model_performance(m_flower_number_bio2)
@@ -239,7 +246,7 @@ flow_no_bio
 
 
 # Plot with raw as violin ------------------------------------------------
-theme_set(theme_bw())
+
 
 flow_no_bio2 <- ggplot(pred_bio, aes(
   x = treatment_site_temp,
