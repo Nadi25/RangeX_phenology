@@ -80,6 +80,8 @@ m_flower_number <- glmer.nb(max_flower_number ~ treatment_site_temp * treat_comp
 
 summary(m_flower_number)
 
+emmeans(m_flower_number,
+        pairwise ~ treatment_site_temp * treat_competition)
 
 
 
