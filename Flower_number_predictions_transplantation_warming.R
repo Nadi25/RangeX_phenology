@@ -25,7 +25,7 @@ library(ggeffects)
 library(broom.mixed)
 library(emmeans)
 library(lubridate)
-library(glmmTMB)
+library(ggplot2)
 
 # set theme for plots ------------------------------------
 theme_set(theme_bw())
@@ -100,12 +100,13 @@ make_predictions <- function(model) {
     model,
     newdat = newdat,
     re.form = NA,
-    type = "response", # not log scale
+    type = "link", #  log scale
     se.fit = TRUE) |> 
     
     as_tibble() |>
-    mutate(upper = fit + 1.96 * se.fit,
-           lower = fit - 1.96 * se.fit) |>
+    mutate(upper = exp(fit + 1.96 * se.fit),
+           lower = exp(fit - 1.96 * se.fit), 
+           fit = exp(fit)) |>
     bind_cols(newdat)
   
   return(pred)
@@ -189,19 +190,6 @@ flow_no
 #       plot = flow_no, width = 12, height = 8, units = "in")
 
 
-flow_no +
-  geom_line(
-    data = flower_number_pred,
-    aes(x = treatment_site_temp, y = fit, color = treat_competition,
-        group = treat_competition),
-        position = pd) +
-  geom_violin(trim = FALSE)
-
-
-
-
-
-
 
 # Plot with raw as violin ------------------------------------------------
 
@@ -234,12 +222,6 @@ flow_no2 <- ggplot(flower_number_pred, aes(
     trim = TRUE # cuts of at 0 because we dont have negative flower no
   ) +
   
-  geom_line(
-    data = flower_number_pred,
-    aes(x = treatment_site_temp, y = fit, color = treat_competition,
-        group = treat_competition),
-    position = pd)+
-  
   scale_color_manual(values = c("#528B8B", "#CD950C")) +
   scale_fill_manual(values = c("#528B8B", "#CD950C")) +
   
@@ -253,14 +235,15 @@ flow_no2 <- ggplot(flower_number_pred, aes(
   
   labs(
     x = "Site temperature treatment",
-    y = "(Predicted) max flower number",
+    y = "Log (max flower number)",
     title = "Effect of transplantation and warming on flower number",
     shape = "Treatment site × warming",
     color = "Biotic interactions",
     fill = "Biotic interactions"
   ) +
   
-  guides(shape = "none")
+  guides(shape = "none")+
+  coord_transform(y = "log1p")
 
 flow_no2
 
