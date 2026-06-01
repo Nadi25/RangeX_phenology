@@ -29,19 +29,19 @@ get_mean_onset <- function(data, stage_name, onset_type) {
       unique_plant_ID
     ) |>
     summarise(
-      first_onset = min(.data[[onset_type]]),
+      onset = min(.data[[onset_type]]),
       .groups = "drop"
-    ) |>
+    ) #|>
     
-    # mean onset across 3 individuals within plot
-    group_by(
-      region, site, treat_competition,
-      species, block_ID, unique_plot_ID
-    ) |>
-    summarise(
-      onset = mean(first_onset),
-      .groups = "drop"
-    )
+    # # mean onset across 3 individuals within plot
+    # group_by(
+    #   region, site, treat_competition,
+    #   species, block_ID, unique_plot_ID
+    # ) |>
+    # summarise(
+    #   onset = mean(first_onset),
+    #   .groups = "drop"
+    # )
 }
 
 
@@ -195,6 +195,23 @@ make_sens_predictions3 <- function(model) {
   return(newdat)
 }
 
+make_sens_predictions3 <- function(model) {
+  
+  newdat <- tibble(treat_competition = c("with", "without"))
+  
+  pred <- predict(
+    model,
+    newdat = newdat,
+    re.form = NA,
+    se.fit = TRUE) |> 
+    
+    as_tibble() |>
+    mutate(upper = fit + 1.96 * se.fit,
+           lower = fit - 1.96 * se.fit) |>
+    bind_cols(newdat)
+  
+  return(pred)
+}
 
 
 
