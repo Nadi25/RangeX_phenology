@@ -121,7 +121,27 @@ phenology <- phenology |>
 
 
 
+# and get julian days ---------------------------------------------------
+# yday(date)
+# che and nor was measured in two years but if we count the days in each year it should be fine
 
+phenology2 <- phenology |> 
+  mutate(
+    jday = yday(date_measurement),   # Julian day (1–365)
+    jday_scaled = scale(jday))        # optional scaling if needed
+
+
+
+
+# add site_warming treatment ----------------------------------------------
+phenology2$treatment_site_temp <- paste(phenology2$site, phenology2$treat_warming, sep = "_")
+
+
+phenology2 <- phenology2 |>
+  mutate(treatment_site_temp= factor(treatment_site_temp,
+                                     levels = c("lo_ambi",
+                                                "hi_ambi",
+                                                "hi_warm")))
 
 
 
