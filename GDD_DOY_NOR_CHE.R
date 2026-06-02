@@ -1,9 +1,9 @@
 
 
+# 03 GDD vs DOY -----------------------------------------------------------
 
-# GDD vs DOY --------------------------------------------------------------
 
-# plot gdd against calender day to see how warth is accumumlating
+# plot gdd against calender day to see how warmth is accumulating
 
 
 source("Data_preparation_climate_station_CHE.R")
