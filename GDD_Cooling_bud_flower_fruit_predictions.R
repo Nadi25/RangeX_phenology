@@ -1,5 +1,8 @@
 
-# GDD  -------------------------------------------------------------
+
+# 02 Onset GDD ------------------------------------------------------------
+
+# Effect of upslope transplantation on onsets GDD  -------------------------------------------------------------
 
 # load library ------------------------------------------------------------
 library(conflicted)
@@ -10,10 +13,10 @@ library(performance)
 library(see)
 library(emmeans)
 
-theme_set(theme_bw(base_size = 22))
 
 source("Data_preparation_phenology_NOR_CHE_combined.R")
 
+theme_set(theme_bw())
 
 # filter only nor ------------------------------------------------------
 phenology_nor <- phenology |> 
@@ -604,10 +607,17 @@ b_f_fr_gdd2 <- ggplot(plot_df_gdd_all, aes(
   
   labs(
     x = "Biotic interactions",
-    y = "Predicted onset (GDD)",
-    title = "Effect of transplantation on onset across regions",
+    y = "Predicted onset (GDD2)",
+    title = "Effect of transplantation on onset GDD",
     shape = "Site",
     color = "Region"
   )
 
 print(b_f_fr_gdd2)
+
+
+# ggsave(filename = "Output/Onset/GDD_Transplantation_Warming_Onset_bud_flower_fruit_seed_predictions_tbase2_separate_region.png", 
+#        plot = b_f_fr_gdd2, width = 18, height = 10, units = "in")
+
+
+
