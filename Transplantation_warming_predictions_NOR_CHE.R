@@ -1,7 +1,10 @@
 
 
-# Onset bud, flower, fruit model with site_treat_warming combination --------
+# 01 Onset julian days -------------------------------------------------------
 
+
+# Onset bud, flower, fruit model with site_treat_warming combination --------
+# julian days
 
 # load library ---------------------------------------------------------
 library(lme4)
@@ -22,7 +25,7 @@ source("Data_preparation_phenology_NOR_CHE_combined.R")
 names(phenology)
 
 # set theme for plots for presentation ------------------------------------
-theme_set(theme_bw(base_size = 20))
+theme_set(theme_bw())
 
 
 # and get julian days ---------------------------------------------------
