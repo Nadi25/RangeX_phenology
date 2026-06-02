@@ -156,7 +156,7 @@ ggplot(bio_flower_species, aes(x = log_max_flower, y = pred_log_biomass_species)
 
 # plot with correct model  ------------------------------------------------
 # and confidence intervals
-pred_df_species <- ggpredict(m_flowers_species, terms = "log_max_flower")
+pred_df_species <- ggpredict(m_flowers_species2, terms = "log_max_flower")
 
 g <- ggplot() +
   geom_point(data = bio_flower_species,
@@ -216,7 +216,7 @@ qqnorm(residuals(m_flowers_species3)); qqline(residuals(m_flowers_species3))
 hist(residuals(m_flowers_species3))
 
 
-pred_df_species2 <- ggpredict(m_flowers_species2, terms = "pred_log_biomass_species")
+pred_df_species2 <- ggpredict(m_flowers_species3, terms = "pred_log_biomass_species")
 
 # # this is making one line per species which all have the same slope because
 # # species is a random effect
