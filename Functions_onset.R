@@ -69,6 +69,27 @@ make_onset_predictions <- function(model) {
 }
 
 
+make_onset_predictions_gdd <- function(model) {
+  
+  newdata <- expand.grid(
+    treatment_site_temp = c("lo_ambi", "hi_ambi"),
+    treat_competition = c("with", "without")
+  ) |>
+    as_tibble()
+  
+  pred <- predict(
+    model,
+    newdata = newdata,
+    re.form = NA,
+    se.fit = TRUE) |> 
+    
+    as_tibble() |>
+    mutate(upper = fit + 1.96 * se.fit,
+           lower = fit - 1.96 * se.fit) |>
+    bind_cols(newdata)
+  
+  return(pred)
+}
 
 
 
