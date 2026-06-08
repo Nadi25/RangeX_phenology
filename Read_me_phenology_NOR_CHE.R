@@ -8,7 +8,7 @@
 source("Data_preparation_phenology_NOR.R")
 source("Data_preparation_phenology_NOR_CHE_combined.R")
 
-# cliamte stations
+# climate stations
 source("Data_preparation_climate_station_NOR.R")
 source("Data_preparation_climate_station_CHE.R")
 
@@ -27,10 +27,11 @@ source("RangeX_data_paper_cleaning_demographic_traits_23.R")
 # Onset -------------------------------------------------------------------
 
 # julian days
-source("Transplantation_warming_predictions_NOR_CHE.R")
+source("Transplantation_warming_onset_predictions_DOY_NOR_CHE.R")
 
 # GDD
-source("GDD_Cooling_bud_flower_fruit_predictions.R")
+# only ambient low vs high
+source("GDD_Transplantation_onset_predictions_NOR_CHE.R")
 
 # GDD vs DOY
 source("GDD_DOY_NOR_CHE.R")
