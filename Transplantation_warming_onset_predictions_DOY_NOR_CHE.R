@@ -15,6 +15,8 @@ library(performance)
 library(see)
 
 
+# source script with functions --------------------------------------------
+source("Functions_onset.R")
 
 
 # load clean phenology data -----------------------------------------------
@@ -134,6 +136,8 @@ emmeans(m_onset_seed_che,
 
 
 
+# make onset predictions --------------------------------------------------
+
 # NOR ---------------------------------------------------------------------
 # 
 pred_onset_bud_nor    <- make_onset_predictions(m_onset_bud_nor)
@@ -228,9 +232,7 @@ plot_df_all2 <- plot_df_all2 |>
 
 
 
-# combine predictions into one dataframe ----------------------------------
-
-
+# combine raw onset data into one data frame ----------------------------------
 raw_bud  <- onset_bud   |> 
   mutate(stage = "Budding")
 
@@ -257,6 +259,8 @@ plot_df_raw_all
 
 
 # or plot facet by stage --------------------------------------------------
+pd <- position_dodge(width = 0.6) 
+
 region_colors <- c(
   "Norway" = "turquoise4",
   "Switzerland" = "pink4"
