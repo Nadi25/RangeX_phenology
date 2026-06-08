@@ -145,6 +145,11 @@ phenology2 <- phenology2 |>
 
 
 
+phenology2 <- phenology2 |>
+  mutate(phenology_stage = recode(
+    phenology_stage,
+    "No_Infructescences" = "No_FloWithrd"
+  ))
 
 
 
