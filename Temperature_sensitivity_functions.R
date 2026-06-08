@@ -197,18 +197,18 @@ make_sens_predictions3 <- function(model) {
 
 make_sens_predictions3 <- function(model) {
   
-  newdat <- tibble(treat_competition = c("with", "without"))
+  newdata <- tibble(treat_competition = c("with", "without"))
   
   pred <- predict(
     model,
-    newdat = newdat,
+    newdata = newdata,
     re.form = NA,
     se.fit = TRUE) |> 
     
     as_tibble() |>
     mutate(upper = fit + 1.96 * se.fit,
            lower = fit - 1.96 * se.fit) |>
-    bind_cols(newdat)
+    bind_cols(newdata)
   
   return(pred)
 }
