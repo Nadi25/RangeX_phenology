@@ -96,17 +96,40 @@ max_flower_per_plant_bio <- phenology_bio_species2 |>
 
 
 # fit the model negative binomial  ------------------------------------
-# m_flower_number_bio <- glmer.nb(max_flower_number ~ treatment_site_temp * treat_competition *
-#
-#                                   pred_log_biomass_species + (1|species) + (1|block_ID),
-#                             data = max_flower_per_plant_bio,
-#                             control = glmerControl(optimizer = "bobyqa"))
-# 
-# summary(m_flower_number_bio)
+# interactive
+m_flower_number_bio <- glmer.nb(max_flower_number ~ treatment_site_temp * treat_competition *
+                                  pred_log_biomass_species + (1|species) + (1|block_ID),
+                            data = max_flower_per_plant_bio,
+                            control = glmerControl(optimizer = "bobyqa"))
+
+summary(m_flower_number_bio)
+
+
+car::Anova(m_flower_number_bio)
+
+emmeans(m_flower_number_bio,
+        pairwise ~ treatment_site_temp * treat_competition)
+
+biomass_mean <- mean(
+  max_flower_per_plant_bio$pred_log_biomass_species,
+  na.rm = TRUE
+)
+biomass_mean
+
+
+emmeans(
+  m_flower_number_bio,
+  pairwise ~ treatment_site_temp * treat_competition,
+  at = list(
+    pred_log_biomass_species = biomass_mean
+  ),
+  type = "response"
+)
 
 
 
 
+# additive
 m_flower_number_bio2 <- glmer.nb(max_flower_number ~ treatment_site_temp * treat_competition + 
                                   pred_log_biomass_species + (1|species) + (1|block_ID),
                                 data = max_flower_per_plant_bio,
@@ -116,7 +139,7 @@ summary(m_flower_number_bio2)
 
 car::Anova(m_flower_number_bio2)
 
-#AIC(m_flower_number_bio, m_flower_number_bio2)
+AIC(m_flower_number_bio, m_flower_number_bio2)
 
 
 summary(glht(m_flower_number_bio2,
@@ -163,11 +186,13 @@ make_predictions_bio <- function(model, data) {
     )
 }
 
-pred_bio <- make_predictions_bio(m_flower_number_bio2, max_flower_per_plant_bio)
+pred_bio <- make_predictions_bio(m_flower_number_bio, max_flower_per_plant_bio)
 pred_bio
 
 
 
+pred_bio2 <- make_predictions_bio(m_flower_number_bio2, max_flower_per_plant_bio)
+pred_bio2
 
 
 
@@ -176,6 +201,12 @@ pred_bio
 
 # rename treat info -------------------------------------------------------
 pred_bio$treatment_site_temp <- 
+  recode(pred_bio$treatment_site_temp,
+         "low_ambient" = "low ambient",
+         "high_ambient" = "high ambient",
+         "high_warmed" = "high warm")
+
+pred_bio2$treatment_site_temp <- 
   recode(pred_bio$treatment_site_temp,
          "low_ambient" = "low ambient",
          "high_ambient" = "high ambient",
@@ -193,7 +224,7 @@ max_flower_per_plant_bio$treatment_site_temp <-
 # plot --------------------------------------------------
 pd <- position_dodge(width = 0.9) 
 
-flow_no_bio <- ggplot(pred_bio, aes(
+flow_no_bio2 <- ggplot(pred_bio2, aes(
   x = treatment_site_temp,
   y = fit,
   color = treat_competition,              
@@ -240,7 +271,7 @@ flow_no_bio <- ggplot(pred_bio, aes(
     color = "Biotic interactions"
   )+
   guides(shape = "none")
-flow_no_bio
+flow_no_bio2
 
 # ggsave(filename = "Output/Biomass/Transplantation_warming_flower_number_predictions_NOR_glmer.nb.png", 
 #       plot = flow_no, width = 12, height = 8, units = "in")
@@ -248,9 +279,9 @@ flow_no_bio
 
 
 # Plot with raw as violin ------------------------------------------------
+# additive
 
-
-flow_no_bio2 <- ggplot(pred_bio, aes(
+flow_no_bio3 <- ggplot(pred_bio2, aes(
   x = treatment_site_temp,
   y = fit,
   color = treat_competition,
@@ -293,7 +324,7 @@ flow_no_bio2 <- ggplot(pred_bio, aes(
   labs(
     x = "Site temperature treatment",
     y = "Log (max flower number)",
-    title = "Effect of transplantation and warming on flower number adjusted for biomass",
+    title = "Effect of transplantation and warming on flower number adjusted for biomass additive",
     shape = "Treatment site × warming",
     color = "Biotic interactions",
     fill = "Biotic interactions"
@@ -302,16 +333,73 @@ flow_no_bio2 <- ggplot(pred_bio, aes(
   guides(shape = "none")+
   coord_transform(y = "log1p")
 
-flow_no_bio2
+flow_no_bio3
 
-# ggsave(filename = "Output/Biomass/Transplantation_warming_flower_number_predictions_Biomass_NOR_glmer.nb_violin.png", 
-#       plot = flow_no_bio2, width = 12, height = 8, units = "in")
-
-
+# ggsave(filename = "Output/Biomass/Transplantation_warming_flower_number_predictions_Biomass_NOR_glmer.nb_violin_additive.png", 
+#       plot = flow_no_bio3, width = 12, height = 8, units = "in")
 
 
 
 
+
+# plot interactive
+
+flow_no_bio4 <- ggplot(pred_bio, aes(
+  x = treatment_site_temp,
+  y = fit,
+  color = treat_competition,
+  shape = treatment_site_temp
+)) +
+  
+  # distribution of raw data
+  geom_violin(
+    data = max_flower_per_plant_bio,
+    aes(
+      x = treatment_site_temp,
+      y = max_flower_number,
+      fill = treat_competition
+    ),
+    position = position_dodge(width = 0.9),
+    alpha = 0.25,
+    color = NA,
+    trim = TRUE # cuts of at 0 because we dont have negative flower no
+  ) +
+  
+  # model estimates
+  geom_point(position = pd, size = 4, stroke = 1.2) +
+  geom_errorbar(
+    aes(ymin = lower, ymax = upper),
+    width = .2,
+    position = pd
+  ) +
+  
+  scale_color_manual(values = c("#528B8B", "#CD950C")) +
+  scale_fill_manual(values = c("#528B8B", "#CD950C")) +
+  
+  scale_shape_manual(
+    values = c(
+      "low ambient" = 16,
+      "high ambient" = 17,
+      "high warm" = 2
+    )
+  ) +
+  
+  labs(
+    x = "Site temperature treatment",
+    y = "Log (max flower number)",
+    title = "Effect of transplantation and warming on flower number adjusted for biomass interactive",
+    shape = "Treatment site × warming",
+    color = "Biotic interactions",
+    fill = "Biotic interactions"
+  ) +
+  
+  guides(shape = "none")+
+  coord_transform(y = "log1p")
+
+flow_no_bio4
+
+# ggsave(filename = "Output/Biomass/Transplantation_warming_flower_number_predictions_Biomass_NOR_glmer.nb_violin_interactive.png", 
+#       plot = flow_no_bio4, width = 12, height = 8, units = "in")
 
 
 
