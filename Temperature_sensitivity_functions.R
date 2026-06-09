@@ -26,7 +26,7 @@ get_mean_onset <- function(data, stage_name, onset_type) {
     group_by(
       region, site, treat_competition,
       species, block_ID, unique_plot_ID,
-      unique_plant_ID
+      unique_plant_ID, functional_group
     ) |>
     summarise(
       onset = min(.data[[onset_type]]),
@@ -52,7 +52,7 @@ get_mean_onset <- function(data, stage_name, onset_type) {
 # but we still need an average across the plots
 get_species_onset <- function(onset_data) {
   onset_data |>
-    group_by(region, site, treat_competition, species, block_ID) |>
+    group_by(region, site, treat_competition, species, block_ID, functional_group) |>
     summarise(
       onset = mean(onset, na.rm = TRUE),
       .groups = "drop"
@@ -66,7 +66,7 @@ get_species_onset <- function(onset_data) {
 get_temp_sens <- function(onset_mean_data, temperature_data) {
   onset_mean_data |>
     left_join(temperature_data, by = c("region","site")) |>
-    group_by(region, species, treat_competition, block_ID) |>  # or group by site and species?
+    group_by(region, species, treat_competition, block_ID, functional_group) |>  # or group by site and species?
     pivot_wider(names_from = site,
                 values_from = c(onset, Tmean)) |>
     mutate(
@@ -111,6 +111,17 @@ fit_sens_model <- function(sens_data, region_name) {
   return(model)
 }
 
+fit_sens_model2 <- function(sens_data, region_name) {
+  sens_region <- sens_data |> 
+    filter(region == region_name)
+  
+  model <- lmerTest::lmer(
+    temp_sens ~ treat_competition * functional_group + (1 | species) + (1 | block_ID),
+    data = sens_region
+  )
+  
+  return(model)
+}
 
 
 # predict sensitivity for each stage with function ------------------------
