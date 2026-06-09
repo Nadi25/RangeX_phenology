@@ -290,7 +290,7 @@ model_performance(m_sens_seed_gs_nor)
 #check_model(m_sens_seed_gs_nor)
 
 
-m_sens_bud_gs_nor    <- fit_sens_model2(sens_bud_gs, "Norway")
+# m_sens_bud_gs_nor    <- fit_sens_model2(sens_bud_gs, "Norway")
 
 
 # CHE ---------------------------------------------------------------------
