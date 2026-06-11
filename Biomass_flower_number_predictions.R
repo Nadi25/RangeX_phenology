@@ -128,6 +128,38 @@ emmeans(
 
 
 
+small_bio <- quantile(
+  max_flower_per_plant_bio$pred_log_biomass_species,
+  0.25, na.rm = TRUE
+)
+
+large_bio <- quantile(
+  max_flower_per_plant_bio$pred_log_biomass_species,
+  0.75, na.rm = TRUE
+)
+
+
+emmeans(
+  m_flower_number_bio,
+  pairwise ~ treatment_site_temp * treat_competition,
+  at = list(pred_log_biomass_species = small_bio),
+  type = "response"
+)
+
+
+emmeans(
+  m_flower_number_bio,
+  pairwise ~ treatment_site_temp * treat_competition,
+  at = list(pred_log_biomass_species = large_bio),
+  type = "response"
+)
+
+
+
+
+
+
+#######################################################
 
 # additive
 m_flower_number_bio2 <- glmer.nb(max_flower_number ~ treatment_site_temp * treat_competition + 
