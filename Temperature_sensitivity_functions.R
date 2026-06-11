@@ -172,39 +172,39 @@ make_sens_predictions <- function(model) {
 
 
 
-# but this does not include random effects
-make_sens_predictions2 <- function(model) {
-  
-  pred <- ggpredict(
-    model,
-    terms = "treat_competition"
-  )
-  
-  pred <- as.data.frame(pred)
-  
-  return(pred)
-}
+# # but this does not include random effects
+# make_sens_predictions2 <- function(model) {
+#   
+#   pred <- ggpredict(
+#     model,
+#     terms = "treat_competition"
+#   )
+#   
+#   pred <- as.data.frame(pred)
+#   
+#   return(pred)
+# }
 
 
-make_sens_predictions3 <- function(model) {
-  
-  newdat <- data.frame(treat_competition = c("with", "without"))
-  
-  pred <- predict(
-    model,
-    newdat = newdat,
-    re.form = NA,
-    se.fit = TRUE
-  )
-  
-  newdat$fit <- pred$fit
-  newdat$se <- pred$se.fit
-  
-  newdat$lo <- newdat$fit - 1.96 * newdat$se
-  newdat$hi <- newdat$fit + 1.96 * newdat$se
-  
-  return(newdat)
-}
+# make_sens_predictions3 <- function(model) {
+#   
+#   newdat <- data.frame(treat_competition = c("with", "without"))
+#   
+#   pred <- predict(
+#     model,
+#     newdat = newdat,
+#     re.form = NA,
+#     se.fit = TRUE
+#   )
+#   
+#   newdat$fit <- pred$fit
+#   newdat$se <- pred$se.fit
+#   
+#   newdat$lo <- newdat$fit - 1.96 * newdat$se
+#   newdat$hi <- newdat$fit + 1.96 * newdat$se
+#   
+#   return(newdat)
+# }
 
 make_sens_predictions3 <- function(model) {
   
@@ -224,6 +224,29 @@ make_sens_predictions3 <- function(model) {
   
   return(pred)
 }
+
+
+
+make_sens_predictions4 <- function(model) {
+  
+  newdata <- expand.grid(treat_competition = c("with", "without"),
+                         functional_group = c("graminoid", "forb", "legume")) |> 
+    as_tibble()
+  
+  pred <- predict(
+    model,
+    newdata = newdata,
+    re.form = NA,
+    se.fit = TRUE) |> 
+    
+    as_tibble() |>
+    mutate(upper = fit + 1.96 * se.fit,
+           lower = fit - 1.96 * se.fit) |>
+    bind_cols(newdata)
+  
+  return(pred)
+}
+
 
 
 
