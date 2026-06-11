@@ -337,11 +337,11 @@ pred_fruit_gs_nor  <- make_sens_predictions(m_sens_fruit_gs_nor)
 pred_seed_gs_nor   <- make_sens_predictions(m_sens_seed_gs_nor)
 
 
-# ggpredict
-pred_bud_gs_nor2    <- make_sens_predictions2(m_sens_bud_gs_nor)
-
 # predict
 pred_bud_gs_nor3    <- make_sens_predictions3(m_sens_bud_gs_nor)
+pred_flower_gs_nor3 <- make_sens_predictions3(m_sens_flower_gs_nor)
+pred_fruit_gs_nor3  <- make_sens_predictions3(m_sens_fruit_gs_nor)
+pred_seed_gs_nor3   <- make_sens_predictions3(m_sens_seed_gs_nor)
 
 
 
@@ -352,6 +352,11 @@ pred_flower_gs_che <- make_sens_predictions(m_sens_flower_gs_che)
 pred_fruit_gs_che  <- make_sens_predictions(m_sens_fruit_gs_che)
 pred_seed_gs_che   <- make_sens_predictions(m_sens_seed_gs_che)
 
+# predict
+pred_bud_gs_che3    <- make_sens_predictions3(m_sens_bud_gs_che)
+pred_flower_gs_che3 <- make_sens_predictions3(m_sens_flower_gs_che)
+pred_fruit_gs_che3  <- make_sens_predictions3(m_sens_fruit_gs_che)
+pred_seed_gs_che3   <- make_sens_predictions3(m_sens_seed_gs_che)
 
 
 # combine all predictions -------------------------------------------------
@@ -367,7 +372,17 @@ plot_predictions_gs <- bind_rows(
 )
 plot_predictions_gs
 
-
+plot_predictions_gs3 <- bind_rows(
+  pred_bud_gs_nor3    |> mutate(stage = "Budding", region = "Norway"),
+  pred_flower_gs_nor3 |> mutate(stage = "Flowering", region = "Norway"),
+  pred_fruit_gs_nor3  |> mutate(stage = "Fruiting", region = "Norway"),
+  pred_seed_gs_nor3   |> mutate(stage = "Seeds", region = "Norway"),
+  pred_bud_gs_che3    |> mutate(stage = "Budding", region = "Switzerland"),
+  pred_flower_gs_che3 |> mutate(stage = "Flowering", region = "Switzerland"),
+  pred_fruit_gs_che3  |> mutate(stage = "Fruiting", region = "Switzerland"),
+  pred_seed_gs_che3   |> mutate(stage = "Seeds", region = "Switzerland")
+)
+plot_predictions_gs3
 
 
 
@@ -546,11 +561,11 @@ pred_fruit_gs_gdd_nor  <- make_sens_predictions(m_sens_fruit_gs_gdd_nor)
 pred_seed_gs_gdd_nor   <- make_sens_predictions(m_sens_seed_gs_gdd_nor)
 
 
-# ggpredict
-pred_bud_gs_gdd_nor2    <- make_sens_predictions2(m_sens_bud_gs_gdd_nor)
-pred_flower_gs_gdd_nor2 <- make_sens_predictions2(m_sens_flower_gs_gdd_nor)
-pred_fruit_gs_gdd_nor2  <- make_sens_predictions2(m_sens_fruit_gs_gdd_nor)
-pred_seed_gs_gdd_nor2   <- make_sens_predictions2(m_sens_seed_gs_gdd_nor)
+# predict
+pred_bud_gs_gdd_nor3    <- make_sens_predictions3(m_sens_bud_gs_gdd_nor)
+pred_flower_gs_gdd_nor3 <- make_sens_predictions3(m_sens_flower_gs_gdd_nor)
+pred_fruit_gs_gdd_nor3  <- make_sens_predictions3(m_sens_fruit_gs_gdd_nor)
+pred_seed_gs_gdd_nor3   <- make_sens_predictions3(m_sens_seed_gs_gdd_nor)
 
 
 
@@ -563,11 +578,11 @@ pred_flower_gs_gdd_che <- make_sens_predictions(m_sens_flower_gs_gdd_che)
 pred_fruit_gs_gdd_che  <- make_sens_predictions(m_sens_fruit_gs_gdd_che)
 pred_seed_gs_gdd_che   <- make_sens_predictions(m_sens_seed_gs_gdd_che)
 
-# ggpredict
-pred_bud_gs_gdd_che2    <- make_sens_predictions2(m_sens_bud_gs_gdd_che)
-pred_flower_gs_gdd_che2 <- make_sens_predictions2(m_sens_flower_gs_gdd_che)
-pred_fruit_gs_gdd_che2  <- make_sens_predictions2(m_sens_fruit_gs_gdd_che)
-pred_seed_gs_gdd_che2   <- make_sens_predictions2(m_sens_seed_gs_gdd_che)
+# predict
+pred_bud_gs_gdd_che3    <- make_sens_predictions3(m_sens_bud_gs_gdd_che)
+pred_flower_gs_gdd_che3 <- make_sens_predictions3(m_sens_flower_gs_gdd_che)
+pred_fruit_gs_gdd_che3  <- make_sens_predictions3(m_sens_fruit_gs_gdd_che)
+pred_seed_gs_gdd_che3   <- make_sens_predictions3(m_sens_seed_gs_gdd_che)
 
 
 # combine all predictions -------------------------------------------------
@@ -583,25 +598,20 @@ plot_predictions_gs_gdd <- bind_rows(
 )
 plot_predictions_gs_gdd
 
-# or with the ggpredict function
-plot_predictions_gs_gdd2 <- bind_rows(
-  pred_bud_gs_gdd_nor2    |> mutate(stage = "Budding", region = "Norway"),
-  pred_flower_gs_gdd_nor2 |> mutate(stage = "Flowering", region = "Norway"),
-  pred_fruit_gs_gdd_nor2  |> mutate(stage = "Fruiting", region = "Norway"),
-  pred_seed_gs_gdd_nor2   |> mutate(stage = "Seeds", region = "Norway"),
-  pred_bud_gs_gdd_che2    |> mutate(stage = "Budding", region = "Switzerland"),
-  pred_flower_gs_gdd_che2 |> mutate(stage = "Flowering", region = "Switzerland"),
-  pred_fruit_gs_gdd_che2  |> mutate(stage = "Fruiting", region = "Switzerland"),
-  pred_seed_gs_gdd_che2   |> mutate(stage = "Seeds", region = "Switzerland")
+# or with the predict function
+plot_predictions_gs_gdd3 <- bind_rows(
+  pred_bud_gs_gdd_nor3    |> mutate(stage = "Budding", region = "Norway"),
+  pred_flower_gs_gdd_nor3 |> mutate(stage = "Flowering", region = "Norway"),
+  pred_fruit_gs_gdd_nor3  |> mutate(stage = "Fruiting", region = "Norway"),
+  pred_seed_gs_gdd_nor3   |> mutate(stage = "Seeds", region = "Norway"),
+  pred_bud_gs_gdd_che3    |> mutate(stage = "Budding", region = "Switzerland"),
+  pred_flower_gs_gdd_che3 |> mutate(stage = "Flowering", region = "Switzerland"),
+  pred_fruit_gs_gdd_che3  |> mutate(stage = "Fruiting", region = "Switzerland"),
+  pred_seed_gs_gdd_che3   |> mutate(stage = "Seeds", region = "Switzerland")
 )
-plot_predictions_gs_gdd2
+plot_predictions_gs_gdd3
 
-# rename column names 
-plot_predictions_gs_gdd2 <- plot_predictions_gs_gdd2 |> 
-  rename(treat_competition = x,
-         temp_sens = predicted,
-         plo = conf.low,
-         phi = conf.high)
+
 
 
 
