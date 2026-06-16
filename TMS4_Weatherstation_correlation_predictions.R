@@ -197,7 +197,13 @@ m_hi_warm_bare <- lm(T3_mean ~ Tavg, data = dat_hi_warm_bare)
 
 summary(m_hi_warm_bare)
 
+m_hi_warm_bare2 <- lm(T3_mean ~ Tavg + Radiation, data = dat_hi_warm_bare)
 
+summary(m_hi_warm_bare2)
+
+m_hi_warm_bare3 <- lm(T3_mean ~ Tavg + Radiation + WindSpd, data = dat_hi_warm_bare)
+
+summary(m_hi_warm_bare3)
 
 dat_lo_ambi_bare <- compare_temp2 |>
   filter(
@@ -205,6 +211,14 @@ dat_lo_ambi_bare <- compare_temp2 |>
     treat_warming == "ambi",
     treat_competition == "bare"
   )
+
+
+AIC(m_hi_warm_bare, m_hi_warm_bare2, m_hi_warm_bare3)
+
+
+
+
+
 
 m_lo_ambi_bare <- lm(T3_mean ~ Tavg, data = dat_lo_ambi_bare)
 
@@ -242,4 +256,118 @@ pred_hi_ambi_vege <- predict(
     treat_competition = "vege"
   )
 pred_hi_ambi_vege
+
+
+
+
+
+predict_tomst <- function(model, data, warming, competition) {
+  
+  predict(
+    model,
+    newdata = data,
+    se.fit = TRUE
+  ) |>
+    as_tibble() |>
+    mutate(
+      upper = fit + 1.96 * se.fit,
+      lower = fit - 1.96 * se.fit,
+      treat_warming = warming,
+      treat_competition = competition
+    ) |>
+    bind_cols(data)
+}
+
+new_hi <- climate_23_daily |> filter(site == "hi")
+new_lo <- climate_23_daily |> filter(site == "lo")
+
+
+
+pred_hi_ambi_vege <- predict_tomst(
+  m_hi_ambi_vege, new_hi, "ambi", "vege"
+)
+
+pred_hi_ambi_bare <- predict_tomst(
+  m_hi_ambi_bare, new_hi, "ambi", "bare"
+)
+
+pred_hi_warm_vege <- predict_tomst(
+  m_hi_warm_vege, new_hi, "warm", "vege"
+)
+
+pred_hi_warm_bare <- predict_tomst(
+  m_hi_warm_bare, new_hi, "warm", "bare"
+)
+
+
+
+pred_lo_ambi_vege <- predict_tomst(
+  m_lo_ambi_vege, new_lo, "ambi", "vege"
+)
+
+pred_lo_ambi_bare <- predict_tomst(
+  m_lo_ambi_bare, new_lo, "ambi", "bare"
+)
+
+
+
+pred_all <- bind_rows(
+  pred_hi_ambi_vege,
+  pred_hi_ambi_bare,
+  pred_hi_warm_vege,
+  pred_hi_warm_bare,
+  pred_lo_ambi_vege,
+  pred_lo_ambi_bare
+)
+pred_all
+
+pred_all2 <- pred_all |>
+  filter(date >= as.Date("2023-03-01"),
+         date <= as.Date("2023-09-30"))
+
+ggplot(pred_all2,
+       aes(date, fit,
+           colour = treat_competition,
+           linetype = treat_warming)) +
+  geom_line() +
+  facet_wrap(~site)
+
+
+
+# compare real with predicted tms data ------------------------------------
+obs <- compare_temp2 |>
+  select(date, site, treat_warming, treat_competition, T3_mean)
+
+
+pred <- pred_all |>
+  select(date, site, treat_warming, treat_competition, fit)
+
+
+validation <- obs |>
+  inner_join(pred,
+             by = c("date", "site", "treat_warming", "treat_competition"))
+
+ggplot(validation,
+       aes(x = T3_mean, y = fit,
+           colour = treat_competition)) +
+  geom_point(alpha = 0.3) +
+  geom_abline(slope = 1, intercept = 0) +
+  facet_wrap(~site)
+
+model_performance(lm(T3_mean ~ fit, data = validation))
+
+
+#####
+
+# column name pred or not -------------------------------------------------
+
+
+
+
+
+
+
+
+
+
 
