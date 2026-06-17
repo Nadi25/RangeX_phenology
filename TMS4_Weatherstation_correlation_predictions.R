@@ -549,3 +549,110 @@ head(logger_data)
 
 
 
+
+
+# test out workflow with one logger as example ----------------------------
+
+logger_ids <- unique(compare_temp2$unique_plot_ID)
+
+logger_ids
+
+
+id <- logger_ids[1]
+
+dat_logger <- compare_temp2 |>
+  filter(unique_plot_ID == id)
+
+m_logger <- lm(T3_mean ~ Tavg + Radiation + WindSpd, data = dat_logger)
+
+summary(m_logger)
+
+
+unique(dat_logger$site)
+
+
+newdata <- climate_23_daily |>
+  filter(site == "hi")
+
+pred <- predict(
+  m_logger,
+  newdata = newdata,
+  se.fit = TRUE
+)
+
+pred_logger <- tibble(
+  unique_plot_ID = id,
+  date = newdata$date,
+  fit = pred$fit,
+  se.fit = pred$se.fit
+)
+pred_logger
+
+
+
+
+
+# predict per logger and loop through all ---------------------------------
+
+logger_ids <- unique(compare_temp2$unique_plot_ID)
+
+logger_ids
+length(logger_ids)
+
+
+predict_logger <- function(id){
+  
+  # data from one logger
+  dat_logger <- compare_temp2 |>
+    filter(unique_plot_ID == id)
+  
+  # model
+  m_logger <- lm(
+    T3_mean ~ Tavg + Radiation + WindSpd,
+    data = dat_logger
+  )
+  
+  # metadata (ONE row per logger)
+  meta <- dat_logger |>
+    distinct(unique_plot_ID, site, treat_warming, treat_competition)
+  
+  # climate data for that site
+  newdata <- climate_23_daily |>
+    filter(site == meta$site)
+  
+  # prediction
+  pred <- predict(
+    m_logger,
+    newdata = newdata,
+    se.fit = TRUE
+  )
+  
+  # output
+  tibble(
+    unique_plot_ID = id,
+    site = meta$site,
+    treat_warming = meta$treat_warming,
+    treat_competition = meta$treat_competition,
+    date = newdata$date,
+    fit = pred$fit,
+    se.fit = pred$se.fit
+  )
+}
+
+predict_logger(logger_ids[1])
+
+
+
+pred_logger <- map_df(logger_ids, predict_logger)
+
+
+
+
+
+
+
+
+
+
+
+
