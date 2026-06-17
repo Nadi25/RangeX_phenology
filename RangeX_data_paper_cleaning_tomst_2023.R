@@ -182,126 +182,23 @@ tomst_filtered <- tomst_joined |>
 
 
 
-str(tomst_joined$deployed)
-str(tomst_joined$date)
-#
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-time_available <- tomst_23_raw |>
-  group_by(treat_warming, treat_competition, site, date_out, tomst) |>
-  summarise(
-    start = min(date_time, na.rm = TRUE),
-    end   = max(date_time, na.rm = TRUE),
-    .groups = "drop"
-  )
-time_available
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# filter field season already here ----------------------------------------
-#high site
-# some were in already on 08.06 but others only 20.06, so decided to take later date for all 
-# and take away one day for handling
-# low site
-# 20.06 but rather do 21.06 then to match with high site
-start_date <- as.Date("2023-06-21") 
-end_date <- as.Date("2023-10-23") # were collected on 24.10
-
-# Filter the data for the specified date range
-tomst_23_raw_filtered <- tomst_23_raw |> 
-  filter(between(date_time, left = start_date, right = end_date))
-
-
-# plot soil moisture ------------------------------------------------------
-# one line per logger
-p <- ggplot(tomst_23_raw_filtered, aes(x = date_time, y = VWC, color = tomst)) +
-  geom_line() +
-  theme(legend.position = "none")
-p 
-# is there one outlier in the middle?
-
-# check if the drop in the middle is an outlier
-# by finding min in August-September
-out <- tomst_23_raw_filtered |> 
-  filter(between(date_time, left = as.Date("2023-08-01"), right =  as.Date("2023-09-20"))) |> 
-  filter(VWC == min(VWC, na.rm = TRUE)) 
-
-# plot only 94217320
-one_logger <- tomst_23_raw_filtered |> 
-  filter(tomst == 94217320)
-
-p %+% one_logger
-# ok, it has a drop in early August: 2023-08-19 11:15:00
-# should we delete the whole logger?
-
-
-# calculate average per date per treatment
-# it's still every 15 min
-tomst_23_raw_average <- tomst_23_raw_filtered |> 
-  group_by(date_time, treat_combined) |> 
-  summarize(avg_soil_moist = mean(VWC, na.rm = TRUE), .groups = 'drop')
-head(tomst_23_raw_average)
-
-# plot all treatments
-soil_moist <- ggplot(tomst_23_raw_average, aes(x = date_time, y = avg_soil_moist, color = treat_combined)) +
-  geom_line() +
-  theme(legend.position = "right")
-soil_moist
-
-ggsave(filename = "RangeX_soil_moisture_23.png", 
-       plot = soil_moist, 
-       path = "Data/Data_tomst_loggers/", 
-       width = 10, height = 6)
-
-# it doesn't look like there is a drying effect of the OTCs here
-# warm has higher soil moist values
-# less transpiration due to OTCs?
 
 
 # import metadata -------------------------------------------------------
-metadata <- read.csv("Data/Metadata/RangeX_clean_MetadataPlot_NOR.csv")
+metadata <- read.csv("Data/RangeX_clean_MetadataPlot_NOR.csv")
 
 
 # fix col names --------------------------------------------------------
 names(metadata)
-names(tomst_23_raw_filtered)
+names(tomst_filtered)
 
-tomst_23_raw_filtered <- tomst_23_raw_filtered |> 
+tomst_filtered <- tomst_filtered |> 
   rename("block_ID_original" = "block",
          "plot_ID_original" = "treat")
 
 # to match plot_ID_original
-tomst_23_raw_filtered <- tomst_23_raw_filtered |> 
+tomst_filtered <- tomst_filtered |> 
   mutate(plot_ID_original = case_when(
     plot_ID_original == "A" ~ "a",
     plot_ID_original == "B" ~ "b",
@@ -316,10 +213,10 @@ tomst_23_raw_filtered <- tomst_23_raw_filtered |>
 metadata <- metadata |> 
   mutate(across(c(block_ID_original, plot_ID_original), as.character))
 
-tomst_23_raw_filtered <- tomst_23_raw_filtered |> 
+tomst_filtered <- tomst_filtered |> 
   mutate(across(c(block_ID_original, plot_ID_original), as.character))
 
-tomst_23_clean<- left_join(metadata, tomst_23_raw_filtered, 
+tomst_23_clean<- left_join(metadata, tomst_filtered, 
                          by = c( "site", "block_ID_original",
                                  "plot_ID_original",
                                  "treat_warming", "treat_competition"))
@@ -327,7 +224,8 @@ tomst_23_clean<- left_join(metadata, tomst_23_raw_filtered,
 
 # select only columns needed for clean data on OSF ------------------------
 rx_tomst_23_clean <- tomst_23_clean |> 
-  select(unique_plot_ID, date_time, 
+  select(site,treat_competition, treat_warming, tomst,
+         unique_plot_ID, date_time, 
          TMS_T1, TMS_T2, TMS_T3, 
          TMS_moist, VWC)
 
@@ -335,19 +233,14 @@ rx_tomst_23_clean <- tomst_23_clean |>
 # save clean data ---------------------------------------------------------
 #write.csv(rx_tomst_23_clean, "Data/Data_tomst_loggers/CleanEnvTMS4/RangeX_clean_EnvTMS4_2023_NOR.csv", row.names = FALSE)
 
-tms23 <- read_csv("Data/Data_tomst_loggers/CleanEnvTMS4/RangeX_clean_EnvTMS4_2023_NOR.csv")
-
-
-
-
 # when does which logger start
 logger_start_dates <- tomst_23_clean |>
-  group_by(site, tomst) |>
+  group_by(site,treat_competition, treat_warming, tomst) |>
   summarise(
-    first_record = min(date_out, na.rm = TRUE),
+    first_record = min(date_time, na.rm = TRUE),
     .groups = "drop"
   ) |>
-  arrange(site, first_record)
+  arrange(site, treat_competition, treat_warming, first_record)
 
 logger_start_dates
 
