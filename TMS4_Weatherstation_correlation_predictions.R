@@ -539,6 +539,9 @@ logger_models <- compare_temp2 |>
 names(logger_models)
 
 summary(logger_models[[1]])
+summary(logger_models[[3]])
+summary(logger_models[[9]])
+summary(logger_models[[20]])
 
 logger_data <- compare_temp2 |>
   filter(unique_plot_ID == names(logger_models)[1])
@@ -649,6 +652,37 @@ pred_logger <- map_df(logger_ids, predict_logger)
 
 
 
+# combine real tomst with predicted tomst -------------------------------------------------
+
+
+# add column with type (pred or real) -------------------------------------
+# predicted tms data
+pred_logger <- pred_logger |>
+  mutate(logger_type = "tms_predicted")|> 
+  rename(temp_mean = fit)
+
+tms_pred_clean <- pred_logger |>
+  select(date, site, treat_warming, treat_competition, temp_mean, unique_plot_ID, logger_type)
+
+
+# real tms data
+tms_real <- env_nor_daily |> 
+  mutate(logger_type = "tms_real")|>
+  rename(temp_mean = T3_mean) |> 
+  select(date, site, treat_warming, treat_competition, temp_mean, unique_plot_ID, logger_type)
+
+
+# join tms predicted and real ---------------------------------------------
+tms_pred_real <- bind_rows(tms_pred_clean, tms_real)
+
+
+
+# plot predicted and real -------------------------------------------------
+
+ggplot(tms_pred_real,
+       aes(x = date, y = temp_mean, color = logger_type, linetype = site)) +
+  geom_line() +
+  facet_grid(treat_warming ~ treat_competition)
 
 
 
