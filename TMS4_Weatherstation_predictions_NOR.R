@@ -127,7 +127,7 @@ head(logger_data)
 
 # predict per logger and loop through all ---------------------------------
 
-logger_ids <- unique(compare_temp2$unique_plot_ID)
+logger_ids <- unique(compare_temp$unique_plot_ID)
 
 logger_ids
 length(logger_ids)
@@ -183,18 +183,16 @@ pred_logger <- map_df(logger_ids, predict_logger)
 
 
 # combine real tomst with predicted tomst -------------------------------------------------
-
+# to check how well it is predicted in the part that is overlapping
 
 # add column with type (pred or real) -------------------------------------
 # predicted tms data
-pred_logger <- pred_logger |>
+pred_logger2 <- pred_logger |>
   mutate(logger_type = "tms_predicted")|> 
   rename(temp_mean = fit)
 
-tms_pred_clean <- pred_logger |>
+tms_pred_clean <- pred_logger2 |>
   select(date, site, treat_warming, treat_competition, temp_mean, unique_plot_ID, logger_type)
-
-
 
 
 # real tms data
@@ -204,16 +202,51 @@ tms_real <- tomst_nor_daily |>
   select(date, site, treat_warming, treat_competition, temp_mean, unique_plot_ID, logger_type)
 
 
-tomst_range_by_treat <- tomst_nor_daily |>
-  group_by(site, treat_warming, treat_competition) |>
-  summarise(
-    start_date = min(date, na.rm = TRUE),
-    end_date   = max(date, na.rm = TRUE),
-    n_days      = n(),
-    .groups = "drop"
-  )
-
-tomst_range_by_treat
+# tomst_range_by_treat <- tomst_nor_daily |>
+#   group_by(site, treat_warming, treat_competition) |>
+#   summarise(
+#     start_date = min(date, na.rm = TRUE),
+#     end_date   = max(date, na.rm = TRUE),
+#     n_days      = n(),
+#     .groups = "drop"
+#   )
+# 
+# tomst_range_by_treat
+# 
+# 
+# logger_ranges <- tms_real |>
+#   group_by(
+#     unique_plot_ID,
+#     site,
+#     treat_warming,
+#     treat_competition
+#   ) |>
+#   summarise(
+#     first_date = min(date),
+#     last_date = max(date),
+#     n_days = n_distinct(date),
+#     .groups = "drop"
+#   ) |>
+#   arrange(
+#     site,
+#     treat_warming,
+#     treat_competition,
+#     first_date
+#   )
+# logger_ranges
+# 
+# logger_ranges |>
+#   group_by(
+#     site,
+#     treat_warming,
+#     treat_competition
+#   ) |>
+#   summarise(
+#     n_loggers = n(),
+#     earliest_start = min(first_date),
+#     latest_start = max(first_date),
+#     .groups = "drop"
+#   )
 
 
 # join tms predicted and real --------------------------------------------- 
@@ -235,7 +268,6 @@ ggplot(tms_pred_real,
 
 
 # make one dataset with predicted first and then real tms --------------------
-# assign priority for which to keep
 
 # combine pred_logger with tomst_nor_daily
 
@@ -274,7 +306,7 @@ tms_joined <- tms_joined |>
 
 
 # select only necessary columns
-tms_final <- tms_joined |>
+tms_joined2 <- tms_joined |>
   select(
     date,
     site,
@@ -288,7 +320,7 @@ tms_final <- tms_joined |>
 
 
 
-ggplot(tms_final,
+ggplot(tms_joined2,
        aes(x = date, y = temp_mean_used, color = logger_type)) +
   geom_line() +
   facet_grid(treat_warming + site ~ treat_competition)
@@ -296,14 +328,14 @@ ggplot(tms_final,
 
 
 
-tms_final |>
+tms_joined2 |>
   count(
     unique_plot_ID,
     date
   ) |>
   filter(n > 1)
 
-tms_final |>
+tms_joined2 |>
   count(
     date,
     site,
@@ -312,8 +344,10 @@ tms_final |>
   ) |>
   arrange(desc(n))
 
-
-ggplot(tms_joined,
+# this plot shows per logger 
+# that is why it has some overlap where it is predicted and real at the same time
+# whithin one treatment, loggers were deployed at several dates
+ggplot(tms_joined2,
        aes(date,
            temp_mean_used,
            colour = logger_type,
@@ -322,7 +356,10 @@ ggplot(tms_joined,
   facet_grid(treat_warming + site ~ treat_competition)
 
 
-tms_treatment_daily <- tms_final |>
+
+# calculate mean per treatment --------------------------------------------
+# average of several loggers
+tms_final <- tms_joined2 |>
   group_by(
     date,
     site,
@@ -334,7 +371,9 @@ tms_treatment_daily <- tms_final |>
     .groups = "drop"
   )
 
-ggplot(tms_treatment_daily,
+
+# plot used temperature mean per treatment --------------------------------
+ggplot(tms_final,
        aes(date,
            temp_mean)) +
   geom_line()+
