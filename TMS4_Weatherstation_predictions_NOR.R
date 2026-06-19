@@ -416,7 +416,116 @@ ggplot(tms_final,
 
 # delete control plots ----------------------------------------------------
 # we only need the plots with focals for now
-tms_final <- tms_final |> 
+tms_final_nor <- tms_final |> 
   filter(added_focals == "wf")
+
+tms_final_nor$treatment_site_temp_comp <- paste(tms_final_nor$site, tms_final_nor$treat_warming,tms_final_nor$treat_competition, sep = "_")
+
+
+
+ggplot(tms_final_nor,
+       aes(date,
+           temp_mean, colour = treat_competition)) +
+  geom_line()+
+  facet_grid( ~treatment_site_temp_comp)
+
+
+
+# Calculate GDD -----------------------------------------------------------
+
+# define Tbase and growing season start  -------------------------
+Tbase <- 2 # base temperature for plants to grow
+Nconsec <- 5 # number of consecutive days above Tbase to define growing season start
+# 5 days above 5 degrees
+
+
+
+# 1) indicator: Tavg_tms > Tbase
+clim_flag_nor_tms <- tms_final_nor |> 
+  arrange(site, treat_warming, treat_competition, date) |> 
+  mutate(is_warm = (temp_mean > Tbase))
+clim_flag_nor_tms
+
+# find out start of growing season -------------------------------------
+# 2) compute run of Nconsec TRUE per site and find first date
+season_start_nor_tms <- clim_flag_nor_tms |> 
+  filter(date >= as.Date("2023-01-01")) |> 
+  group_by(site, treat_warming, treat_competition) |> 
+  mutate(run_N = slider::slide_dbl(is_warm, ~ ifelse(sum(.x) == length(.x), 1, 0),
+                                   .before = Nconsec - 1, .complete = TRUE)) |> 
+  # run_N == 1 on the last day of a full Nconsec-run of TRUEs
+  filter(run_N == 1) |> 
+  summarise(season_start = min(date), .groups = "drop")
+season_start_nor_tms
+
+
+# 1 hi    ambi          bare              2023-04-12  
+# 2 hi    ambi          vege              2023-04-12  
+# 3 hi    warm          bare              2023-04-11  
+# 4 hi    warm          vege              2023-04-11  
+# 5 lo    ambi          bare              2023-04-11  
+# 6 lo    ambi          vege              2023-04-11  
+
+
+# calculate gdd per site ----------------------------------------------
+# 3) join start dates back and calculate GDD from that start in april
+climate_gdd_nor_tms <- tms_final_nor |> 
+  left_join(season_start_nor_tms, by = c("site",
+            "treat_warming",
+            "treat_competition")) |> 
+  filter(!is.na(season_start)) |> 
+  group_by(site,  treat_warming, treat_competition) |> 
+  arrange(date) |> 
+  mutate(
+    # only accumulate on/after season_start
+    GDD_day = if_else(date >= season_start, pmax(0, temp_mean - Tbase), 0),
+    GDD_cum = cumsum(GDD_day)
+  ) |> 
+  ungroup()
+climate_gdd_nor_tms
+
+# rename date to date_measurement --------------------------------------
+# to match phenology
+climate_gdd_nor_tms <- climate_gdd_nor_tms |> 
+  rename("date_measurement" = "date")
+
+
+# get julian day ----------------------------------------------------------
+climate_gdd_nor_tms <- climate_gdd_nor_tms |>
+  mutate(jday = lubridate::yday(date_measurement))
+
+
+# control plot ------------------------------------------------------------
+ggplot(climate_gdd_nor_tms,
+       aes(x = date_measurement,
+           y = GDD_cum,
+           color = treatment_site_temp)) +
+  geom_line(size = 1.2) +
+  labs(
+    x = "Date",
+    y = "Cumulative GDD",
+    title = "Norway cumulative GDD development")+
+  facet_grid(~ treat_competition)
+
+
+
+ggplot(climate_gdd_nor_tms,
+       aes(x = jday,
+           y = GDD_cum,
+           color = treatment_site_temp_comp)) +
+  geom_line(size = 1.2) +
+  labs(
+    x = "Day of year (DOY)",
+    y = "Cumulative temperature (GDD2)",
+    title = "Norway cumulative GDD")
+
+
+
+
+
+
+
+
+
 
 
