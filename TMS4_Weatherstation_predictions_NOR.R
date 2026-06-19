@@ -391,6 +391,35 @@ tms_final <- tms_joined2 |>
   )
 
 
+
+# Calculate daily mean per treatment including percentage of real data --------
+# get number of loggers that are using real and predicted tms data
+# and calculate percentage for both
+tms_final <- tms_joined2 |>
+  group_by(
+    date,
+    site,
+    treat_warming,
+    treat_competition,
+    added_focals
+  ) |>
+  summarise(
+    temp_mean = mean(temp_mean_used, na.rm = TRUE),
+    
+    n_loggers = n(),
+    
+    n_real = sum(logger_type == "tms_real"),
+    n_pred = sum(logger_type == "tms_predicted"),
+    
+    perc_real = 100 * n_real / n_loggers,
+    perc_pred = 100 * n_pred / n_loggers,
+    
+    .groups = "drop"
+  )
+
+
+
+
 # plot used temperature mean per treatment --------------------------------
 ggplot(tms_final,
        aes(date,
@@ -525,14 +554,13 @@ ggplot(climate_gdd_nor_tms,
 ggplot(climate_gdd_nor_tms,
        aes(x = jday,
            y = GDD_cum,
-           color = treatment_site_temp_comp)) +
+           color = treatment_site_temp_comp,
+           alpha = perc_real)) + # includes percentage of real data
   geom_line(size = 1.2) +
   labs(
     x = "Day of year (DOY)",
     y = "Cumulative temperature (GDD2)",
     title = "Norway cumulative GDD")
-
-
 
 
 
