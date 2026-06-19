@@ -58,6 +58,7 @@ tomst_nor_daily <- rx_tomst_23_clean |>
     site,
     treat_warming,
     treat_competition,
+    added_focals,
     unique_plot_ID
   ) |>
   summarise(
@@ -145,9 +146,9 @@ predict_logger <- function(id){
     data = dat_logger
   )
   
-  # metadata (ONE row per logger)
+  # metadata (one row per logger)
   meta <- dat_logger |>
-    distinct(unique_plot_ID, site, treat_warming, treat_competition)
+    distinct(unique_plot_ID, site, treat_warming, treat_competition, added_focals)
   
   # climate data for that site
   newdata <- climate_23_daily |>
@@ -166,6 +167,7 @@ predict_logger <- function(id){
     site = meta$site,
     treat_warming = meta$treat_warming,
     treat_competition = meta$treat_competition,
+    added_focals = meta$added_focals,
     date = newdata$date,
     fit = pred$fit,
     se.fit = pred$se.fit
@@ -192,14 +194,14 @@ pred_logger2 <- pred_logger |>
   rename(temp_mean = fit)
 
 tms_pred_clean <- pred_logger2 |>
-  select(date, site, treat_warming, treat_competition, temp_mean, unique_plot_ID, logger_type)
+  select(date, site, treat_warming, treat_competition, added_focals, temp_mean, unique_plot_ID, logger_type)
 
 
 # real tms data
 tms_real <- tomst_nor_daily |> 
   mutate(logger_type = "tms_real")|>
   rename(temp_mean = T3_mean) |> 
-  select(date, site, treat_warming, treat_competition, temp_mean, unique_plot_ID, logger_type)
+  select(date, site, treat_warming, treat_competition, added_focals, temp_mean, unique_plot_ID, logger_type)
 
 
 # tomst_range_by_treat <- tomst_nor_daily |>
@@ -256,7 +258,7 @@ tms_pred_real <- bind_rows(tms_pred_clean, tms_real)
 ggplot(tms_pred_real,
        aes(x = date, y = temp_mean, color = logger_type, linetype = site)) +
   geom_line() +
-  facet_grid(treat_warming ~ treat_competition)
+  facet_grid(treat_warming  + added_focals ~ treat_competition)
 
 
 ggplot(tms_pred_real,
@@ -274,13 +276,13 @@ ggplot(tms_pred_real,
 tms_pred <- pred_logger |>
   mutate(logger_type = "tms_predicted")|> 
   rename(temp_mean_pred = fit) |> 
-  select(date, site, treat_warming, treat_competition, unique_plot_ID, temp_mean_pred, logger_type)
+  select(date, site, treat_warming, treat_competition, added_focals, unique_plot_ID, temp_mean_pred, logger_type)
 
 
 tms_real <- tomst_nor_daily |> 
   mutate(logger_type = "tms_real")|>
   rename(temp_mean_real = T3_mean)|> 
-  select(date, site, treat_warming, treat_competition, unique_plot_ID, temp_mean_real, logger_type)
+  select(date, site, treat_warming, treat_competition, added_focals, unique_plot_ID, temp_mean_real, logger_type)
 
 
 tms_joined <- tms_pred |>
@@ -291,6 +293,7 @@ tms_joined <- tms_pred |>
       "site",
       "treat_warming",
       "treat_competition",
+      "added_focals",
       "unique_plot_ID"
     )
   )
@@ -312,6 +315,7 @@ tms_joined2 <- tms_joined |>
     site,
     treat_warming,
     treat_competition,
+    added_focals,
     unique_plot_ID,
     temp_mean_pred,
     temp_mean_real,
@@ -340,7 +344,8 @@ tms_joined2 |>
     date,
     site,
     treat_warming,
-    treat_competition
+    treat_competition,
+    added_focals
   ) |>
   arrange(desc(n))
 
@@ -364,7 +369,8 @@ tms_final <- tms_joined2 |>
     date,
     site,
     treat_warming,
-    treat_competition
+    treat_competition,
+    added_focals
   ) |>
   summarise(
     temp_mean = mean(temp_mean_used, na.rm = TRUE),
@@ -377,6 +383,40 @@ ggplot(tms_final,
        aes(date,
            temp_mean)) +
   geom_line()+
-  facet_grid(treat_warming + site ~ treat_competition)
+  facet_grid(treat_warming + site + added_focals ~ treat_competition)
+
+
+ggplot(tms_final,
+       aes(date,
+           temp_mean, colour = treat_competition, linetype = site)) +
+  geom_line()+
+  facet_grid(treat_warming + added_focals ~ treat_competition)
+
+
+
+# column with site_warming treatment --------------------------------------
+tms_final$treatment_site_temp <- paste(tms_final$site, tms_final$treat_warming, sep = "_")
+
+
+tms_final <- tms_final |>
+  mutate(treatment_site_temp= factor(treatment_site_temp,
+                                     levels = c("lo_ambi",
+                                                "hi_ambi",
+                                                "hi_warm")))
+
+
+# control plot
+ggplot(tms_final,
+       aes(date,
+           temp_mean, colour = treat_competition, linetype = treatment_site_temp)) +
+  geom_line()+
+  facet_grid(added_focals ~treatment_site_temp)
+
+
+
+# delete control plots ----------------------------------------------------
+# we only need the plots with focals for now
+tms_final <- tms_final |> 
+  filter(added_focals == "wf")
 
 
