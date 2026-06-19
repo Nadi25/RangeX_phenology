@@ -25,7 +25,7 @@ source("Data_preparation_phenology_NOR_CHE_combined.R")
 # use this data set
 names(phenology2)
 
-
+theme_set(theme_bw())
 
 
 # calculate first onset per species and plot for all stages ----------------
