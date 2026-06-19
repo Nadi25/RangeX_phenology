@@ -10,7 +10,7 @@ source("TMS4_Weatherstation_predictions_NOR.R")
 
 source("Data_preparation_TMS4_CHE.R")
 
-
+theme_set(theme_bw(base_size = 15))
 
 
 
@@ -69,6 +69,8 @@ gdd <- ggplot(gdd_nor_che,
   labs(
     x = "Day of year (DOY)",
     y = "Cumulative temperature (GDD2)",
+    alpha = "% measured\nTMS4 data",
+    color = "Treatment",
     title = "Norway and Switzerland cumulative GDD")+
   facet_grid(~region)+
   scale_color_manual(values = define_colors)
