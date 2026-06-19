@@ -23,20 +23,29 @@ tms_final_nor$region <- "Norway"
 tms_final_che$region <- "Switzerland" 
 
 
-
-
 tms_final_nor_che <- bind_rows(tms_final_nor, tms_final_che)
 
 
 
 
-# combine datasets with GDD -----------------------------------------------
+# add column region -------------------------------------------------------
 climate_gdd_nor_tms$region <- "Norway" 
 
 climate_gdd_che_tms$region <- "Switzerland" 
 
 
-gdd_nor_che <- bind_rows(climate_gdd_nor_tms, climate_gdd_che_tms)
+# filter needed columns nor -----------------------------------------------
+gdd_nor_tms <- climate_gdd_nor_tms |> 
+  select(-n_pred, -n_real, -n_loggers, - perc_pred)
+
+
+# add column with percentage of real data ---------------------------------
+climate_gdd_che_tms$perc_real <- 100 
+gdd_che_tms <- climate_gdd_che_tms
+
+
+# combine datasets with GDD -----------------------------------------------
+gdd_nor_che <- bind_rows(gdd_nor_tms, gdd_che_tms)
 
 
 
@@ -51,10 +60,11 @@ define_colors <- c(
   "lo_ambi_bare" = lighten("grey34", 0.7))
 
 # plot
-ggplot(gdd_nor_che,
+gdd <- ggplot(gdd_nor_che,
        aes(x = jday,
            y = GDD_cum,
-           color = treatment_site_temp_comp)) +
+           color = treatment_site_temp_comp,
+           alpha = perc_real)) +
   geom_line(size = 1.2) +
   labs(
     x = "Day of year (DOY)",
@@ -62,7 +72,10 @@ ggplot(gdd_nor_che,
     title = "Norway and Switzerland cumulative GDD")+
   facet_grid(~region)+
   scale_color_manual(values = define_colors)
+gdd
 
+# ggsave(filename = "Output/Temperature/DOY_GDD_TMS4_NOR_CHE.png", 
+#       plot = gdd, width = 15, height = 10, units = "in")
 
 
 
