@@ -273,6 +273,7 @@ summary(m_sens_bud_gs_nor)
 anova(m_sens_bud_gs_nor)
 model_performance(m_sens_bud_gs_nor)
 #check_model(m_sens_bud_gs_nor)
+plot(m_sens_bud_gs_nor)
 
 summary(m_sens_flower_gs_nor)
 anova(m_sens_flower_gs_nor)
