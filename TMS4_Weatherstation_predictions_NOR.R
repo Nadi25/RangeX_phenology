@@ -1,18 +1,32 @@
 
 
 
-# Prepare TMS4 data - NOR -------------------------------------------------
+# Prepare TMS4 data for GDD - NOR -------------------------------------------------
 
-# predict tomst data with climate station data
+# predict tomst data with climate station data ----------------------------
+
+# Calculate GDD per treatment ---------------------------------------------
 
 
-# load library
+## Data used: Data/Data_tomst_loggers/tomst_2023/,
+##            tomst_plot_codes_2023.csv,
+##            RangeX_clean_MetadataPlot_NOR.csv
+## Date:      19.06.2026
+## Author:    Nadine Arzt
+## Purpose:   Predict tms data for the beginning of the year with weather station data
+##            Make one dataset with used daily mean per treatment
+##            Calculate GDD, tbase = 2
+
+
+
+# load library ------------------------------------------------------------
 library(conflicted)
 conflict_prefer_all("dplyr", quiet = TRUE)
 library(tidyverse)
 library(performance)
 
-# source tms and climate station scripts
+
+# source tms and climate station scripts ----------------------------------
 source("RangeX_data_paper_cleaning_tomst_2023.R")
 
 source("Data_preparation_climate_station_NOR.R")
@@ -24,7 +38,6 @@ theme_set(theme_bw())
 # filter year 23 -------------------------------------------------------
 climate_23 <- climate |> 
   filter(year == 2023)
-
 
 climate_23_daily <- climate_23 |> 
   mutate(date = as_date(date_time)) |> 
