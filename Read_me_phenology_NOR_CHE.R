@@ -12,7 +12,10 @@ source("Data_preparation_phenology_NOR_CHE_combined.R")
 source("Data_preparation_climate_station_NOR.R")
 source("Data_preparation_climate_station_CHE.R")
 
-# tomst 
+# tomst and calculate GDD
+# predict tms data with weather station data in NOR
+source("TMS4_Weatherstation_correlation_predictions.R")
+#source("Data_preparation_TMS4_CHE.R")
 source("Data_preparation_TMS4_CHE.R")
 
 # biomass
