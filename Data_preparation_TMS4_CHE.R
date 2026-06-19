@@ -1,8 +1,16 @@
 
 
-
-
 # Data preparation tomst CHE ------------------------------------
+
+# Calculate GDD per treatment ---------------------------------------------
+
+
+## Data used: RangeX_clean_EnvTMS4_2021_2023_CHE.csv,
+##            RangeX_clean_MetadataPlot_CHE.csv
+## Date:      19.06.2026
+## Author:    Nadine Arzt
+## Purpose:   Make one dataset with used daily mean per treatment
+##            Calculate GDD, tbase = 2
 
 
 # load library ------------------------------------------------------------
@@ -14,9 +22,8 @@ library(slider)
 
 
 
-# import climate data -----------------------------------------------------
+# import tomst data -----------------------------------------------------
 tms_che <- read.csv("Data/RangeX_clean_EnvTMS4_2021_2023_CHE.csv")
-
 
 
 # import metadata ---------------------------------------------------------
@@ -87,50 +94,6 @@ env_che_22_ |>
 
 
 
-
-# Calculate GDD per site --------------------------------------------------
-# daily mean temp
-
-# use T3 which is at 15 cm
-
-# climate_tomst_22_daily <- env_che_22 |>
-#   filter(
-#     treat_warming == "ambi",
-#     treat_competition == "vege"
-#   ) |>
-#   group_by(region, site, treat_warming, treat_competition, added_focals, block_ID, unique_plot_ID, date) |>
-#   summarise(
-#     Tmax = max(TMS_T3, na.rm = TRUE),
-#     Tmin = min(TMS_T3, na.rm = TRUE),
-#     .groups = "drop") |>
-#   mutate(Tavg_tms = (Tmax + Tmin)/2)
-# climate_tomst_22_daily
-
-# calculate mean per site per day
-# for only plots with focals to make it comaprable hi and lo
-# climate_tomst_22_site <- env_che_22 |>
-#   filter(
-#     treat_warming == "ambi",
-#     treat_competition == "vege",
-#     added_focals == "wf"
-#   ) |>
-#   group_by(site, date) |>
-#   summarise(
-#     Tmax = max(TMS_T3, na.rm = TRUE),
-#     Tmin = min(TMS_T3, na.rm = TRUE),
-#     .groups = "drop"
-#   ) |>
-#   mutate(
-#     Tavg_tms = (Tmax + Tmin)/2
-#   )
-# 
-# climate_tomst_22_site <- climate_tomst_22_site |>
-#   filter(date >= as.Date("2022-01-07"))
-# 
-# 1 hi    2022-03-28  
-# 2 lo    2022-03-26 
-
-
 # calculate daily mean per treatment --------------------------------------
 tms_che_treat <- env_che_22 |>
   group_by(date, site, treat_warming, treat_competition, added_focals) |>
@@ -163,6 +126,7 @@ ggplot(tms_final_che,
 
 
 
+# Calculate GDD per treatment ---------------------------------------------
 
 # define Tbase and growing season start  -------------------------
 Tbase <- 2 # base temperature for plants to grow
@@ -199,7 +163,7 @@ season_start_che_tms
 
 
 
-# calculate gdd per site ----------------------------------------------
+# calculate gdd per treat ----------------------------------------------
 # 3) join start dates back and calculate GDD from that start in april
 climate_gdd_che_tms <- tms_final_che |> 
   left_join(season_start_che_tms, by = c("site", "treat_warming", "treat_competition")) |> 
