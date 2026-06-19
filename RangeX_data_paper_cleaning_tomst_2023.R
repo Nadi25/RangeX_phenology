@@ -114,7 +114,7 @@ tomst_23_raw <- tomst_23_raw |>
     ),
     treat_competition = case_when(
       site == "hi" & treat %in% c("A", "B") ~ "vege",
-      site == "hi" & treat %in% c("C", "D") ~ "control",
+      site == "hi" & treat %in% c("C", "D") ~ "vege",
       site == "hi" & treat %in% c("E", "F") ~ "bare",
       site == "lo" & treat == "A" ~ "vege",  
       site == "lo" & treat == "B" ~ "bare",
@@ -182,6 +182,14 @@ tomst_filtered <- tomst_joined |>
 
 
 
+# column for control plots ------------------------------------------------
+# add column added focals
+tomst_filtered <- tomst_filtered |>
+  mutate(added_focals = case_when(
+    treat %in% c("C", "D") ~ "nf",
+    treat %in% c("A", "B", "E", "F") ~ "wf",
+    TRUE ~ NA_character_))
+
 
 
 
@@ -219,12 +227,15 @@ tomst_filtered <- tomst_filtered |>
 tomst_23_clean<- left_join(metadata, tomst_filtered, 
                          by = c( "site", "block_ID_original",
                                  "plot_ID_original",
-                                 "treat_warming", "treat_competition"))
+                                 "treat_warming", "treat_competition", "added_focals"))
+
+
+
 
 
 # select only columns needed for clean data on OSF ------------------------
 rx_tomst_23_clean <- tomst_23_clean |> 
-  select(site,treat_competition, treat_warming, tomst,
+  select(site, treat_competition, treat_warming, added_focals, tomst,
          unique_plot_ID, date_time, 
          TMS_T1, TMS_T2, TMS_T3, 
          TMS_moist, VWC)
