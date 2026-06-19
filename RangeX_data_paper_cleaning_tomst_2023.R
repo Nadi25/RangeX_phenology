@@ -177,7 +177,7 @@ tomst_joined <- tomst_23_raw2 |>
 tomst_filtered <- tomst_joined |>
   filter(
     date_time >= (deployed + 1),
-    date_time <= as.Date("2023-10-30")
+    date_time <= as.Date("2023-10-23") # were collected on 24.10
   )
 
 
