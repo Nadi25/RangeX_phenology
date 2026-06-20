@@ -3,8 +3,7 @@
 
 ## Data used: Data/Data_tomst_loggers/tomst_2023/,
 ##            tomst_plot_codes_2023.csv,
-##            RangeX_metadata_plot_NOR.csv
-##            Sunrise_sundown_Voss_2023.csv
+##            RangeX_clean_MetadataPlot_NOR.csv
 ## Date:      03.03.2025
 ## Author:    Nadine Arzt
 ## Purpose:   Clean TOMST logger data 2023
