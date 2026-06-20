@@ -1,11 +1,17 @@
 
 
+# Create final tms temp and GDD dataset for both regions --------------------------
 
-# Figure of DOY vs GDD ----------------------------------------------------
+
+# Figure of DOY vs GDD using TMS data ----------------------------------------------------
+
+
+# load library ------------------------------------------------------------
 library(colorspace)
 
 
 
+# source data preparation scripts -----------------------------------------
 source("TMS4_Weatherstation_predictions_NOR.R")
 
 source("Data_preparation_TMS4_CHE.R")
