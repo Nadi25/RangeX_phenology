@@ -160,6 +160,15 @@ mean_onset_bud_region <- onset_bud |>
 mean_onset_bud_region
 
 
+onset_treat <- phenology3 |>
+  group_by(region, site, treat_competition, treat_warming, phenology_stage) |>
+  summarise(onset = min(date_measurement), .groups = "drop") |>
+  # remove groups where budding never occurred
+  filter(is.finite(onset))
+onset_treat
+
+
+
 
 # calculate mean onset per species and plot for all stages ----------------
 onset_bud    <- get_mean_onset(phenology3, "No_Buds", "jday")
