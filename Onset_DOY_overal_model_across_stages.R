@@ -1,5 +1,6 @@
 
 
+library(emmeans)
 
 # > season_start_nor_tms
 # # A tibble: 6 × 4
@@ -72,6 +73,7 @@ phenology4 <- phenology |>
 phenology4 <- phenology4 |> 
   mutate(year = if_else(region == "Switzerland", 2022, 2023))
 
+phenology4$treatment_site_temp <- paste(phenology4$site, phenology4$treat_warming, sep = "_")
 
 
 
@@ -205,17 +207,115 @@ temp_seed <- calc_mean_temp(
 temp_all <- bind_rows(temp_bud, temp_flower, temp_fruit, temp_seed)
 temp_all
 
+temp_all$treatment_site_temp <- paste(temp_all$site, temp_all$treat_warming, sep = "_")
 
 ggplot(temp_all,
        aes(x = stage,
            y = mean_temp,
            color = treat_warming,
-           group = interaction(treat_warming, treat_competition))) +
+           group = interaction(site, treat_warming, treat_competition))) +
   geom_point(size = 3) +
   geom_line(linewidth = 1) +
-  facet_grid(region ~ treat_competition) +
+  facet_grid(region + site ~ treat_competition) +
   labs(
     x = "Phenological stage",
     y = "Mean temperature during stage",
     color = "Warming"
   )
+
+
+
+
+
+
+# onset for all individuals -----------------------------------------------
+onset_all <- phenology4 |>
+  filter(value > 0) |>
+  group_by(
+    region,
+    site,
+    treat_warming,
+    treat_competition,
+    treatment_site_temp,
+    species,
+    block_ID,
+    unique_plot_ID,
+    unique_plant_ID,
+    phenology_stage
+  ) |>
+  summarise(
+    onset = min(jday),
+    .groups = "drop"
+  )
+
+
+# make stage names the same as in temp ------------------------------------
+onset_all <- onset_all |>
+  mutate(
+    stage = recode(
+      phenology_stage,
+      "No_Buds" = "bud",
+      "No_FloOpen" = "flower",
+      "No_FloWithrd" = "fruit",
+      "No_Seeds" = "seed"
+    )
+  )
+
+
+# join temperature data with onset data -----------------------------------
+onset_temp <- onset_all |>
+  left_join(
+    temp_all,
+    by = c("region", "site", "treatment_site_temp",
+           "treat_warming", "treat_competition", "stage"))
+
+
+
+# make one model per region -----------------------------------------------
+onset_temp_nor <- onset_temp |> 
+  filter(region == "Norway")
+
+
+
+# are mean temperature per stage affect the onset across stages?
+m_onset_temp_nor <- lmerTest::lmer(
+  onset ~ stage * treat_competition * mean_temp +
+    (1 | species) + (1 | block_ID),
+  data = onset_temp_nor)
+
+summary(m_onset_temp_nor)
+
+
+
+# does site, warming and biotic interaction shift onset across stages?
+m_onset_temp_nor2 <- lmerTest::lmer(
+  onset ~ stage * treatment_site_temp * treat_competition +
+    (1 | species) + (1 | block_ID),
+  data = onset_temp_nor)
+summary(m_onset_temp_nor2)
+
+
+
+# Switzerland -------------------------------------------------------------
+onset_temp_che <- onset_temp |> 
+  filter(region == "Switzerland")
+
+# are mean temperature per stage affect the onset across stages?
+m_onset_temp_che <- lmerTest::lmer(
+  onset ~ stage * treat_competition * mean_temp +
+    (1 | species) + (1 | block_ID),
+  data = onset_temp_che)
+
+summary(m_onset_temp_che)
+
+
+
+# does site, warming and biotic interaction shift onset across stages?
+m_onset_temp_che2 <- lmerTest::lmer(
+  onset ~ stage * treatment_site_temp * treat_competition +
+    (1 | species) + (1 | block_ID),
+  data = onset_temp_che)
+summary(m_onset_temp_che2)
+
+
+
