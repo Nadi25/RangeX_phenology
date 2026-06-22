@@ -1,6 +1,21 @@
 
 
+# 01.2 Onset julian days overall model -------------------------------------------------------
+
+# overall model across stages
+# Onset bud, flower, fruit model with site_treat_warming combination --------
+# julian days
+
+
 library(emmeans)
+
+
+# source script with final tms data ---------------------------------------
+# this one sources the NOR and CHE preparation scripts
+source("DOY_GDD_TMS4_NOR_CHE.R")
+
+
+# add region and combine the datasets -------------------------------------
 
 # > season_start_nor_tms
 # # A tibble: 6 × 4
@@ -13,7 +28,6 @@ library(emmeans)
 # 5 lo    ambi          bare              2023-04-11  
 # 6 lo    ambi          vege              2023-04-11 
 season_start_nor_tms$region <- "Norway"
-
 
 # season_start_che_tms
 # # A tibble: 6 × 4
@@ -29,6 +43,9 @@ season_start_che_tms$region <- "Switzerland"
 
 
 
+# combine nor and che tms data --------------------------------------------
+# and change names of treat_competition to match
+# this is the season start dataset for
 season_start_all <- bind_rows(
   season_start_nor_tms,
   season_start_che_tms) |> 
@@ -42,12 +59,12 @@ tms_final_nor_che <- tms_final_nor_che |>
                                     "bare" = "without",
                                     "vege" = "with"))
 
+
 # source clean phenology data -----------------------------------------------
 source("Data_preparation_phenology_NOR_CHE_combined.R")
 
 # use this data set
 names(phenology)
-
 
 
 # rename infructescence stage of NOR to FlowWithrd ------------------------
@@ -78,7 +95,7 @@ phenology4$treatment_site_temp <- paste(phenology4$site, phenology4$treat_warmin
 
 
 
-###############
+# Get first onset per individual ------------------------------------------
 onset_ind <- phenology4 |>
   filter(value > 0) |>
   group_by(
@@ -95,6 +112,7 @@ onset_ind <- phenology4 |>
   )
 
 
+# get mean onset per treatment --------------------------------------------
 onset_treat <- onset_ind |>
   group_by(
     region, site,
@@ -106,33 +124,25 @@ onset_treat <- onset_ind |>
     .groups = "drop"
   )
 
+# make wide table
 onset_wide <- onset_treat |>
   select(region, site, treat_competition,
          treat_warming, phenology_stage, onset) |>
-  tidyr::pivot_wider(
+  pivot_wider(
     names_from = phenology_stage,
-    values_from = onset
-  )
+    values_from = onset)
 
 
 
-
-
-
-
+# Get all onsets together -------------------------------------------------
 # combine season start tables and also with onset table
-
 onset_wide2 <- onset_wide |>
   left_join(
     season_start_all,
     by = c("region", "site", "treat_warming", "treat_competition")
   )
 
-
-
-stage_df <- onset_wide2
-
-stage_windows <- stage_df |>
+stage_windows <- onset_wide2 |>
   mutate(
     bud_start = season_start,
     bud_end = No_Buds,
@@ -149,6 +159,7 @@ stage_windows <- stage_df |>
 
 
 
+# Function to calculate mean temp per stage -------------------------------
 calc_mean_temp <- function(data, windows, start_col, end_col, label) {
   
   data |>
@@ -169,6 +180,8 @@ calc_mean_temp <- function(data, windows, start_col, end_col, label) {
 }
 
 
+# apply the function per stage -------------------------------------------
+# bud
 temp_bud <- calc_mean_temp(
   tms_final_nor_che,
   stage_windows,
@@ -177,8 +190,7 @@ temp_bud <- calc_mean_temp(
   "bud"
 )
 
-
-
+# flower
 temp_flower <- calc_mean_temp(
   tms_final_nor_che,
   stage_windows,
@@ -187,6 +199,7 @@ temp_flower <- calc_mean_temp(
   "flower"
 )
 
+# fruit
 temp_fruit <- calc_mean_temp(
   tms_final_nor_che,
   stage_windows,
@@ -195,6 +208,7 @@ temp_fruit <- calc_mean_temp(
   "fruit"
 )
 
+# seed
 temp_seed <- calc_mean_temp(
   tms_final_nor_che,
   stage_windows,
@@ -204,11 +218,14 @@ temp_seed <- calc_mean_temp(
 )
 
 
+# mean temp per stage and treatment - combine all stages ------------------------------------------------------
 temp_all <- bind_rows(temp_bud, temp_flower, temp_fruit, temp_seed)
 temp_all
 
+# add combined treatment
 temp_all$treatment_site_temp <- paste(temp_all$site, temp_all$treat_warming, sep = "_")
 
+# plot
 ggplot(temp_all,
        aes(x = stage,
            y = mean_temp,
@@ -228,7 +245,7 @@ ggplot(temp_all,
 
 
 
-# onset for all individuals -----------------------------------------------
+# first onset for all individuals -----------------------------------------------
 onset_all <- phenology4 |>
   filter(value > 0) |>
   group_by(
@@ -257,9 +274,7 @@ onset_all <- onset_all |>
       "No_Buds" = "bud",
       "No_FloOpen" = "flower",
       "No_FloWithrd" = "fruit",
-      "No_Seeds" = "seed"
-    )
-  )
+      "No_Seeds" = "seed"))
 
 
 # join temperature data with onset data -----------------------------------
@@ -271,11 +286,11 @@ onset_temp <- onset_all |>
 
 
 
-# make one model per region -----------------------------------------------
+# make a model per region -----------------------------------------------
+
+# Norway ------------------------------------------------------------------
 onset_temp_nor <- onset_temp |> 
   filter(region == "Norway")
-
-
 
 # are mean temperature per stage affect the onset across stages?
 m_onset_temp_nor <- lmerTest::lmer(
