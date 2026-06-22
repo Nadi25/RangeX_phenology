@@ -72,7 +72,7 @@ make_onset_predictions <- function(model) {
 make_onset_predictions_gdd <- function(model) {
   
   newdata <- expand.grid(
-    treatment_site_temp = c("lo_ambi", "hi_ambi"),
+    treatment_site_temp = c("lo_ambi", "hi_ambi", "hi_warm"),
     treat_competition = c("with", "without")
   ) |>
     as_tibble()
