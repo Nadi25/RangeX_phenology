@@ -251,17 +251,23 @@ plot_df_raw_all_gdd
 
 
 
+# change factor so warm is in the middle ----------------------------------
+plot_df_all_gdd <- plot_df_all_gdd |>
+  mutate(
+    treatment_site_temp = factor(
+      treatment_site_temp,
+      levels = c("lo_ambi", "hi_warm", "hi_ambi")))
+
+plot_df_raw_all_gdd <- plot_df_raw_all_gdd |>
+  mutate(
+    treatment_site_temp = factor(
+      treatment_site_temp,
+      levels = c("lo_ambi", "hi_warm", "hi_ambi")))
 
 
 
-
-
-
-
-
-
+# Plot predictions as dots and raw data as violins for all stages  --------
 pd <- position_dodge(width = 0.6) 
-
 
 b_f_fr_gdd <- ggplot(plot_df_all_gdd, aes(
   x = treatment_site_temp,
@@ -324,82 +330,12 @@ b_f_fr_gdd <- ggplot(plot_df_all_gdd, aes(
     shape = "Treatment site × warming",
     color = "Biotic interactions",
     fill = "Biotic interactions"
-  ) +
-  guides(shape = "none")
+  ) 
 b_f_fr_gdd
 
-# ggsave(filename = "Output/Onset/GDD_Transplantation_onset_bud_flower_fruit_seeds_predictions_violin.png", 
+
+# ggsave(filename = "Output/Onset/GDD_Transplantation_Onset_bud_flower_fruit_seeds_tms_all_treat.png", 
 #        plot = b_f_fr_gdd, width = 18, height = 10, units = "in")
-
-
-
-
-
-b_f_fr_gdd2 <- ggplot(plot_df_all_gdd, aes(
-  x = treatment_site_temp,
-  y = fit,
-  color = treat_competition,
-  shape = treatment_site_temp
-)) +
-  
-  # raw:
-  geom_violin(
-    data = plot_df_raw_all_gdd,
-    aes(
-      x = treatment_site_temp,
-      y = onset,
-      fill = treat_competition
-      #group = interaction(treatment_site_temp, treat_competition)
-    ),
-    position = pd,
-    alpha = 0.25,
-    color = NA,
-    trim = FALSE,
-    adjust = 1.5 # makes it smoother so it looks less bubbly
-  ) +
-  
-  scale_fill_manual(values = c(
-    "with" = "#528B8B",
-    "without" = "#CD950C"
-  )) +
-  
-  # model predictions
-  geom_point(
-    position = pd,
-    size = 4,
-    stroke = 1.2
-  ) +
-  
-  geom_errorbar(
-    aes(ymin = lower, ymax = upper),
-    width = 0.2,
-    position = pd
-  ) +
-  
-  facet_grid(region ~ stage) +
-  
-  scale_color_manual(values = c(
-    "with" = "#528B8B",
-    "without" = "#CD950C"
-  )) +
-  
-  scale_shape_manual(values = c(
-    "lo_ambi" = 16,
-    "hi_ambi" = 17,
-    "hi_warm" = 18
-  )) +
-  
-  labs(
-    x = "Site temperature treatment",
-    y = "Onset (GDD)",
-    title = "Effect of transplantation and warming on onset",
-    shape = "Treatment site × warming",
-    color = "Biotic interactions",
-    fill = "Biotic interactions"
-  ) 
-b_f_fr_gdd2
-
-
 
 
 
