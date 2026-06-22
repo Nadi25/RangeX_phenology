@@ -23,64 +23,24 @@ source("Data_preparation_phenology_NOR_CHE_combined.R")
 
 theme_set(theme_bw())
 
-# filter only nor ------------------------------------------------------
-phenology_nor <- phenology2 |> 
-  filter(region == "Norway")
+source("DOY_GDD_TMS4_NOR_CHE.R")
+
+# use
+gdd_nor_che
+
+gdd_nor_che <- gdd_nor_che |> 
+  mutate(treat_competition = recode(treat_competition,
+                                    "bare" = "without",
+                                    "vege" = "with"))
 
 
-unique(phenology_nor$date_measurement)
-# start: 2023-05-12
-# end: 2023-09-13
+phenology_gdd_nor_che <- phenology2 |> 
+  left_join(gdd_nor_che |> 
+              select(region, site, treat_warming, treat_competition, date_measurement, 
+                     GDD_cum, temp_mean),
+            by = c("region", "site", "treat_warming", "treat_competition", "date_measurement"))
 
 
-source("Data_preparation_climate_station_NOR.R")
-
-# use climate_gdd instead of climate_gdd_pt because it is without filtering
-climate_gdd
-
-# combine gdd_cum and phenology_nor ------------------------------------
-phenology_with_gdd_nor <- phenology_nor |> 
-  left_join(climate_gdd |> 
-              select(site, date_measurement, GDD_cum, Tavg),
-            by = c("site", "date_measurement"))
-
-
-
-# filter only che ------------------------------------------------------
-phenology_che <- phenology2 |> 
-  filter(region == "Switzerland")
-
-
-unique(phenology_che$date_measurement)
-# start: "2022-05-04"
-# end: "2022-09-27"
-
-
-source("Data_preparation_climate_station_CHE.R")
-
-# use 
-# climate_gdd_che
-# uses tms data for beginning until May and then climate station
-climate_gdd_che_comb
-
-# combine gdd_cum and phenology_nor ------------------------------------
-phenology_with_gdd_che <- phenology_che |> 
-  left_join(climate_gdd_che_comb |> 
-              select(site, date_measurement, GDD_cum, Tavg),
-            by = c("site", "date_measurement"))
-
-
-
-
-# combine nor and che -----------------------------------------------------
-phenology_gdd_nor_che <- rbind(phenology_with_gdd_nor, phenology_with_gdd_che)
-
-
-
-# filter only ambi both sites  -------------------------------------
-# to compare low ambi with hi ambi = cooling effect
-phenology_gdd_nor_che <- phenology_gdd_nor_che |> 
-  filter(treat_warming == "ambi")
 
 
 
@@ -376,7 +336,7 @@ b_f_fr_gdd
 
 
 b_f_fr_gdd2 <- ggplot(plot_df_all_gdd, aes(
-  x = treat_competition,
+  x = treatment_site_temp,
   y = fit,
   color = treat_competition,
   shape = treatment_site_temp
@@ -386,7 +346,7 @@ b_f_fr_gdd2 <- ggplot(plot_df_all_gdd, aes(
   geom_violin(
     data = plot_df_raw_all_gdd,
     aes(
-      x = treat_competition,
+      x = treatment_site_temp,
       y = onset,
       fill = treat_competition
       #group = interaction(treatment_site_temp, treat_competition)
@@ -425,7 +385,8 @@ b_f_fr_gdd2 <- ggplot(plot_df_all_gdd, aes(
   
   scale_shape_manual(values = c(
     "lo_ambi" = 16,
-    "hi_ambi" = 17
+    "hi_ambi" = 17,
+    "hi_warm" = 18
   )) +
   
   labs(
