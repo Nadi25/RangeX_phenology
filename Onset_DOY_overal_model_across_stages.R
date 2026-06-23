@@ -8,6 +8,8 @@
 
 
 library(emmeans)
+library(lattice)
+library(lme4)
 
 
 # source script with final tms data ---------------------------------------
@@ -331,6 +333,112 @@ m_onset_temp_che2 <- lmerTest::lmer(
     (1 | species) + (1 | block_ID),
   data = onset_temp_che)
 summary(m_onset_temp_che2)
+
+
+
+
+# Understand models -------------------------------------------------------
+
+# Norway 1 ----------------------------------------------------------------
+
+# Make predictions with overall model and plot ----------------------------
+
+pred <- expand.grid(
+  mean_temp = seq(
+    min(onset_temp_nor$mean_temp, na.rm = TRUE),
+    max(onset_temp_nor$mean_temp, na.rm = TRUE),
+    length.out = 50
+  ),
+  stage = unique(onset_temp_nor$stage),
+  treatment_site_temp = unique(onset_temp_nor$treatment_site_temp),
+  treat_competition = unique(onset_temp_nor$treat_competition)
+)
+
+
+m <- lmerTest::lmer(
+  onset ~ stage * treat_competition * mean_temp +
+    (1 | species) + (1 | block_ID),
+  data = onset_temp_nor
+)
+fixef(m)
+
+pred$fit <- predict(m, newdata = pred, re.form = NA)
+
+
+ggplot(onset_temp_nor,
+       aes(x = mean_temp,
+           y = onset,
+           color = stage)) +
+  
+  geom_point(alpha = 0.2) +
+  
+  geom_line(data = pred,
+            aes(y = fit,
+                group = interaction(stage, treat_competition),
+                linetype = treat_competition),
+            linewidth = 1) +
+  
+  facet_grid(~stage) +
+  labs(
+    x = "Mean temperature during stage",
+    y = "Onset (DOY)",
+    color = "Stage",
+    linetype = "Competition"
+  )
+
+
+
+# Switzerland 1 ----------------------------------------------------------------
+
+# Make predictions with overall model and plot ----------------------------
+
+pred2 <- expand.grid(
+  mean_temp = seq(
+    min(onset_temp_nor$mean_temp, na.rm = TRUE),
+    max(onset_temp_nor$mean_temp, na.rm = TRUE),
+    length.out = 50
+  ),
+  stage = unique(onset_temp_nor$stage),
+  treatment_site_temp = unique(onset_temp_nor$treatment_site_temp),
+  treat_competition = unique(onset_temp_nor$treat_competition)
+)
+pred2
+
+m2 <- lmerTest::lmer(
+  onset ~ stage * treat_competition * mean_temp +
+    (1 | species) + (1 | block_ID),
+  data = onset_temp_che
+)
+
+
+pred2$fit <- predict(m2, newdata = pred2, re.form = NA)
+
+
+ggplot(onset_temp_che,
+       aes(x = mean_temp,
+           y = onset,
+           color = stage)) +
+  
+  geom_point(alpha = 0.2) +
+  
+  geom_line(data = pred2,
+            aes(y = fit,
+                group = interaction(stage, treat_competition),
+                linetype = treat_competition),
+            linewidth = 1) +
+  
+  facet_grid(~stage) +
+  labs(
+    x = "Mean temperature during stage",
+    y = "Onset (DOY)",
+    color = "Stage",
+    linetype = "Competition"
+  )
+
+
+
+
+
 
 
 
