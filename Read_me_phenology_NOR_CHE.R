@@ -2,7 +2,8 @@
 
 # READ ME -----------------------------------------------------------------
 
-# data preparation scripts
+
+# Data preparation --------------------------------------------------------
 
 # phenology
 source("Data_preparation_phenology_NOR.R")
@@ -29,17 +30,23 @@ source("RangeX_data_paper_cleaning_demographic_traits_23.R")
 
 # Onset -------------------------------------------------------------------
 
-# julian days
+# DOY - julian days
 source("Transplantation_warming_onset_predictions_DOY_NOR_CHE.R")
+
+# overall model
+source("Onset_DOY_overal_model_across_stages.R")
 
 # GDD
 # only ambient low vs high
 source("GDD_Transplantation_onset_predictions_NOR_CHE.R")
 
+# overall model
+source("Onset_GDD_overal_model_across_stages.R")
+
 # GDD vs DOY
 source("DOY_GDD_TMS4_NOR_CHE.R")
 
-
+# 
 
 # Duration ----------------------------------------------------------------
 
