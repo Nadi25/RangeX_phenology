@@ -2,9 +2,13 @@
 
 # Prepare climate station data for growing degreee days -------------------
 
+
+# load library ------------------------------------------------------------
 library(conflicted)
 conflict_prefer_all("dplyr", quiet = TRUE)
 library(tidyverse)
+library(performance)
+library(warp)
 
 # import climate station data NOR -----------------------------------------
 climate <- read.csv("Data/Clean/RangeX_clean_EnvClimateStation_2021-2025_NOR.csv")
