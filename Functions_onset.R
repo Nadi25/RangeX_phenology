@@ -95,7 +95,44 @@ make_onset_predictions_gdd <- function(model) {
 
 
 
+# Per species -------------------------------------------------------------
+fit_onset_model_species <- function(onset_data, region_name) {
+  region <- onset_data |> 
+    filter(region == region_name)
+  
+  model <- lmerTest::lmer(
+    onset ~ treatment_site_temp * treat_competition * species + (1 | block_ID),
+    data = region
+  )
+  
+  return(model)
+}
 
+
+make_onset_predictions_species <- function(model) {
+  
+  newdata <- expand.grid(
+    treatment_site_temp = c("lo_ambi", "hi_ambi", "hi_warm"),
+    treat_competition = c("with", "without"),
+    species = c("cennig", "cyncri", "hypmac", "leuvul", "luzmul", "pimsax",
+                "plalan", "sildio", "sucpra", "tripra"),
+    block_ID = NA
+  ) |>
+    as_tibble()
+  
+  pred <- predict(
+    model,
+    newdata = newdata,
+    re.form = NA,
+    se.fit = TRUE) |> 
+    
+    as_tibble() |>
+    mutate(upper = fit + 1.96 * se.fit,
+           lower = fit - 1.96 * se.fit) |>
+    bind_cols(newdata)
+  
+  return(pred)
+}
 
 
 
