@@ -10,7 +10,7 @@
 library(emmeans)
 library(lattice)
 library(lme4)
-
+library(sjPlot)
 
 # source script with final tms data ---------------------------------------
 # this one sources the NOR and CHE preparation scripts
@@ -436,9 +436,10 @@ ggplot(onset_temp_che,
   )
 
 
+plot_model(m_onset_temp_nor, type = "est", show.values = TRUE, value.size = 4,
+           vline.color = "red")
 
 
-
-
+plot_model(m_onset_temp_nor, type = "pred", terms = c("mean_temp [all]", "stage", "treat_competition"))
 
 
