@@ -230,7 +230,9 @@ plot_df_all2 <- plot_df_all2 |>
                              levels = c(16, 2, 17)))
 
 
-
+plot_df_all2 <- plot_df_all2 |>
+  mutate(treatment_site_temp = factor(treatment_site_temp, 
+                                      levels = c("lo_ambi", "hi_warm", "hi_ambi")))
 
 # combine raw onset data into one data frame ----------------------------------
 raw_bud  <- onset_bud   |> 
@@ -255,7 +257,9 @@ plot_df_raw_all <- bind_rows(
 plot_df_raw_all
 
 
-
+plot_df_raw_all <- plot_df_raw_all |>
+  mutate(treatment_site_temp = factor(treatment_site_temp, 
+                                      levels = c("lo_ambi", "hi_warm", "hi_ambi")))
 
 
 # or plot facet by stage --------------------------------------------------
