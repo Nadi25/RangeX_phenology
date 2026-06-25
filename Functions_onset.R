@@ -136,6 +136,31 @@ make_onset_predictions_species <- function(model) {
 
 
 
+make_onset_predictions_species_che <- function(model) {
+  
+  newdata <- expand.grid(
+    treatment_site_temp = c("lo_ambi", "hi_ambi", "hi_warm"),
+    treat_competition = c("with", "without"),
+    species = c("brapin", "broere", "cenjac", "daucar",
+                "hypper", "medlup", "silvul", "plamed", "salpra", "scacol"),
+    block_ID = NA
+  ) |>
+    as_tibble()
+  
+  pred <- predict(
+    model,
+    newdata = newdata,
+    re.form = NA,
+    se.fit = TRUE) |> 
+    
+    as_tibble() |>
+    mutate(upper = fit + 1.96 * se.fit,
+           lower = fit - 1.96 * se.fit) |>
+    bind_cols(newdata)
+  
+  return(pred)
+}
+
 
 
 
