@@ -1,5 +1,9 @@
 
 
+# Onset DOY per species ---------------------------------------------------
+
+
+source("Functions_onset.R")
 
 # fit the models per stage for Norway
 m_onset_bud_nor_sp    <- fit_onset_model_species(onset_bud, "Norway")
