@@ -220,4 +220,25 @@ ggplot(climate_gdd_che_tms,
 
 
 
+# daily means -------------------------------------------------------------
+
+# calculate Temp average per day -----------------
+tomst_che_daily <- env_che_22 |>
+  filter(!is.na(date_time)) |>
+  mutate(date = as.Date(date_time)) |>
+  group_by(
+    date,
+    site,
+    treat_warming,
+    treat_competition,
+    added_focals,
+    unique_plot_ID
+  ) |>
+  summarise(
+    T1_mean = mean(TMS_T1, na.rm = TRUE),
+    T2_mean = mean(TMS_T2, na.rm = TRUE),
+    T3_mean = mean(TMS_T3, na.rm = TRUE),
+    .groups = "drop"
+  )
+
 
