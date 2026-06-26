@@ -301,9 +301,52 @@ m_onset_temp_nor <- lmerTest::lmer(
   data = onset_temp_nor)
 
 summary(m_onset_temp_nor)
+anova(m_onset_temp_nor)
 
+plot_model(m_onset_temp_nor, type = "est", show.values = TRUE, value.size = 4,
+           vline.color = "red")
 
+plot_model(m_onset_temp_nor, type = "pred", terms = c("mean_temp [all]", "stage", "treat_competition"))
 
+emmeans(
+  m_onset_temp_nor,
+  ~ stage * treat_competition,
+  cov.reduce = mean
+)
+
+emtrends(
+  m_onset_temp_nor,
+  ~ stage * treat_competition,
+  var = "mean_temp"
+)
+
+pairs(
+  emtrends(
+    m_onset_temp_nor,
+    ~ stage * treat_competition,
+    var = "mean_temp"
+  )
+)
+
+emmeans(
+  m_onset_temp_nor,
+  pairwise ~ treat_competition | stage,
+  cov.reduce = mean
+)
+
+emmeans(
+  m_onset_temp_nor,
+  pairwise ~ stage | treat_competition,
+  cov.reduce = mean
+)
+
+emtrends(
+  m_onset_temp_nor,
+  ~ stage * treat_competition,
+  var = "mean_temp"
+)
+
+# model 2
 # does site, warming and biotic interaction shift onset across stages?
 m_onset_temp_nor2 <- lmerTest::lmer(
   onset ~ stage * treatment_site_temp * treat_competition +
@@ -436,10 +479,5 @@ ggplot(onset_temp_che,
   )
 
 
-plot_model(m_onset_temp_nor, type = "est", show.values = TRUE, value.size = 4,
-           vline.color = "red")
-
-
-plot_model(m_onset_temp_nor, type = "pred", terms = c("mean_temp [all]", "stage", "treat_competition"))
 
 
