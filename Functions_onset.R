@@ -108,7 +108,7 @@ fit_onset_model_species <- function(onset_data, region_name) {
   return(model)
 }
 
-
+# NOR
 make_onset_predictions_species <- function(model) {
   
   newdata <- expand.grid(
@@ -135,7 +135,7 @@ make_onset_predictions_species <- function(model) {
 }
 
 
-
+# CHE
 make_onset_predictions_species_che <- function(model) {
   
   newdata <- expand.grid(
