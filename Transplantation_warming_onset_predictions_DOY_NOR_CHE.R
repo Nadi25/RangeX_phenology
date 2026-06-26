@@ -13,6 +13,7 @@ library(broom.mixed)
 library(emmeans)
 library(performance)
 library(see)
+library(sjPlot)
 
 
 # source script with functions --------------------------------------------
@@ -58,6 +59,17 @@ model_performance(m_onset_bud_nor)
 emmeans(m_onset_bud_nor,
         pairwise ~ treatment_site_temp * treat_competition)
 
+plot_model(m_onset_bud_nor, type = "est", show.values = TRUE, value.size = 4,
+           vline.color = "red")
+
+plot_model(
+  m_onset_bud_nor,
+  type = "pred",
+  terms = c("treatment_site_temp",
+            "treat_competition")
+)
+
+VarCorr(m_onset_bud_nor)
 
 # flower
 summary(m_onset_flower_nor)
@@ -67,6 +79,9 @@ model_performance(m_onset_flower_nor)
 
 emmeans(m_onset_flower_nor,
         pairwise ~ treatment_site_temp * treat_competition)
+
+plot_model(m_onset_flower_nor, type = "est", show.values = TRUE, value.size = 4,
+           vline.color = "red")
 
 # fruit
 summary(m_onset_fruit_nor)
@@ -459,7 +474,7 @@ b_f_fr6 <- ggplot(plot_df_all2, aes(
     position = pd
   ) +
   
-  facet_grid(region ~ stage) +
+  facet_grid(region ~ stage, scales = "free_y") +
   
   scale_color_manual(values = c(
     "with" = "#528B8B",
