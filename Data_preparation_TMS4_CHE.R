@@ -115,7 +115,15 @@ tms_final_che <- tms_che_treat |>
 
 tms_final_che$treatment_site_temp_comp <- paste(tms_final_che$site, tms_final_che$treat_warming,tms_final_che$treat_competition, sep = "_")
 
+# column with site_warming treatment --------------------------------------
+tms_final_che$treatment_site_temp <- paste(tms_final_che$site, tms_final_che$treat_warming, sep = "_")
 
+
+tms_final_che <- tms_final_che |>
+  mutate(treatment_site_temp= factor(treatment_site_temp,
+                                     levels = c("lo_ambi",
+                                                "hi_ambi",
+                                                "hi_warm")))
 
 ggplot(tms_final_che,
        aes(date,
