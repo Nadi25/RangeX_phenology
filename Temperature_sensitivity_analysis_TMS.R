@@ -329,9 +329,29 @@ ggplot(newdata, aes(x = Tmean, y = fit, color = treat_competition)) +
                                 "without" = "#CD950C")) 
 
 
+slopes <- data.frame(
+  treat_competition = c("without", "with"),
+  slope = c(
+    fixef(m)["Tmean"],
+    fixef(m)["Tmean"] + fixef(m)["treat_competitionwithout:Tmean"]
+  )
+)
+
+ggplot(slopes, aes(x = treat_competition, y = slope, fill = treat_competition)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  labs(y = "Temperature sensitivity (days / °C)")
 
 
+library(emmeans)
 
+emtrends(m, ~ treat_competition, var = "Tmean")
 
+slopes <- as.data.frame(emtrends(m, ~ treat_competition, var = "Tmean"))
 
+ggplot(slopes, aes(x = treat_competition, y = Tmean.trend, color = treat_competition)) +
+  geom_point(size = 3) +
+  geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL), width = 0.1) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  labs(y = "Temperature sensitivity (days / °C)")
 
