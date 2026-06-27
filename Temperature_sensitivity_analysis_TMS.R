@@ -102,29 +102,29 @@ onset_fruit  <- get_mean_onset(phenology2, "No_FloWithrd", "jday")
 onset_seed   <- get_mean_onset(phenology2, "No_Seeds", "jday")
 
 
-# Average across plot, species and treat -----------------------------------------
-onset_bud_mean_p    <- get_plot_onset(onset_bud)
-onset_flower_mean_p <- get_plot_onset(onset_flower)
-onset_fruit_mean_p  <- get_plot_onset(onset_fruit)
-onset_seed_mean_p   <- get_plot_onset(onset_seed)
+# # Average across plot, species and treat -----------------------------------------
+# onset_bud_mean_p    <- get_plot_onset(onset_bud)
+# onset_flower_mean_p <- get_plot_onset(onset_flower)
+# onset_fruit_mean_p  <- get_plot_onset(onset_fruit)
+# onset_seed_mean_p   <- get_plot_onset(onset_seed)
 
 
 
 
 # Join phenology with temperature data ------------------------------------
-onset_bud_temp <- onset_bud_mean_p |>
+onset_bud_temp <- onset_bud |>
   left_join(temperature_mean_gs,
             by = c("region", "treatment_site_temp", "treat_competition", "unique_plot_ID"))
 
-onset_flower_temp <- onset_flower_mean_p |>
+onset_flower_temp <- onset_flower |>
   left_join(temperature_mean_gs,
             by = c("region", "treatment_site_temp", "treat_competition", "unique_plot_ID"))
 
-onset_fruit_temp <- onset_fruit_mean_p |>
+onset_fruit_temp <- onset_fruit |>
   left_join(temperature_mean_gs,
             by = c("region", "treatment_site_temp", "treat_competition", "unique_plot_ID"))
 
-onset_seed_temp <- onset_seed_mean_p |>
+onset_seed_temp <- onset_seed |>
   left_join(temperature_mean_gs,
             by = c("region", "treatment_site_temp", "treat_competition", "unique_plot_ID"))
 
