@@ -322,7 +322,7 @@ ggplot(newdata, aes(x = Tmean, y = fit, color = treat_competition)) +
   labs(x = "Mean temperature",
        y = "Predicted onset") 
 
-ggplot(newdata, aes(x = Tmean, y = fit, color = treat_competition)) +
+ggplot(newdata, aes(x = Tmean, y = fit, color = treat_competition, shape = Tmean)) +
   geom_point(size = 3) +
   geom_errorbar(aes(ymin = lower, ymax = upper), width = 0.1) +
   scale_color_manual(values = c("with" = "#528B8B",
