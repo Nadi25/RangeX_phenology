@@ -29,7 +29,7 @@ library(ggeffects)
 
 
 # source script with functions --------------------------------------------
-source("Temperature_sensitivity_functions.R")
+source("Functions_temperature_sensitivity.R")
 
 
 
@@ -256,9 +256,6 @@ pred_bud_gs_lh_nor    <- make_sens_predictions_lh(m_sens_bud_gs_lh_nor, md_bud_l
 
 
 
-pred_flower_gs_nor <- make_sens_predictions(m_sens_flower_gs_nor)
-pred_fruit_gs_nor  <- make_sens_predictions(m_sens_fruit_gs_nor)
-pred_seed_gs_nor   <- make_sens_predictions(m_sens_seed_gs_nor)
 
 
 
@@ -279,6 +276,11 @@ m <- lmer(
 
 summary(m)
 
+md_temp_lh_nor <- temperature_mean_gs |>
+  filter(
+    region == "Norway",
+    treat_warming == "ambi"
+  )
 
 
 newdata <- md_temp_lh_nor |>
@@ -311,22 +313,6 @@ b_int <- fixef(m)["treat_competitionwithout:Tmean"]
 b_with <- b0 + b_int
 
 
-ggplot(newdata, aes(x = Tmean, y = fit, color = treat_competition)) +
-  geom_line(linewidth = 1.2) +
-  geom_ribbon(aes(ymin = lower, ymax = upper, fill = treat_competition),
-              alpha = 0.2, color = NA) +
-  scale_color_manual(values = c("with" = "#528B8B",
-                                "without" = "#CD950C")) +
-  scale_fill_manual(values = c("with" = "#528B8B",
-                               "without" = "#CD950C")) +
-  labs(x = "Mean temperature",
-       y = "Predicted onset") 
-
-ggplot(newdata, aes(x = Tmean, y = fit, color = treat_competition, shape = Tmean)) +
-  geom_point(size = 3) +
-  geom_errorbar(aes(ymin = lower, ymax = upper), width = 0.1) +
-  scale_color_manual(values = c("with" = "#528B8B",
-                                "without" = "#CD950C")) 
 
 
 slopes <- data.frame(
