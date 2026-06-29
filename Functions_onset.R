@@ -109,21 +109,20 @@ fit_onset_model_species <- function(onset_data, region_name) {
 }
 
 # NOR
-make_onset_predictions_species <- function(model) {
+make_onset_predictions_species_nor <- function(model) {
   
   newdata <- expand.grid(
     treatment_site_temp = c("lo_ambi", "hi_ambi", "hi_warm"),
     treat_competition = c("with", "without"),
     species = c("cennig", "cyncri", "hypmac", "leuvul", "luzmul", "pimsax",
-                "plalan", "sildio", "sucpra", "tripra"),
-    block_ID = NA
+                "plalan", "sildio", "sucpra", "tripra")
   ) |>
     as_tibble()
   
   pred <- predict(
     model,
     newdata = newdata,
-    re.form = NA,
+    re.form = ~(1 | species),
     se.fit = TRUE) |> 
     
     as_tibble() |>
