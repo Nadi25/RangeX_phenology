@@ -59,59 +59,6 @@ temperature_mean_gs <- temperature_mean_gs |>
 
 
 
-# # source script with final tms data ---------------------------------------
-# # this one sources the NOR and CHE preparation scripts
-# source("Data_preparation_TMS4_CHE.R")
-# names(tomst_che_daily)
-# 
-# source("TMS4_Weatherstation_predictions_NOR.R")
-# names(tms_joined2)
-# 
-# 
-# tms_daily_che <- tomst_che_daily |> 
-#   mutate(temp_mean_used = T3_mean) |> 
-#   mutate(region = "Switzerland") |> 
-#   select(region, date, site, treat_warming, treat_competition, added_focals, unique_plot_ID, temp_mean_used)
-# 
-# 
-# tms_daily_nor <- tms_joined2 |> 
-#   mutate(region = "Norway") |> 
-#   select(region, date, site, treat_warming, treat_competition, added_focals, unique_plot_ID, temp_mean_used)
-# 
-# 
-# # combine
-# tms_daily_nor_che <- bind_rows(tms_daily_nor, tms_daily_che)
-# 
-# # add site_warming treatment ----------------------------------------------
-# tms_daily_nor_che$treatment_site_temp <- paste(tms_daily_nor_che$site, tms_daily_nor_che$treat_warming, sep = "_")
-# 
-# 
-# tms_daily_nor_che <- tms_daily_nor_che |>
-#   mutate(treatment_site_temp= factor(treatment_site_temp,
-#                                      levels = c("lo_ambi",
-#                                                 "hi_ambi",
-#                                                 "hi_warm")))
-# # with without
-# tms_daily_nor_che <- tms_daily_nor_che |> 
-#   mutate(treat_competition = recode(treat_competition,
-#                                     "bare" = "without",
-#                                     "vege" = "with"))
-# 
-# 
-# # mean temperature growing season mean ------------------------------------------
-# # define growing season length
-# tms_daily_nor_che_gs <- tms_daily_nor_che |>
-#   filter((region == "Norway" & date >= as.Date("2023-04-01") & date <= as.Date("2023-09-30")) |
-#       (region == "Switzerland" & date >= as.Date("2022-04-01") & date <= as.Date("2022-09-30")))
-# 
-# # calculate one mean value per growing seson and treatment and plot
-# temperature_mean_gs <-  tms_daily_nor_che_gs |>
-#   group_by(region, treatment_site_temp, treat_competition, unique_plot_ID) |>
-#   summarise(Tmean = mean(temp_mean_used),
-#             .groups = "drop")
-# temperature_mean_gs
-# 
-
 
 # source clean phenology data -----------------------------------------------
 source("Data_preparation_phenology_NOR_CHE_combined.R")
@@ -129,11 +76,6 @@ onset_fruit  <- get_mean_onset(phenology2, "No_FloWithrd", "jday")
 onset_seed   <- get_mean_onset(phenology2, "No_Seeds", "jday")
 
 
-# # Average across plot, species and treat -----------------------------------------
-# onset_bud_mean_p    <- get_plot_onset(onset_bud)
-# onset_flower_mean_p <- get_plot_onset(onset_flower)
-# onset_fruit_mean_p  <- get_plot_onset(onset_fruit)
-# onset_seed_mean_p   <- get_plot_onset(onset_seed)
 
 
 
@@ -207,16 +149,25 @@ ggplot(onset_all_gs,
 
 
 
+# Filter correct dataset --------------------------------------------------
+# NOR
+# per stage
+# only ambi
+d_bud_lh_nor <- filter_data(onset_all_gs, "Norway", "Budding", "ambi")
+d_flower_lh_nor <- filter_data(onset_all_gs, "Norway", "Flowering", "ambi")
+d_fruit_lh_nor <- filter_data(onset_all_gs, "Norway", "Fruiting", "ambi")
+d_seed_lh_nor <- filter_data(onset_all_gs, "Norway", "Seeds", "ambi")
+
 
 
 # sensitivity models ------------------------------------------------------------------
 
 # NOR ---------------------------------------------------------------------
 # fit the models per stage for Norway
-m_sens_bud_gs_lh_nor    <- fit_model_sens_lo_hi(onset_all_gs, "Norway", "Budding", "ambi")
-m_sens_flower_gs_lh_nor <- fit_model_sens_lo_hi(onset_all_gs, "Norway", "Flowering", "ambi")
-m_sens_fruit_gs_lh_nor  <- fit_model_sens_lo_hi(onset_all_gs, "Norway", "Fruiting", "ambi")
-m_sens_seed_gs_lh_nor   <- fit_model_sens_lo_hi(onset_all_gs, "Norway", "Seeds", "ambi")
+m_sens_bud_gs_lh_nor    <- fit_model_sens_lo_hi(d_bud_lh_nor)
+m_sens_flower_gs_lh_nor <- fit_model_sens_lo_hi(d_flower_lh_nor)
+m_sens_fruit_gs_lh_nor  <- fit_model_sens_lo_hi(d_fruit_lh_nor)
+m_sens_seed_gs_lh_nor   <- fit_model_sens_lo_hi(d_seed_lh_nor)
 
 
 summary(m_sens_bud_gs_lh_nor)
@@ -228,7 +179,50 @@ summary(m_sens_bud_gs_lh_nor)$coefficients["Tmean", ]
 
 
 
+# filter temp data --------------------------------------------------------
+temp_lh_nor <- temperature_mean_gs |>
+  filter(
+    region == "Norway",
+    treat_warming == "ambi"
+  )
+temp_lh_nor
 
+
+# predict sensitivity for each stage with function ------------------------
+# NOR ---------------------------------------------------------------------
+#
+pred_bud_lh_nor <- make_sens_predictions_lh(temp_lh_nor, m_sens_bud_gs_lh_nor)
+pred_flower_lh_nor <- make_sens_predictions_lh(temp_lh_nor, m_sens_flower_gs_lh_nor)
+pred_fruit_lh_nor <- make_sens_predictions_lh(temp_lh_nor, m_sens_fruit_gs_lh_nor)
+pred_seed_lh_nor <- make_sens_predictions_lh(temp_lh_nor, m_sens_seed_gs_lh_nor)
+
+
+
+
+# get the actual temperature sensitivity from coefficients ----------------
+# NOR ---------------------------------------------------------------------
+
+ts_bud_lh_nor <- get_temp_sens_coef(m_sens_bud_gs_lh_nor)
+ts_flower_lh_nor <- get_temp_sens_coef(m_sens_flower_gs_lh_nor)
+ts_fruit_lh_nor <- get_temp_sens_coef(m_sens_fruit_gs_lh_nor)
+ts_seed_lh_nor <- get_temp_sens_coef(m_sens_seed_gs_lh_nor)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+----------------------------------------------------------------------------------------
 
 # predict sensitivity for each stage with function ------------------------
 # NOR ---------------------------------------------------------------------
@@ -261,20 +255,20 @@ pred_bud_gs_lh_nor    <- make_sens_predictions_lh(m_sens_bud_gs_lh_nor, md_bud_l
 
 #######################################
 
-model_data <- onset_all_gs |>
+model_data_bud_nor <- onset_all_gs |>
   filter(
     region == "Norway",
     stage == "Budding",
     treat_warming == "ambi"
   )
 
-m <- lmer(
+m_bud_lh_nor <- lmer(
   onset ~ treat_competition * Tmean +
     (1 | species) + (1 | block_ID),
-  data = model_data
+  data = model_data_bud_nor
 )
 
-summary(m)
+summary(m_bud_lh_nor)
 
 md_temp_lh_nor <- temperature_mean_gs |>
   filter(
@@ -287,7 +281,7 @@ newdata <- md_temp_lh_nor |>
   select(treat_competition, Tmean)
 
 
-pred <- predict(m, newdata = newdata, re.form = NA, se.fit = TRUE)
+pred <- predict(m_bud_lh_nor, newdata = newdata, re.form = NA, se.fit = TRUE)
 
 
 newdata$fit <- pred$fit
@@ -302,24 +296,24 @@ newdata
 
 
 
-coef(m)
+coef(m_bud_lh_nor)
 # slope for "without"
-b0 <- fixef(m)["Tmean"]
+b0 <- fixef(m_bud_lh_nor)["Tmean"]
 
 # interaction term
-b_int <- fixef(m)["treat_competitionwithout:Tmean"]
+b_int <- fixef(m_bud_lh_nor)["treat_competitionwithout:Tmean"]
 
 # slope for "with"
 b_with <- b0 + b_int
 
 
 
-
 slopes <- data.frame(
-  treat_competition = c("without", "with"),
+  treat_competition = c("with", "without"),
   slope = c(
-    fixef(m)["Tmean"],
-    fixef(m)["Tmean"] + fixef(m)["treat_competitionwithout:Tmean"]
+    fixef(m_bud_lh_nor)["Tmean"],
+    fixef(m_bud_lh_nor)["Tmean"] +
+      fixef(m_bud_lh_nor)["treat_competitionwithout:Tmean"]
   )
 )
 
@@ -331,9 +325,9 @@ ggplot(slopes, aes(x = treat_competition, y = slope, fill = treat_competition)) 
 
 library(emmeans)
 
-emtrends(m, ~ treat_competition, var = "Tmean")
+emtrends(m_bud_lh_nor, ~ treat_competition, var = "Tmean")
 
-slopes <- as.data.frame(emtrends(m, ~ treat_competition, var = "Tmean"))
+slopes <- as.data.frame(emtrends(m_bud_lh_nor, ~ treat_competition, var = "Tmean"))
 
 ggplot(slopes, aes(x = treat_competition, y = Tmean.trend, color = treat_competition)) +
   geom_point(size = 3) +
