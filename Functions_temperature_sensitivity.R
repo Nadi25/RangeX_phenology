@@ -53,6 +53,19 @@ get_mean_onset <- function(data, stage_name, onset_type) {
 # }
 
 
+
+
+# filter dataset ----------------------------------------------------------
+filter_data <- function(onset_data, region_name, stage_name, temp_name) {
+  onset_region_stage <- onset_data |> 
+    filter(region == region_name) |> 
+    filter(stage == stage_name) |> 
+    filter(treat_warming == temp_name)
+  
+  return(onset_region_stage)
+}
+
+
 # Model -------------------------------------------------------------------
 # separately per region
 # filter sensitivity dataset per region first
@@ -60,19 +73,70 @@ get_mean_onset <- function(data, stage_name, onset_type) {
 
 # lo ambi vs hi ambi ------------------------------------------------------
 
-fit_model_sens_lo_hi <- function(onset_data, region_name, stage_name, temp_name) {
-  onset_region_stage <- onset_data |> 
-    filter(region == region_name) |> 
-    filter(stage == stage_name) |> 
-    filter(treat_warming == temp_name)
+fit_model_sens_lo_hi <- function(onset_data) {
   
   model <- lmerTest::lmer(
-    onset ~ treat_competition + Tmean + (1 | species) + (1 | block_ID),
-    data = onset_region_stage
+    onset ~ treat_competition * Tmean + (1 | species) + (1 | block_ID),
+    data = onset_data
   )
   
   return(model)
 }
+
+
+
+
+
+# predictions per stage ---------------------------------------------------
+
+make_sens_predictions_lh <- function(temp_data, model) {
+  
+  newdata <- temp_data |>
+    select(treat_competition, Tmean)|> 
+    as_tibble()
+  
+  pred <- predict(
+    model,
+    newdata = newdata,
+    re.form = NA,
+    se.fit = TRUE) |> 
+    
+    as_tibble() |>
+    mutate(upper = fit + 1.96 * se.fit,
+           lower = fit - 1.96 * se.fit) |>
+    bind_cols(newdata)
+  
+  return(pred)
+}
+#
+
+
+
+# get the actual temperature sensitivity ----------------------------------
+# get the coefficient and slope
+
+
+get_temp_sens_coef <- function(model) {
+  
+  slopes <- as.data.frame(emtrends(model, ~ treat_competition, var = "Tmean"))
+  
+  return(slopes)
+}
+
+#
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
