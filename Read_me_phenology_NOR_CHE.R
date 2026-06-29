@@ -59,11 +59,17 @@ source("Duration_bud_flower_fruit_predictions_NOR_CHE.R")
 
 # Temperature sensitivity -------------------------------------------------
 
+# before comapring lo-hi
 source("Temperature_sensitivity_functions.R")
 
 source("Temperature_sensitivity_analysis.R")
 
 source("Temperature_sensitivity_plots.R")
+
+# now adding tms
+source("Functions_temperature_sensitivity.R")
+
+source("Temperature_sensitivity_analysis_TMS.R")
 
 
 
