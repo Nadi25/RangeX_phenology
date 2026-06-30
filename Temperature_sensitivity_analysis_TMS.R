@@ -150,24 +150,22 @@ ggplot(onset_all_gs,
 
 
 
-# Filter correct onset dataset --------------------------------------------------
+# Filter correct onset dataset low vs hi --------------------------------------------------
 # per stage
 # only ambi
 
 # NOR
-d_bud_lh_nor <- filter_data(onset_all_gs, "Norway", "Budding", "ambi")
-d_flower_lh_nor <- filter_data(onset_all_gs, "Norway", "Flowering", "ambi")
-d_fruit_lh_nor <- filter_data(onset_all_gs, "Norway", "Fruiting", "ambi")
-d_seed_lh_nor <- filter_data(onset_all_gs, "Norway", "Seeds", "ambi")
+d_bud_lh_nor <- filter_data_ambi(onset_all_gs, "Norway", "Budding", "ambi")
+d_flower_lh_nor <- filter_data_ambi(onset_all_gs, "Norway", "Flowering", "ambi")
+d_fruit_lh_nor <- filter_data_ambi(onset_all_gs, "Norway", "Fruiting", "ambi")
+d_seed_lh_nor <- filter_data_ambi(onset_all_gs, "Norway", "Seeds", "ambi")
 
 
 # CHE
-d_bud_lh_che <- filter_data(onset_all_gs, "Switzerland", "Budding", "ambi")
-d_flower_lh_che <- filter_data(onset_all_gs, "Switzerland", "Flowering", "ambi")
-d_fruit_lh_che <- filter_data(onset_all_gs, "Switzerland", "Fruiting", "ambi")
-d_seed_lh_che <- filter_data(onset_all_gs, "Switzerland", "Seeds", "ambi")
-
-
+d_bud_lh_che <- filter_data_ambi(onset_all_gs, "Switzerland", "Budding", "ambi")
+d_flower_lh_che <- filter_data_ambi(onset_all_gs, "Switzerland", "Flowering", "ambi")
+d_fruit_lh_che <- filter_data_ambi(onset_all_gs, "Switzerland", "Fruiting", "ambi")
+d_seed_lh_che <- filter_data_ambi(onset_all_gs, "Switzerland", "Seeds", "ambi")
 
 
 
@@ -175,10 +173,10 @@ d_seed_lh_che <- filter_data(onset_all_gs, "Switzerland", "Seeds", "ambi")
 
 # NOR ---------------------------------------------------------------------
 # fit the models per stage for Norway
-m_sens_bud_gs_lh_nor    <- fit_model_sens_lo_hi(d_bud_lh_nor)
-m_sens_flower_gs_lh_nor <- fit_model_sens_lo_hi(d_flower_lh_nor)
-m_sens_fruit_gs_lh_nor  <- fit_model_sens_lo_hi(d_fruit_lh_nor)
-m_sens_seed_gs_lh_nor   <- fit_model_sens_lo_hi(d_seed_lh_nor)
+m_sens_bud_gs_lh_nor    <- fit_model_sens(d_bud_lh_nor)
+m_sens_flower_gs_lh_nor <- fit_model_sens(d_flower_lh_nor)
+m_sens_fruit_gs_lh_nor  <- fit_model_sens(d_fruit_lh_nor)
+m_sens_seed_gs_lh_nor   <- fit_model_sens(d_seed_lh_nor)
 
 
 summary(m_sens_bud_gs_lh_nor)
@@ -342,6 +340,37 @@ ggplot(raw_sens_all,
   geom_point(alpha = .25) +
   geom_smooth(method = "lm", se = FALSE) +
   facet_grid(region ~ stage)
+
+
+
+
+
+
+
+
+# Filter correct onset dataset hi ambi vs warm --------------------------------------------------
+# per stage
+# only high
+
+# NOR
+d_bud_aw_nor <- filter_data_hi(onset_all_gs, "Norway", "Budding", "hi")
+d_flower_aw_nor <- filter_data_hi(onset_all_gs, "Norway", "Flowering", "hi")
+d_fruit_aw_nor <- filter_data_hi(onset_all_gs, "Norway", "Fruiting", "hi")
+d_seed_aw_nor <- filter_data_hi(onset_all_gs, "Norway", "Seeds", "hi")
+
+
+# CHE
+d_bud_aw_che <- filter_data_hi(onset_all_gs, "Switzerland", "Budding", "hi")
+d_flower_aw_che <- filter_data_hi(onset_all_gs, "Switzerland", "Flowering", "hi")
+d_fruit_aw_che <- filter_data_hi(onset_all_gs, "Switzerland", "Fruiting", "hi")
+d_seed_aw_che <- filter_data_hi(onset_all_gs, "Switzerland", "Seeds", "hi")
+
+
+
+
+
+
+
 
 
 
