@@ -114,8 +114,9 @@ make_onset_predictions_species_nor <- function(model) {
   newdata <- expand.grid(
     treatment_site_temp = c("lo_ambi", "hi_ambi", "hi_warm"),
     treat_competition = c("with", "without"),
-    species = c("cennig", "cyncri", "hypmac", "leuvul", "luzmul", "pimsax",
-                "plalan", "sildio", "sucpra", "tripra")
+    species = levels(model.frame(model)$species)
+    # species = c("cennig", "cyncri", "hypmac", "leuvul", "luzmul", "pimsax",
+    #             "plalan", "sildio", "sucpra", "tripra")
   ) |>
     as_tibble()
   
