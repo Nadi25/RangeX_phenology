@@ -226,18 +226,18 @@ temp_lh_che
 # predict sensitivity for each stage with function ------------------------
 # NOR ---------------------------------------------------------------------
 #
-pred_bud_lh_nor <- make_sens_predictions_lh(temp_lh_nor, m_sens_bud_gs_lh_nor)
-pred_flower_lh_nor <- make_sens_predictions_lh(temp_lh_nor, m_sens_flower_gs_lh_nor)
-pred_fruit_lh_nor <- make_sens_predictions_lh(temp_lh_nor, m_sens_fruit_gs_lh_nor)
-pred_seed_lh_nor <- make_sens_predictions_lh(temp_lh_nor, m_sens_seed_gs_lh_nor)
+pred_bud_lh_nor <- make_sens_predictions(temp_lh_nor, m_sens_bud_gs_lh_nor)
+pred_flower_lh_nor <- make_sens_predictions(temp_lh_nor, m_sens_flower_gs_lh_nor)
+pred_fruit_lh_nor <- make_sens_predictions(temp_lh_nor, m_sens_fruit_gs_lh_nor)
+pred_seed_lh_nor <- make_sens_predictions(temp_lh_nor, m_sens_seed_gs_lh_nor)
 
 
 # CHE ---------------------------------------------------------------------
 #
-pred_bud_lh_che <- make_sens_predictions_lh(temp_lh_che, m_sens_bud_gs_lh_che)
-pred_flower_lh_che <- make_sens_predictions_lh(temp_lh_che, m_sens_flower_gs_lh_che)
-pred_fruit_lh_che <- make_sens_predictions_lh(temp_lh_che, m_sens_fruit_gs_lh_che)
-pred_seed_lh_che <- make_sens_predictions_lh(temp_lh_che, m_sens_seed_gs_lh_che)
+pred_bud_lh_che <- make_sens_predictions(temp_lh_che, m_sens_bud_gs_lh_che)
+pred_flower_lh_che <- make_sens_predictions(temp_lh_che, m_sens_flower_gs_lh_che)
+pred_fruit_lh_che <- make_sens_predictions(temp_lh_che, m_sens_fruit_gs_lh_che)
+pred_seed_lh_che <- make_sens_predictions(temp_lh_che, m_sens_seed_gs_lh_che)
 
 
 
@@ -367,135 +367,144 @@ d_seed_aw_che <- filter_data_hi(onset_all_gs, "Switzerland", "Seeds", "hi")
 
 
 
+# sensitivity models ambi warm ------------------------------------------------------------------
+
+# NOR ---------------------------------------------------------------------
+# fit the models per stage for Norway
+m_sens_bud_gs_aw_nor    <- fit_model_sens(d_bud_aw_nor)
+m_sens_flower_gs_aw_nor <- fit_model_sens(d_flower_aw_nor)
+m_sens_fruit_gs_aw_nor  <- fit_model_sens(d_fruit_aw_nor)
+m_sens_seed_gs_aw_nor   <- fit_model_sens(d_seed_aw_nor)
+
+
+summary(m_sens_bud_gs_aw_nor)
+summary(m_sens_flower_gs_aw_nor)
+summary(m_sens_fruit_gs_aw_nor)
+summary(m_sens_seed_gs_aw_nor)
+
+summary(m_sens_bud_gs_aw_nor)$coefficients["Tmean", ]
+
+anova(m_sens_bud_gs_aw_nor)
+
+
+# CHE ---------------------------------------------------------------------
+# fit the models per stage for Switzerland
+m_sens_bud_gs_aw_che    <- fit_model_sens(d_bud_aw_che)
+m_sens_flower_gs_aw_che <- fit_model_sens(d_flower_aw_che)
+m_sens_fruit_gs_aw_che  <- fit_model_sens(d_fruit_aw_che)
+m_sens_seed_gs_aw_che   <- fit_model_sens(d_seed_aw_che)
+
+
+summary(m_sens_bud_gs_aw_che)
+summary(m_sens_flower_gs_aw_che)
+summary(m_sens_fruit_gs_aw_che)
+summary(m_sens_seed_gs_aw_che)
+
+summary(m_sens_bud_gs_aw_che)$coefficients["Tmean", ]
 
 
 
+# filter temp data --------------------------------------------------------
+# this is to get the newdataframe for the predictions
+temp_aw_nor <- temperature_mean_gs |>
+  filter(
+    region == "Norway",
+    site == "hi"
+  )
+temp_aw_nor
 
+temp_aw_che <- temperature_mean_gs |>
+  filter(
+    region == "Switzerland",
+    site == "hi"
+  )
+temp_aw_che
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-----------------------------------------------------------------------------------------
 
 # predict sensitivity for each stage with function ------------------------
 # NOR ---------------------------------------------------------------------
 #
-md_bud_lh_nor <- onset_all_gs |>
-  filter(
-    region == "Norway",
-    stage == "Budding",
-    treat_warming == "ambi"
-  )
-
-md_temp_lh_nor <- temperature_mean_gs |>
-  filter(
-    region == "Norway",
-    treat_warming == "ambi"
-  )
+pred_bud_aw_nor <- make_sens_predictions(temp_aw_nor, m_sens_bud_gs_aw_nor)
+pred_flower_aw_nor <- make_sens_predictions(temp_aw_nor, m_sens_flower_gs_aw_nor)
+pred_fruit_aw_nor <- make_sens_predictions(temp_aw_nor, m_sens_fruit_gs_aw_nor)
+pred_seed_aw_nor <- make_sens_predictions(temp_aw_nor, m_sens_seed_gs_aw_nor)
 
 
-pred_bud_gs_lh_nor    <- make_sens_predictions_lh(m_sens_bud_gs_lh_nor, md_bud_lh_nor, md_temp_lh_nor)
+# CHE ---------------------------------------------------------------------
+#
+pred_bud_aw_che <- make_sens_predictions(temp_aw_che, m_sens_bud_gs_aw_che)
+pred_flower_aw_che <- make_sens_predictions(temp_aw_che, m_sens_flower_gs_aw_che)
+pred_fruit_aw_che <- make_sens_predictions(temp_aw_che, m_sens_fruit_gs_aw_che)
+pred_seed_aw_che <- make_sens_predictions(temp_aw_che, m_sens_seed_gs_aw_che)
 
 
 
+# get the actual temperature sensitivity from coefficients ----------------
+# NOR ---------------------------------------------------------------------
+
+ts_bud_aw_nor <- get_temp_sens_coef(m_sens_bud_gs_aw_nor)
+ts_flower_aw_nor <- get_temp_sens_coef(m_sens_flower_gs_aw_nor)
+ts_fruit_aw_nor <- get_temp_sens_coef(m_sens_fruit_gs_aw_nor)
+ts_seed_aw_nor <- get_temp_sens_coef(m_sens_seed_gs_aw_nor)
+
+
+# CHE ---------------------------------------------------------------------
+
+ts_bud_aw_che <- get_temp_sens_coef(m_sens_bud_gs_aw_che)
+ts_flower_aw_che <- get_temp_sens_coef(m_sens_flower_gs_aw_che)
+ts_fruit_aw_che <- get_temp_sens_coef(m_sens_fruit_gs_aw_che)
+ts_seed_aw_che <- get_temp_sens_coef(m_sens_seed_gs_aw_che)
 
 
 
-
-
-
-
-
-#######################################
-
-model_data_bud_nor <- onset_all_gs |>
-  filter(
-    region == "Norway",
-    stage == "Budding",
-    treat_warming == "ambi"
-  )
-
-m_bud_lh_nor <- lmer(
-  onset ~ treat_competition * Tmean +
-    (1 | species) + (1 | block_ID),
-  data = model_data_bud_nor
+# combine sens from all stages -------------------------------------------
+sens_all_aw <- bind_rows(
+  ts_bud_aw_nor    |> mutate(stage = "Budding", region = "Norway"),
+  ts_flower_aw_nor |> mutate(stage = "Flowering", region = "Norway"),
+  ts_fruit_aw_nor  |> mutate(stage = "Fruiting", region = "Norway"),
+  ts_seed_aw_nor   |> mutate(stage = "Seeds", region = "Norway"),
+  ts_bud_aw_che    |> mutate(stage = "Budding", region = "Switzerland"),
+  ts_flower_aw_che |> mutate(stage = "Flowering", region = "Switzerland"),
+  ts_fruit_aw_che  |> mutate(stage = "Fruiting", region = "Switzerland"),
+  ts_seed_aw_che   |> mutate(stage = "Seeds", region = "Switzerland")
 )
-
-summary(m_bud_lh_nor)
-
-md_temp_lh_nor <- temperature_mean_gs |>
-  filter(
-    region == "Norway",
-    treat_warming == "ambi"
-  )
-
-
-newdata <- md_temp_lh_nor |>
-  select(treat_competition, Tmean)
-
-
-pred <- predict(m_bud_lh_nor, newdata = newdata, re.form = NA, se.fit = TRUE)
-
-
-newdata$fit <- pred$fit
-newdata$se  <- pred$se.fit
-
-newdata <- newdata |>
-  mutate(
-    lower = fit - 1.96 * se,
-    upper = fit + 1.96 * se
-  )
-newdata
+sens_all_aw
 
 
 
-coef(m_bud_lh_nor)
-# slope for "without"
-b0 <- fixef(m_bud_lh_nor)["Tmean"]
-
-# interaction term
-b_int <- fixef(m_bud_lh_nor)["treat_competitionwithout:Tmean"]
-
-# slope for "with"
-b_with <- b0 + b_int
-
-
-
-slopes <- data.frame(
-  treat_competition = c("with", "without"),
-  slope = c(
-    fixef(m_bud_lh_nor)["Tmean"],
-    fixef(m_bud_lh_nor)["Tmean"] +
-      fixef(m_bud_lh_nor)["treat_competitionwithout:Tmean"]
-  )
-)
-
-ggplot(slopes, aes(x = treat_competition, y = slope, fill = treat_competition)) +
-  geom_point() +
-  geom_hline(yintercept = 0, linetype = "dashed") +
-  labs(y = "Temperature sensitivity (days / °C)")
-
-
-
-
-emtrends(m_bud_lh_nor, ~ treat_competition, var = "Tmean")
-
-slopes <- as.data.frame(emtrends(m_bud_lh_nor, ~ treat_competition, var = "Tmean"))
-
-ggplot(slopes, aes(x = treat_competition, y = Tmean.trend, color = treat_competition)) +
-  geom_point(size = 3) +
+# Plot sensitivity --------------------------------------------------------
+ts_aw <- ggplot(sens_all_aw, aes(x = treat_competition, y = Tmean.trend, color = treat_competition)) +
+  geom_point(size = 3.5) +
   geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL), width = 0.1) +
   geom_hline(yintercept = 0, linetype = "dashed") +
-  labs(y = "Temperature sensitivity (days / °C)")
+  labs(y = "Temperature sensitivity (days / °C)",
+       x = "Biotic interactions",
+       title = "Temperature sensitivity high ambient vs warmed")+
+  facet_grid(region ~ stage)+
+  theme(legend.position = "none")+
+  scale_color_manual(values = c("with" = "#528B8B", "without" = "#CD950C")) 
+ts_aw
+
+ggsave(filename = "Output/Sensitivity/Temperature_sensitivity_TMS_hi_ambient_warmed_NOR_CHE.png", 
+      plot = ts_aw,
+       width = 15, height = 10, units = "in")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
