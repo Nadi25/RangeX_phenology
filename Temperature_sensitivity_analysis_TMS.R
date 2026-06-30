@@ -209,11 +209,24 @@ ts_seed_lh_nor <- get_temp_sens_coef(m_sens_seed_gs_lh_nor)
 
 
 
+# combine sens from all stages -------------------------------------------
+sens_all_gs_nor <- bind_rows(
+  ts_bud_lh_nor   |> mutate(stage = "Budding"),
+  ts_flower_lh_nor|> mutate(stage = "Flowering"),
+  ts_fruit_lh_nor |> mutate(stage = "Fruiting"),
+  ts_seed_lh_nor  |> mutate(stage = "Seeds")
+)
+sens_all_gs_nor
 
 
 
 
-
+ggplot(sens_all_gs_nor, aes(x = treat_competition, y = Tmean.trend, color = treat_competition)) +
+  geom_point(size = 3) +
+  geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL), width = 0.1) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  labs(y = "Temperature sensitivity (days / °C)")+
+  facet_grid(~stage)
 
 
 
