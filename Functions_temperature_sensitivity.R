@@ -81,7 +81,8 @@ filter_data_hi <- function(onset_data, region_name, stage_name, site_name) {
 # filter sensitivity dataset per region first
 
 
-# lo ambi vs hi ambi ------------------------------------------------------
+# lo ambi vs hi ambi 
+# hi ambi vs hi warm
 
 fit_model_sens <- function(onset_data) {
   
@@ -99,7 +100,9 @@ fit_model_sens <- function(onset_data) {
 
 # predictions per stage ---------------------------------------------------
 
-make_sens_predictions_lh <- function(temp_data, model) {
+# low vs high ambi 
+# hi ambi vs high warm
+make_sens_predictions <- function(temp_data, model) {
   
   newdata <- temp_data |>
     select(treat_competition, Tmean)|> 
