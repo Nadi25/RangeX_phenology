@@ -115,7 +115,6 @@ make_sens_predictions_lh <- function(temp_data, model) {
 # get the actual temperature sensitivity ----------------------------------
 # get the coefficient and slope
 
-
 get_temp_sens_coef <- function(model) {
   
   slopes <- as.data.frame(emtrends(model, ~ treat_competition, var = "Tmean"))
@@ -135,67 +134,6 @@ get_temp_sens_coef <- function(model) {
 
 
 
-
-
-
-
-
-
-# Predictions -------------------------------------------------------------
-
-make_sens_predictions_lh <- function(model, onset_data) {
-  
-  newdata <- expand.grid(treat_competition = c("with", "without"),
-                         Tmean = mean(onset_data$Tmean, na.rm = TRUE)) |> 
-    as_tibble()
-  
-  pred <- predict(
-    model,
-    newdata = newdata,
-    re.form = NA,
-    se.fit = TRUE) |> 
-    
-    as_tibble() |>
-    mutate(upper = fit + 1.96 * se.fit,
-           lower = fit - 1.96 * se.fit) |>
-    bind_cols(newdata)
-  
-  return(pred)
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-make_sens_predictions_lh <- function(model, onset_data, temp_data) {
-
-  temp_seq <- temp_data$Tmean
-  
-  newdata <- expand.grid(
-    treat_competition = c("with", "without"),
-    Tmean = temp_seq
-  ) |> as_tibble()
-  
-  pred <- predict(model, newdata = newdata,
-                  re.form = NA, se.fit = TRUE)
-  
-  newdata$fit <- pred$fit
-  newdata$se  <- pred$se.fit
-  
-  newdata |>
-    mutate(
-      upper = fit + 1.96 * se,
-      lower = fit - 1.96 * se
-    )
-}
 
 
 
