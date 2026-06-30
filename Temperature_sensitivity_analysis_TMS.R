@@ -485,17 +485,82 @@ ts_aw <- ggplot(sens_all_aw, aes(x = treat_competition, y = Tmean.trend, color =
   scale_color_manual(values = c("with" = "#528B8B", "without" = "#CD950C")) 
 ts_aw
 
-ggsave(filename = "Output/Sensitivity/Temperature_sensitivity_TMS_hi_ambient_warmed_NOR_CHE.png", 
-      plot = ts_aw,
-       width = 15, height = 10, units = "in")
+# ggsave(filename = "Output/Sensitivity/Temperature_sensitivity_TMS_hi_ambient_warmed_NOR_CHE.png", 
+#       plot = ts_aw,
+#        width = 15, height = 10, units = "in")
 
 
 
 
+theme_set(theme_bw())
+# Pot raw data ------------------------------------------------------------
+# bud
+ggplot(d_bud_aw_nor,
+       aes(Tmean, onset,
+           colour = treat_competition)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "lm") +
+  facet_wrap(~ species)
 
 
 
+raw_sens_all_aw <- bind_rows(
+  d_bud_aw_nor,
+  d_flower_aw_nor,
+  d_fruit_aw_nor,
+  d_seed_aw_nor,
+  d_bud_aw_che,
+  d_flower_aw_che,
+  d_fruit_aw_che,
+  d_seed_aw_che
+)
 
+
+ggplot(raw_sens_all_aw,
+       aes(Tmean, onset,
+           colour = treat_competition)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "lm", se = FALSE) +
+  facet_grid(region ~ stage)
+
+
+ggplot(raw_sens_all,
+       aes(Tmean, onset,
+           colour = species)) +
+  geom_point(alpha = .25) +
+  geom_smooth(method = "lm", se = FALSE) +
+  facet_grid(region ~ stage)
+
+
+raw_summary <- raw_sens_all_aw |>
+  group_by(region, stage, treatment_site_temp, treat_competition, Tmean) |>
+  summarise(
+    mean_onset = mean(onset),
+    se = sd(onset) / sqrt(n()),
+    .groups = "drop"
+  )
+
+
+ggplot(raw_summary,
+       aes(x = Tmean,
+           y = mean_onset,
+           colour = treat_competition,
+           shape = treatment_site_temp)) +
+  
+  geom_point(size = 3) +
+  
+  geom_errorbar(aes(ymin = mean_onset - 1.96 * se,
+                    ymax = mean_onset + 1.96 * se),
+                width = 0.05) +
+  
+  geom_line(aes(group = treat_competition)) +
+  
+  facet_grid(region ~ stage) +
+  
+  labs(
+    x = "Mean growing-season temperature (°C)",
+    y = "Mean onset (DOY)"
+  )
 
 
 
