@@ -737,7 +737,7 @@ ts_gdd <- ggplot(sens_all_gdd, aes(x = treat_competition, y = Tmean.trend, color
   geom_point(size = 3.5) +
   geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL), width = 0.1) +
   geom_hline(yintercept = 0, linetype = "dashed") +
-  labs(y = "Temperature sensitivity (days / °C)",
+  labs(y = "Temperature sensitivity (GDD2 / °C)",
        x = "Biotic interactions",
        title = "Temperature sensitivity low vs high ambient")+
   facet_grid(region ~ stage)+
@@ -876,9 +876,9 @@ ts_gdd_aw <- ggplot(sens_all_gdd_aw, aes(x = treat_competition, y = Tmean.trend,
   geom_point(size = 3.5) +
   geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL), width = 0.1) +
   geom_hline(yintercept = 0, linetype = "dashed") +
-  labs(y = "Temperature sensitivity (days / °C)",
+  labs(y = "Temperature sensitivity (GDD2 / °C)",
        x = "Biotic interactions",
-       title = "Temperature sensitivity low vs high ambient")+
+       title = "Temperature sensitivity high ambient vs warmed")+
   facet_grid(region ~ stage)+
   theme(legend.position = "none")+
   scale_color_manual(values = c("with" = "#528B8B", "without" = "#CD950C")) 
@@ -886,5 +886,5 @@ ts_gdd_aw
 
 # ggsave(filename = "Output/Sensitivity/Temperature_sensitivity_TMS_GDD_ambi_warm_NOR_CHE.png", 
 #       plot = ts_gdd_aw,
-#        width = 15, height = 10, units = "in")
+#       width = 15, height = 10, units = "in")
 
