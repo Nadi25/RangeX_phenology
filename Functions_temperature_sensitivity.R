@@ -57,7 +57,7 @@ get_mean_onset <- function(data, stage_name, onset_type) {
 
 # filter dataset ----------------------------------------------------------
 # to use correct comparison of low vs hi ambi
-# and hi ambi vs warm
+
 filter_data_ambi <- function(onset_data, region_name, stage_name, temp_name) {
   onset_region_stage <- onset_data |> 
     filter(region == region_name) |> 
@@ -67,6 +67,7 @@ filter_data_ambi <- function(onset_data, region_name, stage_name, temp_name) {
   return(onset_region_stage)
 }
 
+# and hi ambi vs warm
 filter_data_hi <- function(onset_data, region_name, stage_name, site_name) {
   onset_region_stage <- onset_data |> 
     filter(region == region_name) |> 
