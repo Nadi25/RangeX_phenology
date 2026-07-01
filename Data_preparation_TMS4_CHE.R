@@ -250,3 +250,26 @@ tomst_che_daily <- env_che_22 |>
   )
 
 
+#
+
+climate_tomst_22_site <- env_che_22 |>
+   filter(
+     treat_warming == "ambi",
+     treat_competition == "vege",
+     added_focals == "wf"
+  ) |>
+   group_by(site, date) |>
+   summarise(
+     Tmax = max(TMS_T3, na.rm = TRUE),
+     Tmin = min(TMS_T3, na.rm = TRUE),
+     .groups = "drop"
+   ) |>
+   mutate(
+     Tavg_tms = (Tmax + Tmin)/2
+   )
+climate_tomst_22_site
+
+climate_tomst_22_site <- climate_tomst_22_site |>
+  filter(date >= as.Date("2022-01-07"))
+
+
