@@ -135,22 +135,24 @@ make_onset_predictions_species_nor <- function(model) {
 }
 
 
+
 # CHE
 make_onset_predictions_species_che <- function(model) {
   
   newdata <- expand.grid(
     treatment_site_temp = c("lo_ambi", "hi_ambi", "hi_warm"),
     treat_competition = c("with", "without"),
-    species = c("brapin", "broere", "cenjac", "daucar",
-                "hypper", "medlup", "silvul", "plamed", "salpra", "scacol"),
-    block_ID = NA
+    species = levels(model.frame(model)$species)
+    # species = c("brapin", "broere", "cenjac", "daucar",
+    #             "hypper", "medlup", "silvul", "plamed", "salpra", "scacol"),
+    # block_ID = NA
   ) |>
     as_tibble()
   
   pred <- predict(
     model,
     newdata = newdata,
-    re.form = NA,
+    re.form = ~(1 | species),
     se.fit = TRUE) |> 
     
     as_tibble() |>
@@ -164,7 +166,37 @@ make_onset_predictions_species_che <- function(model) {
 
 
 
+library(merTools)
+library(dplyr)
+library(tibble)
 
+make_onset_predictions_species <- function(model) {
+  
+  newdata <- expand.grid(
+    treatment_site_temp = c("lo_ambi", "hi_ambi", "hi_warm"),
+    treat_competition = c("with", "without"),
+    species = levels(model.frame(model)$species)
+  ) |>
+    as_tibble()
+  
+  pred <- predictInterval(
+    model,
+    newdata = newdata,
+    level = 0.95,
+    n.sims = 1000,
+    which = "full",
+    include.resid.var = FALSE
+  ) |>
+    as_tibble() |>
+    rename(
+      fit = fit,
+      lower = lwr,
+      upper = upr
+    ) |>
+    bind_cols(newdata)
+  
+  pred
+}
 
 
 
