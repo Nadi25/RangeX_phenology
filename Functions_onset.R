@@ -44,7 +44,6 @@ fit_onset_model <- function(onset_data, region_name) {
 
 
 
-
 # function for predictions ------------------------------------------------
 make_onset_predictions <- function(model) {
   
@@ -96,56 +95,26 @@ make_onset_predictions_gdd <- function(model) {
 
 
 # Per species -------------------------------------------------------------
-fit_onset_model_species <- function(onset_data, region_name) {
-  region <- onset_data |> 
-    filter(region == region_name)
-  
-  model <- lmerTest::lmer(
-    onset ~ treatment_site_temp * treat_competition * species + (1 | block_ID),
-    data = region
-  )
-  
-  return(model)
-}
+# fit_onset_model_species <- function(onset_data, region_name) {
+#   region <- onset_data |> 
+#     filter(region == region_name)
+#   
+#   model <- lmerTest::lmer(
+#     onset ~ treatment_site_temp * treat_competition * species + (1 | block_ID),
+#     data = region
+#   )
+#   
+#   return(model)
+# }
 
-# NOR
-make_onset_predictions_species_nor <- function(model) {
+#
+make_onset_predictions_species<- function(model) {
   
   newdata <- expand.grid(
     treatment_site_temp = c("lo_ambi", "hi_ambi", "hi_warm"),
     treat_competition = c("with", "without"),
-    species = levels(model.frame(model)$species)
-    # species = c("cennig", "cyncri", "hypmac", "leuvul", "luzmul", "pimsax",
-    #             "plalan", "sildio", "sucpra", "tripra")
-  ) |>
-    as_tibble()
-  
-  pred <- predict(
-    model,
-    newdata = newdata,
-    re.form = ~(1 | species),
-    se.fit = TRUE) |> 
-    
-    as_tibble() |>
-    mutate(upper = fit + 1.96 * se.fit,
-           lower = fit - 1.96 * se.fit) |>
-    bind_cols(newdata)
-  
-  return(pred)
-}
-
-
-
-# CHE
-make_onset_predictions_species_che <- function(model) {
-  
-  newdata <- expand.grid(
-    treatment_site_temp = c("lo_ambi", "hi_ambi", "hi_warm"),
-    treat_competition = c("with", "without"),
-    species = levels(model.frame(model)$species)
-    # species = c("brapin", "broere", "cenjac", "daucar",
-    #             "hypper", "medlup", "silvul", "plamed", "salpra", "scacol"),
-    # block_ID = NA
+    species = levels(model.frame(model)$species),
+    block_ID = NA
   ) |>
     as_tibble()
   
@@ -166,48 +135,57 @@ make_onset_predictions_species_che <- function(model) {
 
 
 
-library(merTools)
-library(dplyr)
-library(tibble)
 
 make_onset_predictions_species <- function(model) {
   
+  # new data
   newdata <- expand.grid(
     treatment_site_temp = c("lo_ambi", "hi_ambi", "hi_warm"),
     treat_competition = c("with", "without"),
     species = levels(model.frame(model)$species)
-  ) |>
-    as_tibble()
+  )
   
-  pred <- predictInterval(
+  # species-specific predictions
+  newdata$fit <- predict(
     model,
     newdata = newdata,
-    level = 0.95,
-    n.sims = 1000,
-    which = "full",
-    include.resid.var = FALSE
-  ) |>
-    as_tibble() |>
-    rename(
-      fit = fit,
-      lower = lwr,
-      upper = upr
-    ) |>
-    bind_cols(newdata)
+    re.form = ~(1 | species)
+  )
   
-  pred
+  # fixed-effect model matrix
+  mm <- model.matrix(
+    delete.response(terms(model)),
+    newdata
+  )
+  
+  # fixed-effect variance
+  pvar <- diag(
+    mm %*% tcrossprod(vcov(model), mm)
+  )
+  
+  # random-effect variances
+  var_species <- as.numeric(VarCorr(model)$species)
+  var_block   <- as.numeric(VarCorr(model)$block_ID)
+  
+  # total variance
+  tvar <- pvar + var_species + var_block + sigma(model)^2
+  
+  cmult <- 1.96
+  
+  newdata <- newdata |>
+    mutate(
+      se_fit = sqrt(pvar),
+      
+      lower_fixed = fit - cmult * sqrt(pvar),
+      upper_fixed = fit + cmult * sqrt(pvar),
+      
+      lower = fit - cmult * sqrt(tvar),
+      upper = fit + cmult * sqrt(tvar)
+    ) |>
+    tibble::as_tibble()
+  
+  return(newdata)
 }
-
-
-
-
-
-
-
-
-
-
-
 
 
 
