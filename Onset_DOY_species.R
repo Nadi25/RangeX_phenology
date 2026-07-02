@@ -30,21 +30,30 @@ m_onset_flower_che_sp <- fit_onset_model(onset_flower, "Switzerland")
 m_onset_fruit_che_sp  <- fit_onset_model(onset_fruit, "Switzerland")
 m_onset_seed_che_sp   <- fit_onset_model(onset_seed, "Switzerland")
 
+##
+m_onset_bud_nor_sp    <- fit_onset_model_species(onset_bud, "Norway")
+m_onset_flower_nor_sp <- fit_onset_model_species(onset_flower, "Norway")
+m_onset_fruit_nor_sp  <- fit_onset_model_species(onset_fruit, "Norway")
+m_onset_seed_nor_sp   <- fit_onset_model_species(onset_seed, "Norway")
 
+m_onset_bud_che_sp    <- fit_onset_model_species(onset_bud, "Switzerland")
+m_onset_flower_che_sp <- fit_onset_model_species(onset_flower, "Switzerland")
+m_onset_fruit_che_sp  <- fit_onset_model_species(onset_fruit, "Switzerland")
+m_onset_seed_che_sp   <- fit_onset_model_species(onset_seed, "Switzerland")
 
 
 # make predictions --------------------------------------------------------
-pred_onset_bud_nor_sp <- make_onset_predictions_species_nor(m_onset_bud_nor_sp)
-pred_onset_flower_nor_sp <- make_onset_predictions_species_nor(m_onset_flower_nor_sp)
-pred_onset_fruit_nor_sp  <- make_onset_predictions_species_nor(m_onset_fruit_nor_sp)
-pred_onset_seed_nor_sp   <- make_onset_predictions_species_nor(m_onset_seed_nor_sp)
+pred_onset_bud_nor_sp <- make_onset_predictions_species(m_onset_bud_nor_sp)
+pred_onset_flower_nor_sp <- make_onset_predictions_species(m_onset_flower_nor_sp)
+pred_onset_fruit_nor_sp  <- make_onset_predictions_species(m_onset_fruit_nor_sp)
+pred_onset_seed_nor_sp   <- make_onset_predictions_species(m_onset_seed_nor_sp)
 
 
 
-pred_onset_bud_che_sp <- make_onset_predictions_species_che(m_onset_bud_che_sp)
-pred_onset_flower_che_sp <- make_onset_predictions_species_che(m_onset_flower_che_sp)
-pred_onset_fruit_che_sp  <- make_onset_predictions_species_che(m_onset_fruit_che_sp)
-pred_onset_seed_che_sp   <- make_onset_predictions_species_che(m_onset_seed_che_sp)
+pred_onset_bud_che_sp <- make_onset_predictions_species(m_onset_bud_che_sp)
+pred_onset_flower_che_sp <- make_onset_predictions_species(m_onset_flower_che_sp)
+pred_onset_fruit_che_sp  <- make_onset_predictions_species(m_onset_fruit_che_sp)
+pred_onset_seed_che_sp   <- make_onset_predictions_species(m_onset_seed_che_sp)
 
 pred_onset_bud_che_sp2 <- make_onset_predictions_species(m_onset_bud_che_sp)
 pred_onset_flower_che_sp2 <- make_onset_predictions_species(m_onset_flower_che_sp)
