@@ -35,7 +35,7 @@ fit_onset_model <- function(onset_data, region_name) {
     filter(region == region_name)
   
   model <- lmerTest::lmer(
-    onset ~ treatment_site_temp + treat_competition + (1 | species) + (1 | block_ID),
+    onset ~ treatment_site_temp * treat_competition + (1 | species) + (1 | block_ID),
     data = region
   )
   
@@ -95,17 +95,17 @@ make_onset_predictions_gdd <- function(model) {
 
 
 # Per species -------------------------------------------------------------
-# fit_onset_model_species <- function(onset_data, region_name) {
-#   region <- onset_data |> 
-#     filter(region == region_name)
-#   
-#   model <- lmerTest::lmer(
-#     onset ~ treatment_site_temp * treat_competition * species + (1 | block_ID),
-#     data = region
-#   )
-#   
-#   return(model)
-# }
+fit_onset_model_species <- function(onset_data, region_name) {
+  region <- onset_data |> 
+    filter(region == region_name)
+  
+  model <- lmerTest::lmer(
+    onset ~ treatment_site_temp * treat_competition * (1 + treatment_site_temp | species)  + (1 | block_ID),
+    data = region
+  )
+  
+  return(model)
+}
 
 #
 make_onset_predictions_species<- function(model) {
@@ -121,7 +121,7 @@ make_onset_predictions_species<- function(model) {
   pred <- predict(
     model,
     newdata = newdata,
-    re.form = ~(1 | species),
+    re.form = ~(1 + treatment_site_temp | species),
     se.fit = TRUE) |> 
     
     as_tibble() |>
