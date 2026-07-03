@@ -1,9 +1,11 @@
 
 
 library(purrr)
+library(ggrepel)
+
 source("Temperature_sensitivity_analysis_TMS.R")
 
-
+theme_set(theme_bw(base_size = 20))
 
 # Filter correct onset dataset species --------------------------------------------------
 # only flowering
@@ -91,6 +93,19 @@ temp_sens_all_species <- bind_rows(temp_sens, .id = "species")
 temp_sens_all_species
 
 
+temp_sens_all_species <- temp_sens_all_species |>
+  mutate(
+    region = ifelse(
+      species %in% c(
+        "cennig", "cyncri", "hypmac", "leuvul", "luzmul",
+        "pimsax", "plalan", "sucpra", "tripra", "sildio"
+      ),
+      "Norway",
+      "Switzerland"
+    )
+  )
+
+
 ts_species <- ggplot(
   temp_sens_all_species,
   aes(
@@ -105,7 +120,7 @@ ts_species <- ggplot(
     width = 0.1
   ) +
   geom_hline(yintercept = 0, linetype = "dashed") +
-  #facet_wrap(~ species) +
+  facet_wrap(~ region) +
   labs(
     y = "Temperature sensitivity (days / °C)",
     x = "Biotic interactions",
@@ -121,6 +136,51 @@ ts_species
 
 
 
+
+
+pd <- position_dodge(width = 0.2)
+
+ts_species <- ggplot(
+  temp_sens_all_species,
+  aes(
+    x = treat_competition,
+    y = Tmean.trend,
+    color = species,
+    group = species
+  )
+) +
+  geom_pointrange(
+    aes(
+      ymin = lower.CL,
+      ymax = upper.CL
+    ),
+    position = pd,
+    linewidth = 0.5
+  ) +
+  geom_line(
+    position = pd,
+    linewidth = 0.8
+  ) +
+  
+  geom_text_repel(
+    data = subset(
+      temp_sens_all_species,
+      treat_competition == "with"
+    ),
+    aes(label = species),
+    segment.color = NA,
+    show.legend = FALSE,
+    max.overlaps = Inf
+  )+
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  facet_wrap(~ region) +
+  theme(legend.position = "none")
+ts_species
+
+
+ggsave(filename = "Output/Sensitivity/Temperature_sensitivity_TMS_lo_hi_species.png", 
+      plot = ts_species,
+      width = 15, height = 20, units = "in")
 
 
 
