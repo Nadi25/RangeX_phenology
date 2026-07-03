@@ -888,3 +888,80 @@ ts_gdd_aw
 #       plot = ts_gdd_aw,
 #       width = 15, height = 10, units = "in")
 
+
+
+
+
+
+
+
+
+# joined figure for hi vs lo and ambi vs warm -----------------------------
+
+
+sens_all$type <- "high low"
+sens_all_aw$type <- "ambient warming"
+
+sens_combined <- bind_rows(sens_all, sens_all_aw)
+
+pd <- position_dodge(width = 0.4)
+
+ts_hl_aw <- ggplot(
+  sens_combined,
+  aes(
+    x = type,
+    y = Tmean.trend,
+    color = treat_competition,
+    shape = type
+  )
+) +
+  geom_point(
+    size = 3.5,
+    position = pd
+  ) +
+  geom_errorbar(
+    aes(ymin = lower.CL, ymax = upper.CL),
+    width = 0.1,
+    position = pd
+  ) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  facet_grid(region ~ stage) +
+  labs(
+    y = "Temperature sensitivity (days / °C)",
+    x = "Biotic interactions"
+  ) +
+  theme(legend.position = "right") +
+  scale_color_manual(
+    values = c(
+      "with" = "#528B8B",
+      "without" = "#CD950C"
+    )
+  )
+ts_hl_aw
+
+
+# ggsave(filename = "Output/Sensitivity/Temperature_sensitivity_TMS_hi_lo_ambi_warm_NOR_CHE.png", 
+#       plot = ts_hl_aw,
+#       width = 15, height = 10, units = "in")
+
+
+
+
+
+# combine with number of flowers ------------------------------------------
+
+source("")
+max_flower_per_plant
+
+
+
+
+
+
+
+
+
+
+
+
+
