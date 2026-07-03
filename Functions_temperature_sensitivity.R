@@ -77,6 +77,18 @@ filter_data_hi <- function(onset_data, region_name, stage_name, site_name) {
   return(onset_region_stage)
 }
 
+
+# species
+filter_data_species <- function(onset_data, species_name, stage_name, temp_name) {
+  onset_species <- onset_data |> 
+    filter(species == species_name)|> 
+    filter(stage == stage_name) |> 
+    filter(treat_warming == temp_name)
+  
+  
+  return(onset_species)
+}
+
 # Model -------------------------------------------------------------------
 # separately per region
 # filter sensitivity dataset per region first
@@ -97,6 +109,15 @@ fit_model_sens <- function(onset_data) {
 
 
 
+fit_model_sens_species <- function(onset_data) {
+  
+  model <- lmerTest::lmer(
+    onset ~ treat_competition * Tmean + (1 | block_ID),
+    data = onset_data
+  )
+  
+  return(model)
+}
 
 
 # predictions per stage ---------------------------------------------------
