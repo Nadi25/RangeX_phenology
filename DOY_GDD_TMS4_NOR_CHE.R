@@ -55,6 +55,12 @@ gdd_nor_che <- bind_rows(gdd_nor_tms, gdd_che_tms)
 
 
 
+# column with dta type ----------------------------------------------------
+# real or predicted
+gdd_nor_che <- gdd_nor_che |> 
+  mutate(data_type = ifelse(perc_real == 0, "predicted", "measured"))
+
+
 # plot both regions all treatments GDD vs DOY -----------------------------
 # define colors
 define_colors <- c(
@@ -79,11 +85,58 @@ gdd <- ggplot(gdd_nor_che,
     color = "Treatment",
     title = "Norway and Switzerland cumulative GDD")+
   facet_grid(~region)+
-  scale_color_manual(values = define_colors)
+  scale_color_manual(values = define_colors)+
+  scale_alpha_continuous(range = c(0.4, 1))
 gdd
 
 # ggsave(filename = "Output/Temperature/DOY_GDD_TMS4_NOR_CHE.png", 
 #       plot = gdd, width = 15, height = 10, units = "in")
+
+
+
+# make dotted line  ----------------------------------
+# when at least one of the loggers in the treat are predicted
+gdd_nor_che <- gdd_nor_che |> 
+  arrange(region, treatment_site_temp_comp, jday) |> 
+  group_by(region, treatment_site_temp_comp) |> 
+  mutate(
+    predicted = perc_real < 100,
+    segment = cumsum(predicted != lag(predicted,
+                                      default = first(predicted)))
+  )
+
+gdd_nor_che <- gdd_nor_che |>
+  ungroup()
+
+gdd2 <- ggplot(
+  gdd_nor_che,
+  aes(
+    jday,
+    GDD_cum,
+    color = treatment_site_temp_comp,
+    linetype = predicted,
+    group = interaction(treatment_site_temp_comp, segment))) +
+  geom_line(linewidth = 1.2) +
+  facet_grid(~region) +
+  scale_color_manual(values = define_colors)+
+  labs(
+    x = "Day of year (DOY)",
+    y = "Cumulative temperature (GDD2)",
+    color = "Treatment",
+    title = "Norway and Switzerland cumulative GDD")+
+  
+  scale_linetype_manual(
+    name = "TMS4 data",
+    values = c(
+      "FALSE" = "solid",
+      "TRUE" = "dashed"),
+    labels = c(
+      "FALSE" = "measured",
+      "TRUE" = "(partly) predicted"))
+gdd2
+
+# ggsave(filename = "Output/Temperature/DOY_GDD_TMS4_NOR_CHE_2.png", 
+#       plot = gdd2, width = 15, height = 10, units = "in")
 
 
 
