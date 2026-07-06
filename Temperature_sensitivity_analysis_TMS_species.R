@@ -63,6 +63,30 @@ flower_species
 models_species <- map(flower_species, fit_model_sens_species)
 
 
+flower_species$hypmac |> 
+  ggplot(aes(Tmean, onset)) +
+  geom_point() +
+  geom_smooth(method = "lm")
+
+flower_species$hypmac |>
+  summarise(n = n())
+
+flower_species$hypmac |>
+  summarise(
+    n_total = n(),
+    n_complete = sum(complete.cases(Tmean, onset))
+  )
+
+flower_species$hypmac |>
+  count(treat_competition, Tmean)
+
+flower_species$cyncri |>
+  count(treat_competition, Tmean)
+
+flower_species$sildio |>
+  count(treat_competition, Tmean)
+
+
 imap_dfr(
   flower_species,
   ~ tibble(
@@ -178,9 +202,161 @@ ts_species <- ggplot(
 ts_species
 
 
-ggsave(filename = "Output/Sensitivity/Temperature_sensitivity_TMS_lo_hi_species.png", 
-      plot = ts_species,
-      width = 15, height = 20, units = "in")
+# ggsave(filename = "Output/Sensitivity/Temperature_sensitivity_TMS_lo_hi_species.png", 
+#       plot = ts_species,
+#       width = 15, height = 20, units = "in")
+
+
+
+# plot with label of species ----------------------------------------------
+label_data <- temp_sens_all_species |> 
+  group_by(region, species) |>
+  arrange(
+    is.na(Tmean.trend),          # valid values first
+    treat_competition != "with"  # prefer with
+  ) |>
+  slice(1) |>
+  ungroup()
+
+
+label_data |>
+  select(species, region, treat_competition, Tmean.trend)
+
+
+ts_species_label <- ggplot(
+  temp_sens_all_species,
+  aes(
+    x = treat_competition,
+    y = Tmean.trend,
+    color = species,
+    group = species)) +
+  
+  geom_pointrange(
+    aes(
+      ymin = lower.CL,
+      ymax = upper.CL
+    ),
+    position = pd,
+    linewidth = 0.5) +
+  geom_line(
+    position = pd,
+    linewidth = 0.8) +
+  
+  geom_text_repel(
+    data = label_data,
+    aes(label = species),
+    size = 7,
+    segment.color = NA,
+    show.legend = FALSE,
+    max.overlaps = Inf )+
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  
+  facet_wrap(~ region) +
+  theme(legend.position = "none")+
+  labs(
+    y = "Temperature sensitivity (days / °C)",
+    x = "Biotic interactions",
+    title = "Temperature sensitivity flowering per species")
+ts_species_label
+
+# ggsave(filename = "Output/Sensitivity/Temperature_sensitivity_TMS_lo_hi_flowering_species.png", 
+#       plot = ts_species_label,
+#       width = 18, height = 15, units = "in")
+
+
+
+
+
+
+
+
+# Early vs late -----------------------------------------------------------
+
+# get mean flowering onset per species ------------------------------------
+onset_flower_general <- phenology2 |>
+  filter(phenology_stage == "No_FloOpen", value > 0) |>
+  group_by(region, site, treat_competition, species, block_ID, unique_plot_ID, 
+           unique_plant_ID, phenology_stage, functional_group) |>
+  summarise(onset = min(jday), .groups = "drop") |>
+  filter(is.finite(onset))
+onset_flower_general
+
+
+mean_onset_flower_species_region <- onset_flower_general |>
+  group_by(region, species) |>
+  summarise(mean_onset = mean(onset, na.rm = TRUE),
+            .groups = "drop")
+mean_onset_flower_species_region
+
+
+
+# define early and late flowering species ---------------------------------
+# based on mean onset per species and region
+species_flowering <- mean_onset_flower_species_region |>
+  group_by(region) |>
+  mutate(cutoff = median(mean_onset),
+         flowering_time = if_else(mean_onset <= cutoff, "early", "late"))
+species_flowering
+
+
+table(species_flowering$region, species_flowering$flowering_time)
+
+
+# join label data with early late type ------------------------------------
+temp_sens_all_species <- temp_sens_all_species |> 
+  left_join(species_flowering, by = c("region", "species")) |> 
+  select(-c(cutoff, mean_onset))
+temp_sens_all_species
+
+
+ts_species_label <- ggplot(
+  temp_sens_all_species,
+  aes(
+    x = treat_competition,
+    y = Tmean.trend,
+    color = species,
+    group = species,
+    shape = flowering_time)) +
+  
+  geom_pointrange(
+    aes(
+      ymin = lower.CL,
+      ymax = upper.CL
+    ),
+    position = pd,
+    linewidth = 0.5,
+    size = 1.5) +
+  geom_line(
+    position = pd,
+    linewidth = 0.8) +
+  
+  geom_text_repel(
+    data = label_data,
+    aes(label = species),
+    size = 7,
+    segment.color = NA,
+    show.legend = FALSE,
+    max.overlaps = Inf )+
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  
+  facet_wrap(~ region) +
+  theme(legend.position = "right")+
+  guides(color = "none")+
+  labs(
+    y = "Temperature sensitivity (days / °C)",
+    x = "Biotic interactions",
+    title = "Temperature sensitivity flowering per species",
+    shape = "Flowering time")
+ts_species_label
+
+
+
+# ggsave(filename = "Output/Sensitivity/Temperature_sensitivity_TMS_lo_hi_flowering_species.png", 
+#       plot = ts_species_label,
+#       width = 18, height = 15, units = "in")
+
+
+
 
 
 
