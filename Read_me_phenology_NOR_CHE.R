@@ -59,18 +59,19 @@ source("Duration_bud_flower_fruit_predictions_NOR_CHE.R")
 
 # Temperature sensitivity -------------------------------------------------
 
-# before comapring lo-hi
-source("Temperature_sensitivity_functions.R")
+# # before comparing lo-hi with weather station
+# source("Temperature_sensitivity_functions.R")
+# 
+# source("Temperature_sensitivity_analysis.R")
+# 
+# source("Temperature_sensitivity_plots.R")
 
-source("Temperature_sensitivity_analysis.R")
-
-source("Temperature_sensitivity_plots.R")
-
-# now adding tms
+# now with TMS4 data - adding OTC ambi comparison
 source("Functions_temperature_sensitivity.R")
 
 source("Temperature_sensitivity_analysis_TMS.R")
 
+source("Temperature_sensitivity_analysis_TMS_species.R")
 
 
 
