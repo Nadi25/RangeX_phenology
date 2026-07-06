@@ -948,13 +948,6 @@ ts_hl_aw
 
 
 
-# combine with number of flowers ------------------------------------------
-
-source("")
-max_flower_per_plant
-
-
-
 
 
 
