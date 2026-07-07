@@ -89,6 +89,18 @@ filter_data_species <- function(onset_data, species_name, stage_name, temp_name)
   return(onset_species)
 }
 
+# species
+filter_data_species_aw <- function(onset_data, species_name, stage_name, site_name) {
+  onset_species <- onset_data |> 
+    filter(species == species_name)|> 
+    filter(stage == stage_name) |> 
+    filter(site == site_name)
+  
+  
+  return(onset_species)
+}
+
+
 # Model -------------------------------------------------------------------
 # separately per region
 # filter sensitivity dataset per region first
