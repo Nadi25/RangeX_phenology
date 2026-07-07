@@ -3,34 +3,34 @@
 library(purrr)
 library(ggrepel)
 
-source("Temperature_sensitivity_analysis_TMS.R")
+source("Temperature_sensitivity_analysis_TMS_2.R")
 
 theme_set(theme_bw(base_size = 20))
 
 # Filter correct onset dataset species --------------------------------------------------
 # only flowering
 # NOR
-d_flower_cn <- filter_data_species(onset_all_gs, "cennig", "Flowering", "ambi")
-d_flower_cc <- filter_data_species(onset_all_gs, "cyncri", "Flowering", "ambi")
-d_flower_hm <- filter_data_species(onset_all_gs, "hypmac", "Flowering", "ambi")
-d_flower_lv <- filter_data_species(onset_all_gs, "leuvul", "Flowering", "ambi")
-d_flower_lm <- filter_data_species(onset_all_gs, "luzmul", "Flowering", "ambi")
-d_flower_ps <- filter_data_species(onset_all_gs, "pimsax", "Flowering", "ambi")
-d_flower_pl <- filter_data_species(onset_all_gs, "plalan", "Flowering", "ambi")
-d_flower_sup <- filter_data_species(onset_all_gs, "sucpra", "Flowering", "ambi")
-d_flower_tp <- filter_data_species(onset_all_gs, "tripra", "Flowering", "ambi")
-d_flower_sd <- filter_data_species(onset_all_gs, "sildio", "Flowering", "ambi")
+d_flower_cn <- filter_data_species(onset_all_temp, "cennig", "Flowering", "ambi")
+d_flower_cc <- filter_data_species(onset_all_temp, "cyncri", "Flowering", "ambi")
+d_flower_hm <- filter_data_species(onset_all_temp, "hypmac", "Flowering", "ambi")
+d_flower_lv <- filter_data_species(onset_all_temp, "leuvul", "Flowering", "ambi")
+d_flower_lm <- filter_data_species(onset_all_temp, "luzmul", "Flowering", "ambi")
+d_flower_ps <- filter_data_species(onset_all_temp, "pimsax", "Flowering", "ambi")
+d_flower_pl <- filter_data_species(onset_all_temp, "plalan", "Flowering", "ambi")
+d_flower_sup <- filter_data_species(onset_all_temp, "sucpra", "Flowering", "ambi")
+d_flower_tp <- filter_data_species(onset_all_temp, "tripra", "Flowering", "ambi")
+d_flower_sd <- filter_data_species(onset_all_temp, "sildio", "Flowering", "ambi")
 
-d_flower_bp <- filter_data_species(onset_all_gs, "brapin", "Flowering", "ambi")
-d_flower_be <- filter_data_species(onset_all_gs, "broere", "Flowering", "ambi")
-d_flower_cj <- filter_data_species(onset_all_gs, "cenjac", "Flowering", "ambi")
-d_flower_dc <- filter_data_species(onset_all_gs, "daucar", "Flowering", "ambi")
-d_flower_hp <- filter_data_species(onset_all_gs, "hypper", "Flowering", "ambi")
-d_flower_ml <- filter_data_species(onset_all_gs, "medlup", "Flowering", "ambi")
-d_flower_sv <- filter_data_species(onset_all_gs, "silvul", "Flowering", "ambi")
-d_flower_pm <- filter_data_species(onset_all_gs, "plamed", "Flowering", "ambi")
-d_flower_sp <- filter_data_species(onset_all_gs, "salpra", "Flowering", "ambi")
-d_flower_sc <- filter_data_species(onset_all_gs, "scacol", "Flowering", "ambi")
+d_flower_bp <- filter_data_species(onset_all_temp, "brapin", "Flowering", "ambi")
+d_flower_be <- filter_data_species(onset_all_temp, "broere", "Flowering", "ambi")
+d_flower_cj <- filter_data_species(onset_all_temp, "cenjac", "Flowering", "ambi")
+d_flower_dc <- filter_data_species(onset_all_temp, "daucar", "Flowering", "ambi")
+d_flower_hp <- filter_data_species(onset_all_temp, "hypper", "Flowering", "ambi")
+d_flower_ml <- filter_data_species(onset_all_temp, "medlup", "Flowering", "ambi")
+d_flower_sv <- filter_data_species(onset_all_temp, "silvul", "Flowering", "ambi")
+d_flower_pm <- filter_data_species(onset_all_temp, "plamed", "Flowering", "ambi")
+d_flower_sp <- filter_data_species(onset_all_temp, "salpra", "Flowering", "ambi")
+d_flower_sc <- filter_data_species(onset_all_temp, "scacol", "Flowering", "ambi")
 
 
 
@@ -308,6 +308,10 @@ temp_sens_all_species <- temp_sens_all_species |>
   select(-c(cutoff, mean_onset))
 temp_sens_all_species
 
+
+label_data <- label_data |> 
+  left_join(species_flowering, by = c("region", "species")) |> 
+  select(-c(cutoff, mean_onset))
 
 ts_species_label <- ggplot(
   temp_sens_all_species,
