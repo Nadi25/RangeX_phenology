@@ -190,4 +190,17 @@ make_onset_predictions_species <- function(model) {
 
 
 
+# test region differences -------------------------------------------------
+
+# function of model per stage and region ---------------------------------------------
+fit_onset_model_region <- function(onset_data) {
+  
+  model <- lmerTest::lmer(
+    onset ~ region * treatment_site_temp * treat_competition + (1 | species) + (1 | block_ID),
+    data = region
+  )
+  
+  return(model)
+}
+
 
