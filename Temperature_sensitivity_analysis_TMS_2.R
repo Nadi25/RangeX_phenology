@@ -282,6 +282,7 @@ ggplot(temp_all,
     color = "Warming"
   )
 
+
 temp_all_ambi <- temp_all |> 
   filter(treat_warming == "ambi")
 
@@ -318,6 +319,34 @@ ggplot(temp_all_hi,
 
 # hi site: bud: ambi is warmer than warmed
 
+
+# plot mean temp per stage ------------------------------------------------
+
+temp <- ggplot(temp_all,
+       aes(x = stage,
+           y = mean_temp,
+           color = treatment_site_temp,
+           shape = treatment_site_temp,
+           group = interaction(site, treat_warming, treat_competition))) +
+  geom_point(size = 3) +
+  geom_line(linewidth = 1) +
+  facet_grid(region ~ treat_competition,
+             labeller = labeller(treat_competition = c("with" = "With biotic interactions",
+                                   "without" = "Without biotic interactions"))) +
+  labs(
+    x = "Phenological stage",
+    y = "Mean temperature °C",
+    shape = "Treatment site warming",
+    title = "Mean temperature per stage (season start - stage end)")+
+  scale_color_manual(values = c("hi_ambi" = "turquoise4", "hi_warm" = "darkred", "lo_ambi"= "grey34"))+
+  scale_shape_manual(values = c("lo_ambi" = 16, "hi_ambi" = 17,  "hi_warm" = 2))+
+  guides(color = "none")+
+  theme(legend.position = "bottom")
+temp
+
+# ggsave(filename = "Output/Sensitivity/Temperature_mean_per_stage_NOR_CHE.png", 
+#       plot = temp,
+#       width = 8, height = 6, units = "in")
 
 
 # calculate mean onset per species and individual for all stages ----------------
