@@ -1,5 +1,9 @@
 
 
+# OLD ---------------------------------------------------------------------
+# this script is using growing season mean
+# but we decided to use mean temperature per stage instead
+
 # 02_temp_sens TMS4 ------------------------------------------------------------
 
 # Temperature sensitivity analysis -------------------------------------------------
