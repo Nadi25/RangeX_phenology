@@ -11,7 +11,7 @@
 ##            
 ##            RangeX_clean_MetadataFocal_CHE.csv
 ##            RangeX_metadata_focal_NOR.csv
-##            RangeX_clean_climate_station_NOR_2021-2025.csv
+##            
 ## Date:      07.07.26
 ## Author:    Nadine Arzt
 ## Purpose:   Effect of transplantation on temperature sensitivity
