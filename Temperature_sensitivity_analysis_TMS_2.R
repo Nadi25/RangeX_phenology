@@ -320,7 +320,7 @@ ggplot(temp_all_hi,
 # hi site: bud: ambi is warmer than warmed
 
 
-# plot mean temp per stage ------------------------------------------------
+# Plot mean temp per stage ------------------------------------------------
 
 temp <- ggplot(temp_all,
        aes(x = stage,
@@ -347,6 +347,7 @@ temp
 # ggsave(filename = "Output/Sensitivity/Temperature_mean_per_stage_NOR_CHE.png", 
 #       plot = temp,
 #       width = 8, height = 6, units = "in")
+
 
 
 # calculate mean onset per species and individual for all stages ----------------
