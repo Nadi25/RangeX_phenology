@@ -560,7 +560,7 @@ ts_species_label_aw
 
 
 
-# Joined figure flowering -------------------------------------------------
+# Joined figure flowering lo hi and ambi warm -------------------------------------------------
 temp_sens_all_species$comparison <- "low high"
 temp_sens_all_species_aw$comparison <- "ambient warmed"
 
