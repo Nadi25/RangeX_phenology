@@ -749,15 +749,15 @@ ts_hl_aw <- ggplot(
   facet_grid(region ~ stage, scales = "free") +
   labs(
     y = "Temperature sensitivity (days / °C)",
-    x = "Biotic interactions"
-  ) +
+    x = "Temperature shift",
+    color = "Biotic interactions") +
   theme(legend.position = "right") +
   scale_color_manual(
     values = c(
       "with" = "#528B8B",
-      "without" = "#CD950C"
-    )
-  )
+      "without" = "#CD950C"))+
+  guides(shape = "none")+
+  theme(legend.position = "bottom")
 ts_hl_aw
 
 
@@ -1073,52 +1073,21 @@ ts_hl_aw_gdd <- ggplot(
   facet_grid(region ~ stage, scales = "free") +
   labs(
     y = "Temperature sensitivity (GDD2 / °C)",
-    x = "Biotic interactions"
-  ) +
+    x = "Temperature shift",
+    color = "Biotic interactions") +
   theme(legend.position = "right") +
   scale_color_manual(
     values = c(
       "with" = "#528B8B",
-      "without" = "#CD950C"
-    )
-  )
+      "without" = "#CD950C"))+
+  guides(shape = "none")+
+  theme(legend.position = "bottom")
 ts_hl_aw_gdd
 
 
 # ggsave(filename = "Output/Sensitivity/Temperature_sensitivity_TMS_hi_lo_ambi_warm_GDD_NOR_CHE.png", 
 #       plot = ts_hl_aw_gdd,
 #       width = 15, height = 10, units = "in")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
