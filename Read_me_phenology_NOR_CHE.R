@@ -69,7 +69,8 @@ source("Duration_bud_flower_fruit_predictions_NOR_CHE.R")
 # now with TMS4 data - adding OTC ambi comparison
 source("Functions_temperature_sensitivity.R")
 
-source("Temperature_sensitivity_analysis_TMS.R")
+# uses mean temp per stage
+source("Temperature_sensitivity_analysis_TMS_2.R")
 
 source("Temperature_sensitivity_analysis_TMS_species.R")
 
