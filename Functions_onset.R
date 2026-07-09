@@ -95,25 +95,30 @@ make_onset_predictions_gdd <- function(model) {
 
 
 # Per species -------------------------------------------------------------
-fit_onset_model_species <- function(onset_data, region_name) {
-  region <- onset_data |> 
-    filter(region == region_name)
+filter_species <- function(onset_data, species_name) {
   
-  model <- lmerTest::lmer(
-    onset ~ treatment_site_temp * treat_competition * (1 | species)  + (1 | block_ID),
-    data = region
-  )
+  onset_data_species <- onset_data |>
+    filter(species == species_name)
   
-  return(model)
+  return(onset_data_species)
 }
 
-#
+fit_species_model <- function(onset_data_species) {
+  
+  lmer(
+    onset ~ treatment_site_temp * treat_competition +
+      (1 | block_ID),
+    data = onset_data_species
+  )
+  
+}
+
 make_onset_predictions_species<- function(model) {
   
   newdata <- expand.grid(
     treatment_site_temp = c("lo_ambi", "hi_ambi", "hi_warm"),
     treat_competition = c("with", "without"),
-    species = levels(model.frame(model)$species),
+    #species = levels(model.frame(model)$species),
     block_ID = NA
   ) |>
     as_tibble()
@@ -121,7 +126,7 @@ make_onset_predictions_species<- function(model) {
   pred <- predict(
     model,
     newdata = newdata,
-    re.form = ~(1 | species),
+    re.form = NA,
     se.fit = TRUE) |> 
     
     as_tibble() |>
@@ -132,11 +137,20 @@ make_onset_predictions_species<- function(model) {
   return(pred)
 }
 
+make_onset_predictions_species2 <- function(model) {
+  
+  pred <- ggpredict(model,
+            terms = c("treatment_site_temp",
+              "treat_competition"))
+  
+  return(pred)
+}
 
 
 
 
-make_onset_predictions_species <- function(model) {
+
+make_onset_predictions_species_manual <- function(model) {
   
   # new data
   newdata <- expand.grid(
