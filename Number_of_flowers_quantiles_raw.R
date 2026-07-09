@@ -204,7 +204,7 @@ p_tripra
 
 
 
-# save all the plots indiidually ------------------------------------------
+# save all the plots individually ------------------------------------------
 species_names <- c(
   cyncri = "Cynosurus cristatus",
   hypmac = "Hypericum maculatum",
