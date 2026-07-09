@@ -140,8 +140,8 @@ phenology2$treatment_site_temp <- paste(phenology2$site, phenology2$treat_warmin
 phenology2 <- phenology2 |>
   mutate(treatment_site_temp= factor(treatment_site_temp,
                                      levels = c("lo_ambi",
-                                                "hi_ambi",
-                                                "hi_warm")))
+                                                "hi_warm",
+                                                "hi_ambi")))
 
 
 
