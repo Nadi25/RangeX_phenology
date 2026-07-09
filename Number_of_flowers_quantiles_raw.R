@@ -10,9 +10,8 @@ library(broom.mixed)
 library(emmeans)
 library(lubridate)
 library(ggplot2)
+library(purrr)
 
-# set theme for plots ------------------------------------
-theme_set(theme_bw())
 
 
 # source the phenology data -----------------------------------------------
@@ -22,6 +21,8 @@ source("Data_preparation_phenology_NOR_CHE_combined.R")
 
 # compare low site ambient with high site ambient = site effect
 
+# set theme for plots ------------------------------------
+theme_set(theme_bw(base_size = 20))
 
 
 # factor treatment --------------------------------------------------------
@@ -61,9 +62,29 @@ phenology_median_quant <- phenology_count_nor |>
 
 
 
+phenology_median_quant <- phenology_median_quant |> 
+  mutate(treat_competition = recode(treat_competition,
+                                    "without" = "without biotic interactions",
+                                    "with" = "with biotic interactions")) |> 
+  mutate(treatment_site_temp = recode(treatment_site_temp,
+                                      "lo_ambi" = "low ambient",
+                                      "hi_ambi" = "high ambient",
+                                      "hi_warm" = "high warmed")) |> 
+  mutate(treatment_site_temp = factor(treatment_site_temp, 
+                                      levels = c("low ambient", "high warmed", "high ambient"))) |> 
+  mutate(phenology_stage = recode(phenology_stage,
+                                  "No_Buds" = "Buds",
+                                  "No_FloOpen" = "Flowers",
+                                  "No_FloWithrd" = "Fruits"))
+
+
+  
+
+
+
+
+
 # function to filter by species -------------------------------------------
-
-
 
 ## filter only plalan
 phenology_clean_median_quant_plalan <- phenology_median_quant |> 
@@ -101,25 +122,6 @@ ggplot(phenology_clean_median_quant_leuvul, aes(x = date_measurement)) +
 
 
 
-filter_data_species_aw <- function(phenology_data, species_name) {
-  
-  phenology_median_quant_s <- phenology_data |> 
-    filter(species == "species_name")
-  
-  p <- ggplot(phenology_median_quant_s, aes(x = date_measurement)) +
-    geom_line(aes(y = median, color = phenology_stage)) +
-    geom_ribbon(aes(y = median, ymin = lo, ymax = hi, fill = phenology_stage), linewidth = 2, alpha = 0.5) +
-    facet_grid(rows = vars(treatment_site_temp), cols = vars(treat_competition)) +  # Added `scales = "free"`
-    labs(y = "Median +/- quantiles", x = "", title = "Leucanthemum vulgare") +
-    scale_color_manual(values = c("#00BB00FF", "#500050FF", "#FFBBFFFF")) +
-    scale_fill_manual(values = c("#00BB00FF", "#500050FF", "#FFBBFFFF")) +
-    theme(legend.position = "top")
-  
-  
-  return(phenology_median_quant_s)
-  return(p)
-}
-
 plot_phenology_species <- function(data, species_name, species_title) {
   
   data |>
@@ -136,8 +138,9 @@ plot_phenology_species <- function(data, species_name, species_title) {
     ) +
     labs(
       y = "Median +/- quantiles",
-      x = "",
-      title = species_title
+      x = NULL,
+      title = species_title,
+      fill = "Phenology stage"
     ) +
     scale_color_manual(
       values = c("#00BB00FF", "#500050FF", "#FFBBFFFF")
@@ -145,7 +148,8 @@ plot_phenology_species <- function(data, species_name, species_title) {
     scale_fill_manual(
       values = c("#00BB00FF", "#500050FF", "#FFBBFFFF")
     ) +
-    theme(legend.position = "top")
+    theme(legend.position = "bottom")+
+    guides(color = "none")
 }
 
 
@@ -190,7 +194,7 @@ p_sucpra <- plot_phenology_species(
   phenology_median_quant,
   "sucpra",
   "Succisa pratensis")
-p_plalan
+p_sucpra
 
 p_tripra <- plot_phenology_species(
   phenology_median_quant,
@@ -200,12 +204,84 @@ p_tripra
 
 
 
+# save all the plots indiidually ------------------------------------------
+species_names <- c(
+  cyncri = "Cynosurus cristatus",
+  hypmac = "Hypericum maculatum",
+  leuvul = "Leucanthemum vulgare",
+  luzmul = "Luzula multiflora",
+  pimsax = "Pimpinella saxifraga",
+  plalan = "Plantago lanceolata",
+  sucpra = "Succisa pratensis",
+  tripra = "Trifolium pratense"
+)
+
+plots <- map(
+  names(species_names),
+  ~ plot_phenology_species(
+    phenology_median_quant,
+    .x,
+    species_names[.x]
+  )
+)
+
+names(plots) <- names(species_names)
+
+for (sp in names(species_names)) {
+  
+  p <- plot_phenology_species(
+    phenology_median_quant,
+    sp,
+    species_names[sp]
+  )
+  
+  ggsave(
+    filename = paste0("Output/Number_flowers/", sp, ".png"),
+    plot = p,
+    width = 11,
+    height = 10
+  )
+}
 
 
+# Median for all species together -----------------------------------------
+community_summary <- phenology_count_nor |>
+  group_by(
+    date_measurement,
+    treatment_site_temp,
+    treat_competition,
+    phenology_stage
+  ) |>
+  summarise(
+    median = median(value, na.rm = TRUE),
+    lo = quantile(value, 0.1, na.rm = TRUE),
+    hi = quantile(value, 0.9, na.rm = TRUE),
+    .groups = "drop"
+  )
 
-
-
-
-
+ggplot(
+  community_summary,
+  aes(x = date_measurement)
+) +
+  geom_line(
+    aes(y = median, colour = phenology_stage)
+  ) +
+  geom_ribbon(
+    aes(
+      ymin = lo,
+      ymax = hi,
+      fill = phenology_stage
+    ),
+    alpha = 0.4
+  ) +
+  facet_grid(
+    rows = vars(treatment_site_temp),
+    cols = vars(treat_competition)
+  ) +
+  labs(
+    y = "Median count",
+    x = "",
+    title = "Community-level phenology"
+  )
 
 
