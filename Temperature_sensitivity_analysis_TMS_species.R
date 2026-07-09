@@ -395,9 +395,9 @@ d_flower_dc <- filter_data_species_aw(onset_all_temp, "daucar", "Flowering", "hi
 d_flower_hp <- filter_data_species_aw(onset_all_temp, "hypper", "Flowering", "hi")
 d_flower_ml <- filter_data_species_aw(onset_all_temp, "medlup", "Flowering", "hi")
 d_flower_sv <- filter_data_species_aw(onset_all_temp, "silvul", "Flowering", "hi")
-d_flower_pm <- filter_data_species_aw(onset_all_temp, "plamed", "Seeds", "hi")
-d_flower_sp <- filter_data_species_aw(onset_all_temp, "salpra", "Seeds", "hi")
-d_flower_sc <- filter_data_species_aw(onset_all_temp, "scacol", "Seeds", "hi")
+d_flower_pm <- filter_data_species_aw(onset_all_temp, "plamed", "Flowering", "hi")
+d_flower_sp <- filter_data_species_aw(onset_all_temp, "salpra", "Flowering", "hi")
+d_flower_sc <- filter_data_species_aw(onset_all_temp, "scacol", "Flowering", "hi")
 
 
 
