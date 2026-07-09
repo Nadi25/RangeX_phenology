@@ -349,6 +349,56 @@ temp
 #       width = 8, height = 6, units = "in")
 
 
+define_colors <- c(
+  "hi_ambi.with" = "turquoise4",
+  "hi_ambi.without" = lighten("turquoise4", 0.4),
+  
+  "hi_warm.with" = "darkred",
+  "hi_warm.without" = lighten("darkred", 0.4),
+  
+  "lo_ambi.with" = "grey34",
+  "lo_ambi.without" = lighten("grey34", 0.4)
+)
+
+
+temp <- ggplot(
+  temp_all,
+  aes(
+    x = stage,
+    y = mean_temp,
+    color = interaction(treatment_site_temp, treat_competition),
+    shape = treatment_site_temp,
+    group = interaction(site, treat_warming, treat_competition))) +
+  geom_point(size = 3) +
+  geom_line(linewidth = 1) +
+  facet_grid(
+    region ~ treat_competition,
+    labeller = labeller(
+      treat_competition = c(
+        "with" = "With biotic interactions",
+        "without" = "Without biotic interactions"))) +
+  labs(
+    x = "Phenological stage",
+    y = "Mean temperature °C",
+    shape = "Treatment site warming",
+    title = "Mean temperature per stage (season start - stage end)") +
+  scale_color_manual(values = define_colors) +
+  scale_shape_manual(
+    values = c(
+      "lo_ambi" = 16,
+      "hi_ambi" = 17,
+      "hi_warm" = 2)) +
+  theme(legend.position = "bottom")+
+  guides(color = "none")
+temp
+
+# ggsave(filename = "Output/Sensitivity/Temperature_mean_per_stage_NOR_CHE.png", 
+#       plot = temp,
+#       width = 8, height = 6, units = "in")
+
+
+
+
 
 # calculate mean onset per species and individual for all stages ----------------
 onset_bud    <- get_mean_onset(phenology2, "No_Buds", "jday")
