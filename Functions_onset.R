@@ -197,7 +197,7 @@ fit_onset_model_region <- function(onset_data) {
   
   model <- lmerTest::lmer(
     onset ~ region * treatment_site_temp * treat_competition + (1 | species) + (1 | block_ID),
-    data = region
+    data = onset_data
   )
   
   return(model)
