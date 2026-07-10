@@ -265,7 +265,7 @@ plot_df_raw_all_gdd <- plot_df_raw_all_gdd |>
       levels = c("lo_ambi", "hi_warm", "hi_ambi")))
 
 
-
+theme_set(theme_bw(base_size = 20))
 # Plot predictions as dots and raw data as violins for all stages  --------
 pd <- position_dodge(width = 0.6) 
 
@@ -326,11 +326,12 @@ b_f_fr_gdd <- ggplot(plot_df_all_gdd, aes(
   labs(
     x = "Site temperature treatment",
     y = "Onset (GDD)",
-    title = "Effect of transplantation and warming on onset",
+    title = "Effect of transplantation and warming on onset GDD",
     shape = "Treatment site × warming",
     color = "Biotic interactions",
-    fill = "Biotic interactions"
-  ) 
+    fill = "Biotic interactions")+
+  theme(legend.position = "bottom")+
+  guides(shape = "none")
 b_f_fr_gdd
 
 
