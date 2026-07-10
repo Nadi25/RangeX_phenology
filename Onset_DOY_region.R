@@ -48,8 +48,28 @@ m_onset_seed   <- fit_onset_model_region(onset_seed)
 # check model output
 # bud
 summary(m_onset_bud)
+
 anova(m_onset_bud)
+anova_bud <- as.data.frame(anova(m_onset_bud))
+sjPlot::tab_df(
+  anova_bud,
+  title = "Type III ANOVA Bud Onset")
+
+library(gt)
+
+anova_gt <- anova(m_onset_bud) |>
+  as.data.frame() |>
+  tibble::rownames_to_column("Effect") |>
+  gt()
+anova_gt
+gtsave(anova_gt, "Output/anova_bud.png")
+       
+
 model_performance(m_onset_bud)
+onset_region_bud_anova <- tab_model(m_onset_bud)
+onset_region_bud_anova
+sjPlot::save_tab(onset_region_bud_anova, file = "Output/m_onset_bud.png")
+
 
 emmeans(m_onset_bud, pairwise ~ region)
 
@@ -63,7 +83,8 @@ plot_model(m_onset_bud,
            type = "pred",
            terms = c("treatment_site_temp",
             "treat_competition",
-            "region"))
+            "region"),
+           show.values = TRUE)
 
 
 
