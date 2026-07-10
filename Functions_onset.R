@@ -42,6 +42,18 @@ fit_onset_model <- function(onset_data, region_name) {
   return(model)
 }
 
+fit_onset_model_species <- function(onset_data, region_name) {
+  region <- onset_data |> 
+    filter(region == region_name)
+  
+  model <- lmerTest::lmer(
+    onset ~ treatment_site_temp * treat_competition + 
+      (treatment_site_temp | species) + (treat_competition | species) + (1 | block_ID),
+    data = region
+  )
+  
+  return(model)
+}
 
 
 # function for predictions ------------------------------------------------
@@ -90,8 +102,16 @@ make_onset_predictions_gdd <- function(model) {
   return(pred)
 }
 
-
-
+make_onset_predictions_species3 <- function(model) {
+  
+  pred <- ggpredict(model,
+                    terms = c("treatment_site_temp",
+                              "treat_competition",
+                              "species"),
+                    type = "random")
+  
+  return(pred)
+}
 
 
 # Per species -------------------------------------------------------------
@@ -105,11 +125,9 @@ filter_species <- function(onset_data, species_name) {
 
 fit_species_model <- function(onset_data_species) {
   
-  lmer(
-    onset ~ treatment_site_temp * treat_competition +
+  lmer(onset ~ treatment_site_temp * treat_competition +
       (1 | block_ID),
-    data = onset_data_species
-  )
+    data = onset_data_species)
   
 }
 
