@@ -495,7 +495,8 @@ b_f_fr6 <- ggplot(plot_df_all2, aes(
     color = "Biotic interactions",
     fill = "Biotic interactions"
   ) +
-  guides(shape = "none")
+  guides(shape = "none")+
+  theme(legend.position = "bottom")
 b_f_fr6
 
 
