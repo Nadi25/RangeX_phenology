@@ -19,154 +19,101 @@ onset_seed   <- get_onset(phenology2, "No_Seeds", "jday")
 # random factor -----------------------------------------------------------
 
 # predictions per species with species as random factor -------------------
-
 # fit the models per stage for Norway
-m_onset_bud_nor_sp    <- fit_onset_model(onset_bud, "Norway")
-m_onset_flower_nor_sp <- fit_onset_model(onset_flower, "Norway")
-m_onset_fruit_nor_sp  <- fit_onset_model(onset_fruit, "Norway")
-m_onset_seed_nor_sp   <- fit_onset_model(onset_seed, "Norway")
+m_onset_bud_nor_sp3    <- fit_onset_model_species(onset_bud, "Norway")
+m_onset_flower_nor_sp3 <- fit_onset_model_species(onset_flower, "Norway")
+m_onset_fruit_nor_sp3  <- fit_onset_model_species(onset_fruit, "Norway")
+m_onset_seed_nor_sp3   <- fit_onset_model_species(onset_seed, "Norway")
 
 # check model output
 # bud
-summary(m_onset_bud_nor_sp)
-anova(m_onset_bud_nor_sp)
-model_performance(m_onset_bud_nor_sp)
+summary(m_onset_bud_nor_sp3)
+anova(m_onset_bud_nor_sp3)
+model_performance(m_onset_bud_nor_sp3)
 #check_model(m_onset_bud_nor)
 
-emmeans(m_onset_bud_nor_sp,
-         ~ treatment_site_temp * treat_competition)
+emmeans(m_onset_bud_nor_sp3,
+        ~ treatment_site_temp * treat_competition)
 
 # fit the models per stage for Switzerland
-m_onset_bud_che_sp    <- fit_onset_model(onset_bud, "Switzerland")
-m_onset_flower_che_sp <- fit_onset_model(onset_flower, "Switzerland")
-m_onset_fruit_che_sp  <- fit_onset_model(onset_fruit, "Switzerland")
-m_onset_seed_che_sp   <- fit_onset_model(onset_seed, "Switzerland")
+m_onset_bud_che_sp3    <- fit_onset_model_species(onset_bud, "Switzerland")
+m_onset_flower_che_sp3 <- fit_onset_model_species(onset_flower, "Switzerland")
+m_onset_fruit_che_sp3  <- fit_onset_model_species(onset_fruit, "Switzerland")
+m_onset_seed_che_sp3   <- fit_onset_model_species(onset_seed, "Switzerland")
+
+
+
+
+
+
 
 
 # make predictions --------------------------------------------------------
-pred_onset_bud_nor_sp <- make_onset_predictions_species(m_onset_bud_nor_sp)
-pred_onset_flower_nor_sp <- make_onset_predictions_species(m_onset_flower_nor_sp)
-pred_onset_fruit_nor_sp  <- make_onset_predictions_species(m_onset_fruit_nor_sp)
-pred_onset_seed_nor_sp   <- make_onset_predictions_species(m_onset_seed_nor_sp)
+pred_onset_bud_nor_sp3 <- make_onset_predictions_species3(m_onset_bud_nor_sp3)
+pred_onset_flower_nor_sp3 <- make_onset_predictions_species3(m_onset_flower_nor_sp3)
+pred_onset_fruit_nor_sp3  <- make_onset_predictions_species3(m_onset_fruit_nor_sp3)
+pred_onset_seed_nor_sp3   <- make_onset_predictions_species3(m_onset_seed_nor_sp3)
 
 
 
-pred_onset_bud_che_sp <- make_onset_predictions_species(m_onset_bud_che_sp)
-pred_onset_flower_che_sp <- make_onset_predictions_species(m_onset_flower_che_sp)
-pred_onset_fruit_che_sp  <- make_onset_predictions_species(m_onset_fruit_che_sp)
-pred_onset_seed_che_sp   <- make_onset_predictions_species(m_onset_seed_che_sp)
+pred_onset_bud_che_sp3 <- make_onset_predictions_species3(m_onset_bud_che_sp3)
+pred_onset_flower_che_sp3 <- make_onset_predictions_species3(m_onset_flower_che_sp3)
+pred_onset_fruit_che_sp3  <- make_onset_predictions_species3(m_onset_fruit_che_sp3)
+pred_onset_seed_che_sp3   <- make_onset_predictions_species3(m_onset_seed_che_sp3)
 
+bud_nor <- as.data.frame(pred_onset_bud_nor_sp3) |>
+  mutate(stage = "Bud")
 
+flower_nor <- as.data.frame(pred_onset_flower_nor_sp3) |>
+  mutate(stage = "Flower")
 
-# combine predictions into one dataframe ----------------------------------
+fruit_nor <- as.data.frame(pred_onset_fruit_nor_sp3) |>
+  mutate(stage = "Fruit")
 
-# nor
-plot_df_bud_nor_sp  <- pred_onset_bud_nor_sp   |> 
-  mutate(stage = "Budding",
-         region = "Norway")
+seed_nor <- as.data.frame(pred_onset_seed_nor_sp3) |>
+  mutate(stage = "Seed")
 
-plot_df_flower_nor_sp  <- pred_onset_flower_nor_sp   |> 
-  mutate(stage = "Flowering",
-         region = "Norway")
-
-plot_df_fruit_nor_sp  <- pred_onset_fruit_nor_sp   |> 
-  mutate(stage = "Fruiting",
-         region = "Norway")
-
-plot_df_seed_nor_sp  <- pred_onset_seed_nor_sp   |> 
-  mutate(stage = "Seeds",
-         region = "Norway")
-
-# che
-plot_df_bud_che_sp  <- pred_onset_bud_che_sp   |> 
-  mutate(stage = "Budding",
-         region = "Switzerland")
-
-plot_df_flower_che_sp  <- pred_onset_flower_che_sp   |> 
-  mutate(stage = "Flowering",
-         region = "Switzerland")
-
-plot_df_fruit_che_sp  <- pred_onset_fruit_che_sp   |> 
-  mutate(stage = "Fruiting",
-         region = "Switzerland")
-
-plot_df_seed_che_sp  <- pred_onset_seed_che_sp   |> 
-  mutate(stage = "Seeds",
-         region = "Switzerland")
-
-plot_df_all_sp <- bind_rows(
-  plot_df_bud_nor_sp,
-  plot_df_flower_nor_sp,
-  plot_df_fruit_nor_sp,
-  plot_df_seed_nor_sp,
-  plot_df_bud_che_sp,
-  plot_df_flower_che_sp,
-  plot_df_fruit_che_sp,
-  plot_df_seed_che_sp
+pred_nor_all <- bind_rows(
+  bud_nor,
+  flower_nor,
+  fruit_nor,
+  seed_nor
 )
-plot_df_all_sp
+pred_nor_all
 
 
-# filter by flowering -----------------------------------------------------
-plot_df_all_sp_flower <- plot_df_all_sp |> 
-  filter(stage == "Flowering")
+bud_che <- as.data.frame(pred_onset_bud_che_sp3) |>
+  mutate(stage = "Bud")
 
-plot_df_raw_all_flower <- plot_df_raw_all |> 
-  filter(stage == "Flowering")
+flower_che <- as.data.frame(pred_onset_flower_che_sp3) |>
+  mutate(stage = "Flower")
 
+fruit_che <- as.data.frame(pred_onset_fruit_che_sp3) |>
+  mutate(stage = "Fruit")
 
-# NOR ---------------------------------------------------------------------
-plot_df_all_sp_flower_nor <- plot_df_all_sp_flower |> 
-  filter(region == "Norway")
+seed_che <- as.data.frame(pred_onset_seed_che_sp3) |>
+  mutate(stage = "Seed")
 
-plot_df_raw_all_flower_nor <- plot_df_raw_all_flower |> 
-  filter(region == "Norway")
+pred_che_all <- bind_rows(
+  bud_che,
+  flower_che,
+  fruit_che,
+  seed_che
+)
+pred_che_all
 
+names(pred_che_all)
 
-
-
-plot_df_all_sp_flower_nor <- plot_df_all_sp_flower_nor |>
-  mutate(
-    shape_code = case_when(
-      treatment_site_temp == "lo_ambi" & treat_competition == "with"    ~ 16,
-      treatment_site_temp == "lo_ambi" & treat_competition == "without" ~ 16,
-      
-      treatment_site_temp == "hi_ambi" & treat_competition == "with"    ~ 2,
-      treatment_site_temp == "hi_ambi" & treat_competition == "without" ~ 2,
-      
-      treatment_site_temp == "hi_warm" & treat_competition == "with"    ~ 17,
-      treatment_site_temp == "hi_warm" & treat_competition == "without" ~ 17
-    )
+ggplot(
+  pred_che_all,
+  aes(
+    x = x,
+    y = predicted,
+    color = group,
+    shape = x
   )
-plot_df_all_sp_flower_nor
-
-
-b_f_fr_sp_fl_nor <- ggplot(plot_df_all_sp_flower_nor, aes(
-  x = treatment_site_temp,
-  y = fit,
-  color = treat_competition,
-  shape = treatment_site_temp,
-  group = interaction(treatment_site_temp, treat_competition)
-)) +
+) +
   
-  # raw:
-  geom_jitter(
-    data = plot_df_raw_all_flower_nor,
-    aes(
-      x = treatment_site_temp,
-      y = onset,
-      color = treat_competition,
-      group =  interaction(treatment_site_temp, treat_competition)
-    ),
-    position = position_jitterdodge(
-      jitter.width = 0.25,
-      dodge.width = 0.9
-    ),
-    alpha = 0.4,
-    size = 1.5
-  ) +
-  
-  # model predictions
   geom_point(
     position = pd,
     size = 4,
@@ -174,12 +121,16 @@ b_f_fr_sp_fl_nor <- ggplot(plot_df_all_sp_flower_nor, aes(
   ) +
   
   geom_errorbar(
-    aes(ymin = lower, ymax = upper),
+    aes(
+      ymin = conf.low,
+      ymax = conf.high
+    ),
     width = 0.2,
     position = pd
   ) +
   
-  facet_grid(~species) +
+  facet_grid(
+    stage ~ facet) +
   
   scale_color_manual(values = c(
     "with" = "#528B8B",
@@ -195,72 +146,33 @@ b_f_fr_sp_fl_nor <- ggplot(plot_df_all_sp_flower_nor, aes(
   labs(
     x = "Site temperature treatment",
     y = "Onset (DOY)",
-    title = "Effect of transplantation and warming on onset",
-    shape = "Treatment site × warming",
-    color = "Biotic interactions",
-    fill = "Biotic interactions"
+    color = "Biotic interactions"
   ) +
-  guides(shape = "none")
-b_f_fr_sp_fl_nor
-
-# ggsave(filename = "Output/Onset/Transplantation_Warming_onset_flower_species_NOR.png", 
-#        plot = b_f_fr_sp_fl_nor, width = 18, height = 10, units = "in")
-
-
-a <- plot_df_raw_all_flower_nor |>
-  count(species, treatment_site_temp, treat_competition) |>
-  arrange(n)
-a
-
-# CHE ---------------------------------------------------------------------
-plot_df_all_sp_flower_che <- plot_df_all_sp_flower |> 
-  filter(region == "Switzerland")
-
-plot_df_raw_all_flower_che <- plot_df_raw_all_flower |> 
-  filter(region == "Switzerland")
-
-
-
-
-plot_df_all_sp_flower_che <- plot_df_all_sp_flower_che |>
-  mutate(
-    shape_code = case_when(
-      treatment_site_temp == "lo_ambi" & treat_competition == "with"    ~ 16,
-      treatment_site_temp == "lo_ambi" & treat_competition == "without" ~ 16,
-      
-      treatment_site_temp == "hi_ambi" & treat_competition == "with"    ~ 2,
-      treatment_site_temp == "hi_ambi" & treat_competition == "without" ~ 2,
-      
-      treatment_site_temp == "hi_warm" & treat_competition == "with"    ~ 17,
-      treatment_site_temp == "hi_warm" & treat_competition == "without" ~ 17
-    )
+  
+  guides(shape = "none") +
+  
+  scale_x_discrete(
+    guide = guide_axis(n.dodge = 2)
+  ) +
+  theme(
+    legend.position = "bottom",
+    axis.text.x = element_text(size = 8)
   )
-plot_df_all_sp_flower_che
 
 
-b_f_fr_sp_fl_che <- ggplot(plot_df_all_sp_flower_che, aes(
-  x = treatment_site_temp,
-  y = fit,
-  color = treat_competition,
-  shape = treatment_site_temp
-)) +
+theme_set(theme_bw(base_size = 20))
+
+
+onset_species_che_random <- ggplot(
+  flower_che,
+  aes(
+    x = x,
+    y = predicted,
+    color = group,
+    shape = x
+  )
+) +
   
-  geom_jitter(
-    data = plot_df_raw_all_flower_che,
-    aes(
-      x = treatment_site_temp,
-      y = onset,
-      color = treat_competition
-    ),
-    position = position_jitterdodge(
-      jitter.width = 0.25,
-      dodge.width = 0.9
-    ),
-    alpha = 0.4,
-    size = 1.5
-  ) +
-  
-  # model predictions
   geom_point(
     position = pd,
     size = 4,
@@ -268,12 +180,16 @@ b_f_fr_sp_fl_che <- ggplot(plot_df_all_sp_flower_che, aes(
   ) +
   
   geom_errorbar(
-    aes(ymin = lower, ymax = upper),
+    aes(
+      ymin = conf.low,
+      ymax = conf.high
+    ),
     width = 0.2,
     position = pd
   ) +
   
-  facet_grid(~species) +
+  facet_grid(
+    stage ~ facet) +
   
   scale_color_manual(values = c(
     "with" = "#528B8B",
@@ -286,39 +202,85 @@ b_f_fr_sp_fl_che <- ggplot(plot_df_all_sp_flower_che, aes(
     "hi_warm" = 2
   )) +
   
-  labs(
+  labs(title = "Effect of transplantation and warming on flowering onset CHE",
     x = "Site temperature treatment",
     y = "Onset (DOY)",
-    title = "Effect of transplantation and warming on onset",
-    shape = "Treatment site × warming",
-    color = "Biotic interactions",
-    fill = "Biotic interactions"
+    color = "Biotic interactions"
   ) +
-  guides(shape = "none")
-b_f_fr_sp_fl_che
+  
+  guides(shape = "none") +
+  
+  scale_x_discrete(
+    guide = guide_axis(n.dodge = 2)
+  ) +
+  theme(
+    legend.position = "bottom",
+    axis.text.x = element_text(size = 12)
+  )
+onset_species_che_random
 
-# ggsave(filename = "Output/Onset/Transplantation_Warming_onset_flower_species_CHE.png", 
-#        plot = b_f_fr_sp_fl_che, width = 18, height = 10, units = "in")
-
-b <- plot_df_raw_all_flower_che |>
-  count(species, treatment_site_temp, treat_competition) |>
-  arrange(n)
-b
+# ggsave(filename = "Output/Onset/Onset_DOY_species_CHE_random.png", 
+#        plot = onset_species_che_random, width = 20, height = 10, units = "in")
 
 
+onset_species_nor_random <- ggplot(
+  flower_nor,
+  aes(
+    x = x,
+    y = predicted,
+    color = group,
+    shape = x
+  )
+) +
+  
+  geom_point(
+    position = pd,
+    size = 4,
+    stroke = 1.2
+  ) +
+  
+  geom_errorbar(
+    aes(
+      ymin = conf.low,
+      ymax = conf.high
+    ),
+    width = 0.2,
+    position = pd
+  ) +
+  
+  facet_grid(
+    stage ~ facet) +
+  
+  scale_color_manual(values = c(
+    "with" = "#528B8B",
+    "without" = "#CD950C"
+  )) +
+  
+  scale_shape_manual(values = c(
+    "lo_ambi" = 16,
+    "hi_ambi" = 17,
+    "hi_warm" = 2
+  )) +
+  
+  labs(title = "Effect of transplantation and warming on flowering onset NOR",
+    x = "Site temperature treatment",
+    y = "Onset (DOY)",
+    color = "Biotic interactions"
+  ) +
+  
+  guides(shape = "none") +
+  
+  scale_x_discrete(
+    guide = guide_axis(n.dodge = 2)
+  ) +
+  theme(
+    legend.position = "bottom",
+    axis.text.x = element_text(size = 12)
+  )
+onset_species_nor_random
 
-
-
-
-# check -------------------------------------------------------------------
-
-ranef(m_onset_flower_nor_sp)$species
-
-VarCorr(m_onset_flower_nor_sp)
-
-table(onset_flower$species)
-
-#
+# ggsave(filename = "Output/Onset/Onset_DOY_species_NOR_random.png", 
+#        plot = onset_species_nor_random, width = 20, height = 10, units = "in")
 
 
 # one model per species ---------------------------------------------------
