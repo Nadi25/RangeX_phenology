@@ -44,10 +44,12 @@ onset_seed   <- get_onset(phenology2, "No_Seeds", "jday")
 
 # NOR ---------------------------------------------------------------------
 # fit the models per stage for Norway
-m_onset_bud_nor    <- fit_onset_model(onset_bud, "Norway")
-m_onset_flower_nor <- fit_onset_model(onset_flower, "Norway")
-m_onset_fruit_nor  <- fit_onset_model(onset_fruit, "Norway")
-m_onset_seed_nor   <- fit_onset_model(onset_seed, "Norway")
+# using same model as for per species analysis to keep species as random factors
+# while allowing different slopes per species and treatment
+m_onset_bud_nor    <- fit_onset_model_species(onset_bud, "Norway")
+m_onset_flower_nor <- fit_onset_model_species(onset_flower, "Norway")
+m_onset_fruit_nor  <- fit_onset_model_species(onset_fruit, "Norway")
+m_onset_seed_nor   <- fit_onset_model_species(onset_seed, "Norway")
 
 # check model output
 # bud
@@ -106,10 +108,10 @@ emmeans(m_onset_seed_nor,
 
 # CHE ---------------------------------------------------------------------
 # fit the models per stage for Switzerland
-m_onset_bud_che    <- fit_onset_model(onset_bud, "Switzerland")
-m_onset_flower_che <- fit_onset_model(onset_flower, "Switzerland")
-m_onset_fruit_che  <- fit_onset_model(onset_fruit, "Switzerland")
-m_onset_seed_che   <- fit_onset_model(onset_seed, "Switzerland")
+m_onset_bud_che    <- fit_onset_model_species(onset_bud, "Switzerland")
+m_onset_flower_che <- fit_onset_model_species(onset_flower, "Switzerland")
+m_onset_fruit_che  <- fit_onset_model_species(onset_fruit, "Switzerland")
+m_onset_seed_che   <- fit_onset_model_species(onset_seed, "Switzerland")
 
 # check model output
 # bud
@@ -377,7 +379,7 @@ b_f_fr5 <- ggplot(plot_df_all2, aes(
   ))
 print(b_f_fr5)
 
-
+theme_set(theme_bw(base_size = 20))
 
 b_f_fr6 <- ggplot(plot_df_all2, aes(
   x = treatment_site_temp,

@@ -58,10 +58,10 @@ onset_seed_gdd   <- get_onset(phenology_gdd_nor_che, "No_Seeds", "GDD_cum")
 
 # NOR ---------------------------------------------------------------------
 # fit the models per stage for Norway
-m_onset_bud_gdd_nor    <- fit_onset_model(onset_bud_gdd, "Norway")
-m_onset_flower_gdd_nor <- fit_onset_model(onset_flower_gdd, "Norway")
-m_onset_fruit_gdd_nor  <- fit_onset_model(onset_fruit_gdd, "Norway")
-m_onset_seed_gdd_nor   <- fit_onset_model(onset_seed_gdd, "Norway")
+m_onset_bud_gdd_nor    <- fit_onset_model_species(onset_bud_gdd, "Norway")
+m_onset_flower_gdd_nor <- fit_onset_model_species(onset_flower_gdd, "Norway")
+m_onset_fruit_gdd_nor  <- fit_onset_model_species(onset_fruit_gdd, "Norway")
+m_onset_seed_gdd_nor   <- fit_onset_model_species(onset_seed_gdd, "Norway")
 
 # check model output
 # bud
@@ -108,10 +108,10 @@ emmeans(m_onset_seed_gdd_nor,
 
 # CHE ---------------------------------------------------------------------
 # fit the models per stage for Switzerland
-m_onset_bud_gdd_che    <- fit_onset_model(onset_bud_gdd, "Switzerland")
-m_onset_flower_gdd_che <- fit_onset_model(onset_flower_gdd, "Switzerland")
-m_onset_fruit_gdd_che  <- fit_onset_model(onset_fruit_gdd, "Switzerland")
-m_onset_seed_gdd_che   <- fit_onset_model(onset_seed_gdd, "Switzerland")
+m_onset_bud_gdd_che    <- fit_onset_model_species(onset_bud_gdd, "Switzerland")
+m_onset_flower_gdd_che <- fit_onset_model_species(onset_flower_gdd, "Switzerland")
+m_onset_fruit_gdd_che  <- fit_onset_model_species(onset_fruit_gdd, "Switzerland")
+m_onset_seed_gdd_che   <- fit_onset_model_species(onset_seed_gdd, "Switzerland")
 
 # check model output
 # bud
@@ -333,7 +333,6 @@ b_f_fr_gdd <- ggplot(plot_df_all_gdd, aes(
   theme(legend.position = "bottom")+
   guides(shape = "none")
 b_f_fr_gdd
-
 
 # ggsave(filename = "Output/Onset/GDD_Transplantation_Onset_bud_flower_fruit_seeds_tms_all_treat.png", 
 #        plot = b_f_fr_gdd, width = 18, height = 10, units = "in")
