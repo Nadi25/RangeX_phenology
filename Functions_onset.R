@@ -2,7 +2,11 @@
 
 
 # Functions for onset -----------------------------------------------------
-
+# load library ------------------------------------------------------------
+library(conflicted)
+conflict_prefer_all("dplyr", quiet = TRUE)
+library(tidyverse)
+conflict_prefer_all("lmerTest", quiet = TRUE)
 
 # function to get first onset per individual ----------------------------------------------
 get_onset <- function(data, stage_name, onset_type) {
@@ -34,7 +38,7 @@ fit_onset_model <- function(onset_data, region_name) {
   region <- onset_data |> 
     filter(region == region_name)
   
-  model <- lmerTest::lmer(
+  model <- lmer(
     onset ~ treatment_site_temp * treat_competition + (1 | species) + (1 | block_ID),
     data = region
   )
@@ -46,7 +50,7 @@ fit_onset_model_species <- function(onset_data, region_name) {
   region <- onset_data |> 
     filter(region == region_name)
   
-  model <- lmerTest::lmer(
+  model <- lmer(
     onset ~ treatment_site_temp * treat_competition + 
       (treatment_site_temp | species) + (treat_competition | species) + (1 | block_ID),
     data = region
@@ -227,7 +231,7 @@ make_onset_predictions_species_manual <- function(model) {
 # function of model per stage and region ---------------------------------------------
 fit_onset_model_region <- function(onset_data) {
   
-  model <- lmerTest::lmer(
+  model <- lmer(
     onset ~ region * treatment_site_temp * treat_competition + (1 | species) + (1 | block_ID),
     data = onset_data
   )
