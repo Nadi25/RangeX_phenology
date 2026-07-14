@@ -90,6 +90,20 @@ tms_final_nor_che <- tms_final_nor_che |>
                                     "vege" = "with"))
 
 
+
+
+season_start_all <- season_start_all |> 
+  mutate(
+    temp_start = case_when(
+      region == "Switzerland" ~ as.Date("2022-04-28"),
+      #region == "Switzerland" & site == "lo" ~ season_start,
+      TRUE ~ season_start))
+
+
+
+
+
+
 # source clean phenology data -----------------------------------------------
 source("Data_preparation_phenology_NOR_CHE_combined.R")
 
@@ -177,16 +191,16 @@ stage_windows <- stage_windows |>
 
 stage_windows <- stage_windows |>
   mutate(
-    bud_start    = season_start,
+    bud_start    = temp_start,
     bud_end      = end_No_Buds,
     
-    flower_start = season_start,
+    flower_start = temp_start,
     flower_end   = end_No_FloOpen,
     
-    fruit_start  = season_start,
+    fruit_start  = temp_start,
     fruit_end    = end_No_FloWithrd,
     
-    seed_start   = season_start,
+    seed_start   = temp_start,
     seed_end     = end_No_Seeds
   )
 
@@ -321,7 +335,7 @@ ggplot(temp_all_hi,
 
 
 # Plot mean temp per stage ------------------------------------------------
-
+theme_set(theme_bw(base_size = 14))
 temp <- ggplot(temp_all,
        aes(x = stage,
            y = mean_temp,
@@ -371,8 +385,8 @@ temp <- ggplot(
     group = interaction(site, treat_warming, treat_competition))) +
   geom_point(size = 3) +
   geom_line(linewidth = 1) +
-  facet_grid(
-    region ~ treat_competition,
+  facet_grid(treat_competition
+     ~ region,
     labeller = labeller(
       treat_competition = c(
         "with" = "With biotic interactions",
@@ -394,7 +408,7 @@ temp
 
 # ggsave(filename = "Output/Sensitivity/Temperature_mean_per_stage_NOR_CHE.png", 
 #       plot = temp,
-#       width = 8, height = 6, units = "in")
+#       width = 9, height = 7, units = "in")
 
 
 
