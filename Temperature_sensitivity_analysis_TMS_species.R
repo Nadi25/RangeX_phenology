@@ -578,6 +578,8 @@ label_data_combined <- bind_rows(
 )
 
 
+theme_set(theme_bw(base_size = 20))
+
 temp_sens_flo_comb <- ggplot(
   temp_sens_combined,
   aes(
@@ -615,7 +617,7 @@ temp_sens_flo_comb <- ggplot(
       "late" = 18
     )
   ) +
-  facet_grid(region~ comparison, scales = "free") +
+  facet_grid(comparison~ region, scales = "free") +
   guides(color = "none") +
   labs(
     y = "Temperature sensitivity (days / °C)",
@@ -630,4 +632,17 @@ temp_sens_flo_comb
 # ggsave(filename = "Output/Sensitivity/Temperature_sensitivity_TMS_hi_lo_ambi_warm_flowering_species.png", 
 #        plot = temp_sens_flo_comb,
 #        width = 18, height = 18, units = "in")
+
+
+
+
+
+
+
+
+
+
+
+
+
 
