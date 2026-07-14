@@ -92,12 +92,12 @@ tms_final_nor_che <- tms_final_nor_che |>
 
 
 
-season_start_all <- season_start_all |> 
-  mutate(
-    temp_start = case_when(
-      region == "Switzerland" ~ as.Date("2022-04-28"),
-      #region == "Switzerland" & site == "lo" ~ season_start,
-      TRUE ~ season_start))
+# season_start_all <- season_start_all |> 
+#   mutate(
+#     temp_start = case_when(
+#       region == "Switzerland" ~ as.Date("2022-04-28"),
+#       #region == "Switzerland" & site == "lo" ~ season_start,
+#       TRUE ~ season_start))
 
 
 
@@ -191,16 +191,16 @@ stage_windows <- stage_windows |>
 
 stage_windows <- stage_windows |>
   mutate(
-    bud_start    = temp_start,
+    bud_start    = season_start,
     bud_end      = end_No_Buds,
     
-    flower_start = temp_start,
+    flower_start = season_start,
     flower_end   = end_No_FloOpen,
     
-    fruit_start  = temp_start,
+    fruit_start  = season_start,
     fruit_end    = end_No_FloWithrd,
     
-    seed_start   = temp_start,
+    seed_start   = season_start,
     seed_end     = end_No_Seeds
   )
 
