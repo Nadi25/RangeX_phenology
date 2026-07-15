@@ -434,6 +434,13 @@ stage_windows_long <- stage_windows |>
 
 stage_windows_long
 
+stage_windows_long <- stage_windows_long |> 
+  mutate(stage = recode(stage,
+                        "bud" = "Budding",
+         "flower" = "Flowering",
+         "fruit" = "Fruiting",
+         "seed" = "Seeds"))
+
 tms_final_nor_che
 
 tms_final_nor_che_hi <- tms_final_nor_che |> 
@@ -503,6 +510,27 @@ delta_temp_stage <- mean_temp_stage |>
 
 delta_temp_stage
 
+library(gt)
+
+delta_temp_stage |>
+  arrange(region, site, treat_competition, stage) |>
+  gt() |>
+  fmt_number(
+    columns = c(ambi, warm, delta_T),
+    decimals = 1
+  ) |>
+  cols_label(
+    region = "Region",
+    site = "Site",
+    treat_competition = "Competition",
+    stage = "Phenological stage",
+    ambi = "Ambient (°C)",
+    warm = "Warming (°C)",
+    delta_T = "\u0394T (°C)"
+  ) |>
+  tab_header(
+    title = "Mean temperatures during phenological stages"
+  )
 
 
 delta_stage_plot <- ggplot(
@@ -680,7 +708,7 @@ pd <- position_dodge(width = 0.4)
 
 
 
-ggplot(
+delta_temp_hl_aw <- ggplot(
   delta_stage_combined,
   aes(
     x = type,
@@ -714,6 +742,124 @@ ggplot(
   theme(
     legend.position = "bottom")+
   guides(shape = "none")
+delta_temp_hl_aw
+
+
+# ggsave(filename = "Output/Temperature/Delta_temperature_stages_NOR_CHE.png", 
+#       plot = delta_temp_hl_aw, width = 14, height = 8, units = "in")
+
+# label with temp diff
+library(ggrepel)
+
+delta_temp_hl_aw +
+  geom_text_repel(
+    aes(label = round(delta_T, 1)),
+    size = 3,
+    show.legend = FALSE,
+    position = pd)
+
+
+
+t <- bind_rows(
+  mutate(delta_temp_stage, type = "Warming"),
+  mutate(delta_temp_stage_ambi, type = "Ambient")
+) |>
+  gt(groupname_col = "type")
+t
+
+
+gtsave(t, "Output/Temperature/Delta_temperature_stages_NOR_CHE_table.docx")
+
+
+
+
+
+bud_nor <- temp_stage |>
+  filter(
+    region == "Norway",
+    stage == "Budding"
+  )
+
+m_bud_nor <- lm(
+  temp_mean ~ treat_warming * treat_competition,
+  data = bud_nor
+)
+
+anova(m_bud_nor)
+summary(m_bud_nor)
+
+
+emm_bud <- emmeans(m_bud_nor,
+  ~ treat_warming | treat_competition)
+
+pairs(emm_bud)
+
+
+flower_nor <- temp_stage |>
+  filter(
+    region == "Norway",
+    stage == "Flowering"
+  )
+
+m_flower_nor <- lm(
+  temp_mean ~ treat_warming * treat_competition,
+  data = flower_nor
+)
+
+anova(m_flower_nor)
+summary(m_flower_nor)
+
+
+emm_flower <- emmeans(m_flower_nor,
+               ~ treat_warming | treat_competition)
+
+pairs(emm_flower)
+
+
+
+fruit_nor <- temp_stage |>
+  filter(
+    region == "Norway",
+    stage == "Fruiting"
+  )
+
+m_fruit_nor <- lm(
+  temp_mean ~ treat_warming * treat_competition,
+  data = fruit_nor
+)
+
+anova(m_fruit_nor)
+summary(m_fruit_nor)
+
+
+emm_fruit <- emmeans(m_fruit_nor,
+                      ~ treat_warming | treat_competition)
+
+pairs(emm_fruit)
+
+
+
+
+
+seed_nor <- temp_stage |>
+  filter(
+    region == "Norway",
+    stage == "Seeds"
+  )
+
+m_seed_nor <- lm(
+  temp_mean ~ treat_warming * treat_competition,
+  data = seed_nor
+)
+
+anova(m_seed_nor)
+summary(m_seed_nor)
+
+
+emm_seed <- emmeans(m_seed_nor,
+                     ~ treat_warming | treat_competition)
+
+pairs(emm_seed)
 
 
 
