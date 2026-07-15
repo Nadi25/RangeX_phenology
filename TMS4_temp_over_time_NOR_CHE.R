@@ -338,4 +338,386 @@ ggplot(avg_temp_night_long, aes(x = sensor, y = delta_temp, color = sensor)) +
        title = "Daily Temperature Difference night (High Site)",
        color = "Sensor")
 
+# Day vs night CHE --------------------------------------------------------
+
+tomst_midday_8_15_c <- env_che_22 |> 
+  mutate(hour = hour(date_time),  # Extract hour from datetime
+         day_night = ifelse(hour >= 8 & hour <= 15, "day", "night"))
+
+# filter only day 
+tomst_midday_8_15_day_c <- tomst_midday_8_15_c |> 
+  filter(day_night == "day")
+
+# filter only night
+tomst_midday_8_15_night_c <- tomst_midday_8_15_c |> 
+  filter(day_night == "night")
+
+
+
+
+
+avg_temp_day_long_c <- tomst_midday_8_15_day_c |>
+  filter(site == "hi") |>
+  mutate(date = as.Date(date_time)) |>
+  pivot_longer(cols = starts_with("TMS_T"),
+               names_to = "sensor",
+               values_to = "temperature") |>
+  mutate(sensor = recode(sensor,
+                         "TMS_T1" = "avg_temp_soil",
+                         "TMS_T2" = "avg_temp_surface",
+                         "TMS_T3" = "avg_temp_air")) |> 
+  group_by(date, treat_warming, sensor) |>
+  summarise(mean_temp = mean(temperature, na.rm = TRUE), .groups = "drop") |>
+  pivot_wider(names_from = treat_warming, values_from = mean_temp) |>
+  mutate(delta_temp = warm - ambi) |> 
+  mutate(sensor = factor(sensor,
+                         levels = c("avg_temp_air", "avg_temp_surface", "avg_temp_soil")))
+
+ggplot(avg_temp_day_long_c, aes(x = sensor, y = delta_temp, color = sensor)) +
+  geom_boxplot() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  labs(x = "Sensor", y = "Δ Temperature (warm - ambi)", 
+       title = "Daily Temperature Difference 8-15 (High Site)",
+       color = "Sensor")
+
+
+
+
+
+avg_temp_night_long_c <- tomst_midday_8_15_night_c |>
+  filter(site == "hi") |>
+  mutate(date = as.Date(date_time)) |>
+  pivot_longer(cols = starts_with("TMS_T"),
+               names_to = "sensor",
+               values_to = "temperature") |>
+  mutate(sensor = recode(sensor,
+                         "TMS_T1" = "avg_temp_soil",
+                         "TMS_T2" = "avg_temp_surface",
+                         "TMS_T3" = "avg_temp_air")) |> 
+  group_by(date, treat_warming, sensor) |>
+  summarise(mean_temp = mean(temperature, na.rm = TRUE), .groups = "drop") |>
+  pivot_wider(names_from = treat_warming, values_from = mean_temp) |>
+  mutate(delta_temp = warm - ambi) |> 
+  mutate(sensor = factor(sensor,
+                         levels = c("avg_temp_air", "avg_temp_surface", "avg_temp_soil")))
+
+ggplot(avg_temp_night_long_c, aes(x = sensor, y = delta_temp, color = sensor)) +
+  geom_boxplot() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  labs(x = "Sensor", y = "Δ Temperature (warm - ambi)", 
+       title = "Daily Temperature Difference night (High Site)",
+       color = "Sensor")
+
+
+
+
+
+
+# delta temp per stage ambi vs warm ----------------------------------------------------
+
+stage_windows <- read.csv("Data/Stage_windows_NOR_CHE.csv")
+stage_windows
+
+stage_windows_long <- stage_windows |>
+  select(
+    region, site, treat_competition, treat_warming,
+    bud_start, bud_end,
+    flower_start, flower_end,
+    fruit_start, fruit_end,
+    seed_start, seed_end
+  ) |>
+  pivot_longer(
+    cols = -(region:treat_warming),
+    names_to = c("stage", ".value"),
+    names_pattern = "(.*)_(start|end)"
+  )
+
+stage_windows_long
+
+tms_final_nor_che
+
+tms_final_nor_che_hi <- tms_final_nor_che |> 
+  filter(site == "hi")
+
+
+tms_final_nor_che_hi <- tms_final_nor_che_hi |> 
+  mutate(treat_competition = recode(treat_competition,
+                                    "bare" = "without",
+                                    "vege" = "with"))
+
+
+
+temp_stage <- tms_final_nor_che_hi |>
+  left_join(
+    stage_windows_long,
+    by = c(
+      "region",
+      "site",
+      "treat_competition",
+      "treat_warming"
+    )
+  ) |>
+  filter(
+    date >= start,
+    date <= end
+  )
+temp_stage
+
+
+
+mean_temp_stage <- temp_stage |>
+  group_by(
+    region,
+    site,
+    treat_competition,
+    treat_warming,
+    stage
+  ) |>
+  summarise(
+    mean_temp = mean(temp_mean, na.rm = TRUE),
+    sd_temp = sd(temp_mean, na.rm = TRUE),
+    n_days = n(),
+    .groups = "drop"
+  )
+
+mean_temp_stage
+
+
+
+delta_temp_stage <- mean_temp_stage |>
+  select(
+    region,
+    site,
+    treat_competition,
+    treat_warming,
+    stage,
+    mean_temp
+  ) |>
+  pivot_wider(
+    names_from = treat_warming,
+    values_from = mean_temp
+  ) |>
+  mutate(
+    delta_T = warm - ambi
+  )
+
+delta_temp_stage
+
+
+
+delta_stage_plot <- ggplot(
+  delta_temp_stage,
+  aes(
+    x = treat_competition,
+    y = delta_T,
+    color = treat_competition
+  )
+) +
+  geom_point(
+    size = 3,
+  ) +
+  facet_grid(region
+             ~ stage
+  ) +
+  geom_hline(
+    yintercept = 0,
+    linetype = "dashed"
+  ) +
+  geom_segment(
+    aes(
+      xend = treat_competition,
+      y = 0,
+      yend = delta_T
+    ),
+    colour = "grey70"
+  ) +
+  scale_color_manual(
+    values = c(
+      "with" = "#528B8B",
+      "without" = "#CD950C"
+    )
+  ) +
+  labs(
+    title = "OTC warming effect during each stage",
+    x = "Biotic interactions",
+    y = "Delta temperature (°C)\n(warm - ambient)"
+  ) +
+  theme(
+    legend.position = "none"
+  )
+
+delta_stage_plot
+
+
+
+
+
+# low high ----------------------------------------------------------------
+
+
+tms_final_nor_che_ambi <- tms_final_nor_che |> 
+  filter(treat_warming == "ambi")
+
+
+tms_final_nor_che_ambi <- tms_final_nor_che_ambi |> 
+  mutate(treat_competition = recode(treat_competition,
+                                    "bare" = "without",
+                                    "vege" = "with"))
+
+
+
+temp_stage_ambi <- tms_final_nor_che_ambi |>
+  left_join(
+    stage_windows_long,
+    by = c(
+      "region",
+      "site",
+      "treat_competition",
+      "treat_warming"
+    )
+  ) |>
+  filter(
+    date >= start,
+    date <= end
+  )
+temp_stage_ambi
+
+
+
+mean_temp_stage_ambi <- temp_stage_ambi |>
+  group_by(
+    region,
+    site,
+    treat_competition,
+    treat_warming,
+    stage
+  ) |>
+  summarise(
+    mean_temp = mean(temp_mean, na.rm = TRUE),
+    sd_temp = sd(temp_mean, na.rm = TRUE),
+    n_days = n(),
+    .groups = "drop"
+  )
+
+mean_temp_stage_ambi
+
+
+
+delta_temp_stage_ambi <- mean_temp_stage_ambi |>
+  select(
+    region,
+    site,
+    treat_competition,
+    treat_warming,
+    stage,
+    mean_temp
+  ) |>
+  pivot_wider(
+    names_from = site,
+    values_from = mean_temp
+  ) |>
+  mutate(
+    delta_T = lo - hi
+  )
+
+delta_temp_stage_ambi
+
+
+
+delta_stage_plot_ambi <- ggplot(
+  delta_temp_stage_ambi,
+  aes(
+    x = treat_competition,
+    y = delta_T,
+    color = treat_competition
+  )
+) +
+  geom_point(
+    size = 3,
+  ) +
+  facet_grid(region
+             ~ stage
+  ) +
+  geom_hline(
+    yintercept = 0,
+    linetype = "dashed"
+  ) +
+  geom_segment(
+    aes(
+      xend = treat_competition,
+      y = 0,
+      yend = delta_T
+    ),
+    colour = "grey70"
+  ) +
+  scale_color_manual(
+    values = c(
+      "with" = "#528B8B",
+      "without" = "#CD950C"
+    )
+  ) +
+  labs(
+    title = "OTC warming effect during each stage",
+    x = "Biotic interactions",
+    y = "Delta temperature (°C)\n(warm - ambient)"
+  ) +
+  theme(
+    legend.position = "none"
+  )
+
+delta_stage_plot_ambi
+
+
+
+
+delta_temp_stage_ambi$type <- "high low"
+delta_temp_stage$type <- "ambient warming"
+
+delta_stage_combined <- bind_rows(delta_temp_stage_ambi, delta_temp_stage)
+
+pd <- position_dodge(width = 0.4)
+
+
+
+
+ggplot(
+  delta_stage_combined,
+  aes(
+    x = type,
+    y = delta_T,
+    color = treat_competition,
+    shape = type
+  )
+) +
+  geom_point(
+    size = 3, 
+    position = pd
+  ) +
+  facet_grid(region
+             ~ stage
+  ) +
+  geom_hline(
+    yintercept = 0,
+    linetype = "dashed"
+  ) +
+  scale_color_manual(
+    values = c(
+      "with" = "#528B8B",
+      "without" = "#CD950C"
+    )
+  ) +
+  labs(
+    title = "Temperature difference during each stage",
+    x = "Temperature shift",
+    y = "Delta temperature (°C)",
+    color = "Biotic interactions") +
+  theme(
+    legend.position = "bottom")+
+  guides(shape = "none")
+
+
+
+
+
+
 
