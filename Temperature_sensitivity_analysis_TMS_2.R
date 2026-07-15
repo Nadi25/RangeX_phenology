@@ -204,7 +204,7 @@ stage_windows <- stage_windows |>
     seed_end     = end_No_Seeds
   )
 
-
+# write.csv(stage_windows, "Data/Stage_windows_NOR_CHE.csv")
 
 # Function to calculate mean temp per stage -------------------------------
 calc_mean_temp <- function(data, windows, start_col, end_col, label) {
