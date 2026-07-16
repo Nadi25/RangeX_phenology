@@ -772,94 +772,71 @@ gtsave(t, "Output/Temperature/Delta_temperature_stages_NOR_CHE_table.docx")
 
 
 
-
-
-bud_nor <- temp_stage |>
-  filter(
-    region == "Norway",
-    stage == "Budding"
+# function to filter data and fit model to test for sig differences -------
+fit_temp_model <- function(stage_data, region_name, stage_name) {
+  stage_region <- stage_data |> 
+    filter(region == region_name,
+           stage == stage_name)
+  
+  model <- lm(
+    temp_mean ~ treat_warming * treat_competition,
+    data = stage_region
   )
-
-m_bud_nor <- lm(
-  temp_mean ~ treat_warming * treat_competition,
-  data = bud_nor
-)
-
-anova(m_bud_nor)
-summary(m_bud_nor)
-
-
-emm_bud <- emmeans(m_bud_nor,
-  ~ treat_warming | treat_competition)
-
-pairs(emm_bud)
-
-
-flower_nor <- temp_stage |>
-  filter(
-    region == "Norway",
-    stage == "Flowering"
-  )
-
-m_flower_nor <- lm(
-  temp_mean ~ treat_warming * treat_competition,
-  data = flower_nor
-)
-
-anova(m_flower_nor)
-summary(m_flower_nor)
-
-
-emm_flower <- emmeans(m_flower_nor,
-               ~ treat_warming | treat_competition)
-
-pairs(emm_flower)
+  
+  summary(model)
+  
+  anova(model)
+  
+  emm <- emmeans(model, ~ treat_warming | treat_competition)
+  
+  
+  results <- list(
+    model = model,
+    summary = summary(model),
+    anova = anova(model),
+    pairs = pairs(emm))
+  
+  print(results$anova)
+  print(results$pairs)
+  
+  return(results)
+  
+}
 
 
 
-fruit_nor <- temp_stage |>
-  filter(
-    region == "Norway",
-    stage == "Fruiting"
-  )
+m_bud_nor <- fit_temp_model(temp_stage, "Norway", "Budding")
 
-m_fruit_nor <- lm(
-  temp_mean ~ treat_warming * treat_competition,
-  data = fruit_nor
-)
-
-anova(m_fruit_nor)
-summary(m_fruit_nor)
+m_bud_nor$pairs
+m_bud_nor$anova
 
 
-emm_fruit <- emmeans(m_fruit_nor,
-                      ~ treat_warming | treat_competition)
+m_flower_nor <- fit_temp_model(temp_stage, "Norway", "Flowering")
 
-pairs(emm_fruit)
+m_fruit_nor <- fit_temp_model(temp_stage, "Norway", "Fruiting")
+
+m_seed_nor <- fit_temp_model(temp_stage, "Norway", "Seeds")
+
+
+
+
+m_bud_che <- fit_temp_model(temp_stage, "Switzerland", "Budding")
+
+m_flower_che <- fit_temp_model(temp_stage, "Switzerland", "Flowering")
+
+m_fruit_che <- fit_temp_model(temp_stage, "Switzerland", "Fruiting")
+
+m_seed_che <- fit_temp_model(temp_stage, "Switzerland", "Seeds")
 
 
 
 
 
-seed_nor <- temp_stage |>
-  filter(
-    region == "Norway",
-    stage == "Seeds"
-  )
-
-m_seed_nor <- lm(
-  temp_mean ~ treat_warming * treat_competition,
-  data = seed_nor
-)
-
-anova(m_seed_nor)
-summary(m_seed_nor)
 
 
-emm_seed <- emmeans(m_seed_nor,
-                     ~ treat_warming | treat_competition)
 
-pairs(emm_seed)
+
+
 
 
 
