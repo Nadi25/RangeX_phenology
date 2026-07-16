@@ -433,8 +433,6 @@ stage_windows_long <- stage_windows |>
     names_pattern = "(.*)_(start|end)"
   )
 
-stage_windows_long
-
 stage_windows_long <- stage_windows_long |> 
   mutate(stage = recode(stage,
                         "bud" = "Budding",
@@ -442,7 +440,7 @@ stage_windows_long <- stage_windows_long |>
          "fruit" = "Fruiting",
          "seed" = "Seeds"))
 
-
+stage_windows_long
 
 # filter only hi site -----------------------------------------------------
 tms_final_nor_che
