@@ -8,8 +8,8 @@
 
 # load library ------------------------------------------------------------
 library(colorspace)
-
-
+library(ggrepel)
+library(gt)
 
 # source data preparation scripts -----------------------------------------
 source("TMS4_Weatherstation_predictions_NOR.R")
@@ -441,6 +441,9 @@ stage_windows_long <- stage_windows_long |>
          "fruit" = "Fruiting",
          "seed" = "Seeds"))
 
+
+
+# filter only hi site -----------------------------------------------------
 tms_final_nor_che
 
 tms_final_nor_che_hi <- tms_final_nor_che |> 
@@ -454,7 +457,8 @@ tms_final_nor_che_hi <- tms_final_nor_che_hi |>
 
 
 
-temp_stage <- tms_final_nor_che_hi |>
+# filter by start and end of stage ----------------------------------------
+temp_stage_hi <- tms_final_nor_che_hi |>
   left_join(
     stage_windows_long,
     by = c(
@@ -468,11 +472,11 @@ temp_stage <- tms_final_nor_che_hi |>
     date >= start,
     date <= end
   )
-temp_stage
+temp_stage_hi
 
 
 
-mean_temp_stage <- temp_stage |>
+mean_temp_stage_hi <- temp_stage_hi |>
   group_by(
     region,
     site,
@@ -487,11 +491,11 @@ mean_temp_stage <- temp_stage |>
     .groups = "drop"
   )
 
-mean_temp_stage
+mean_temp_stage_hi
 
 
 
-delta_temp_stage <- mean_temp_stage |>
+delta_temp_stage_hi <- mean_temp_stage_hi |>
   select(
     region,
     site,
@@ -508,11 +512,11 @@ delta_temp_stage <- mean_temp_stage |>
     delta_T = warm - ambi
   )
 
-delta_temp_stage
+delta_temp_stage_hi
 
-library(gt)
 
-delta_temp_stage |>
+
+delta_temp_stage_hi |>
   arrange(region, site, treat_competition, stage) |>
   gt() |>
   fmt_number(
@@ -533,8 +537,8 @@ delta_temp_stage |>
   )
 
 
-delta_stage_plot <- ggplot(
-  delta_temp_stage,
+delta_stage_plot_hi <- ggplot(
+  delta_temp_stage_hi,
   aes(
     x = treat_competition,
     y = delta_T,
@@ -574,7 +578,7 @@ delta_stage_plot <- ggplot(
     legend.position = "none"
   )
 
-delta_stage_plot
+delta_stage_plot_hi
 
 
 
@@ -583,6 +587,7 @@ delta_stage_plot
 # low high ----------------------------------------------------------------
 
 
+# filter only ambient -----------------------------------------------------
 tms_final_nor_che_ambi <- tms_final_nor_che |> 
   filter(treat_warming == "ambi")
 
@@ -687,7 +692,7 @@ delta_stage_plot_ambi <- ggplot(
   labs(
     title = "OTC warming effect during each stage",
     x = "Biotic interactions",
-    y = "Delta temperature (°C)\n(warm - ambient)"
+    y = "Delta temperature (°C)\n(low - high)"
   ) +
   theme(
     legend.position = "none"
@@ -698,14 +703,13 @@ delta_stage_plot_ambi
 
 
 
-delta_temp_stage_ambi$type <- "high low"
-delta_temp_stage$type <- "ambient warming"
+# Joined plot ambi warm and low high --------------------------------------
+delta_temp_stage_ambi$type <- "low-high"
+delta_temp_stage_hi$type <- "warmed-ambient"
 
-delta_stage_combined <- bind_rows(delta_temp_stage_ambi, delta_temp_stage)
+delta_stage_combined <- bind_rows(delta_temp_stage_ambi, delta_temp_stage_hi)
 
 pd <- position_dodge(width = 0.4)
-
-
 
 
 delta_temp_hl_aw <- ggplot(
@@ -745,30 +749,28 @@ delta_temp_hl_aw <- ggplot(
 delta_temp_hl_aw
 
 
-# ggsave(filename = "Output/Temperature/Delta_temperature_stages_NOR_CHE.png", 
-#       plot = delta_temp_hl_aw, width = 14, height = 8, units = "in")
-
 # label with temp diff
-library(ggrepel)
-
-delta_temp_hl_aw +
+delta_temp_hl_aw <- delta_temp_hl_aw +
   geom_text_repel(
     aes(label = round(delta_T, 1)),
     size = 3,
     show.legend = FALSE,
     position = pd)
+delta_temp_hl_aw
 
+# ggsave(filename = "Output/Temperature/Delta_temperature_stages_NOR_CHE.png", 
+#       plot = delta_temp_hl_aw, width = 14, height = 8, units = "in")
 
 
 t <- bind_rows(
-  mutate(delta_temp_stage, type = "Warming"),
-  mutate(delta_temp_stage_ambi, type = "Ambient")
+  mutate(delta_temp_stage_hi, type = "Warm ambient"),
+  mutate(delta_temp_stage_ambi, type = "Low high")
 ) |>
   gt(groupname_col = "type")
 t
 
 
-gtsave(t, "Output/Temperature/Delta_temperature_stages_NOR_CHE_table.docx")
+#gtsave(t, "Output/Temperature/Delta_temperature_stages_NOR_CHE_table.docx")
 
 
 
@@ -794,7 +796,7 @@ fit_temp_model <- function(stage_data, region_name, stage_name) {
     model = model,
     summary = summary(model),
     anova = anova(model),
-    pairs = pairs(emm))
+    pairs = as.data.frame(pairs(emm)))
   
   print(results$anova)
   print(results$pairs)
@@ -805,35 +807,42 @@ fit_temp_model <- function(stage_data, region_name, stage_name) {
 
 
 
-m_bud_nor <- fit_temp_model(temp_stage, "Norway", "Budding")
+m_bud_nor <- fit_temp_model(temp_stage_hi, "Norway", "Budding")
 
-m_bud_nor$pairs
-m_bud_nor$anova
+m_flower_nor <- fit_temp_model(temp_stage_hi, "Norway", "Flowering")
 
+m_fruit_nor <- fit_temp_model(temp_stage_hi, "Norway", "Fruiting")
 
-m_flower_nor <- fit_temp_model(temp_stage, "Norway", "Flowering")
-
-m_fruit_nor <- fit_temp_model(temp_stage, "Norway", "Fruiting")
-
-m_seed_nor <- fit_temp_model(temp_stage, "Norway", "Seeds")
+m_seed_nor <- fit_temp_model(temp_stage_hi, "Norway", "Seeds")
 
 
 
 
-m_bud_che <- fit_temp_model(temp_stage, "Switzerland", "Budding")
+m_bud_che <- fit_temp_model(temp_stage_hi, "Switzerland", "Budding")
 
-m_flower_che <- fit_temp_model(temp_stage, "Switzerland", "Flowering")
+m_flower_che <- fit_temp_model(temp_stage_hi, "Switzerland", "Flowering")
 
-m_fruit_che <- fit_temp_model(temp_stage, "Switzerland", "Fruiting")
+m_fruit_che <- fit_temp_model(temp_stage_hi, "Switzerland", "Fruiting")
 
-m_seed_che <- fit_temp_model(temp_stage, "Switzerland", "Seeds")
+m_seed_che <- fit_temp_model(temp_stage_hi, "Switzerland", "Seeds")
 
 
 
 
 
-
-
+sig_hi <- bind_rows(
+  
+  as.data.frame(m_bud_nor$pairs)    |> mutate(region = "Norway", stage = "Budding"),
+  as.data.frame(m_flower_nor$pairs) |> mutate(region = "Norway", stage = "Flowering"),
+  as.data.frame(m_fruit_nor$pairs)  |> mutate(region = "Norway", stage = "Fruiting"),
+  as.data.frame(m_seed_nor$pairs)   |> mutate(region = "Norway", stage = "Seeds"),
+  
+  as.data.frame(m_bud_che$pairs)    |> mutate(region = "Switzerland", stage = "Budding"),
+  as.data.frame(m_flower_che$pairs) |> mutate(region = "Switzerland", stage = "Flowering"),
+  as.data.frame(m_fruit_che$pairs)  |> mutate(region = "Switzerland", stage = "Fruiting"),
+  as.data.frame(m_seed_che$pairs)   |> mutate(region = "Switzerland", stage = "Seeds")
+  
+)
 
 
 
