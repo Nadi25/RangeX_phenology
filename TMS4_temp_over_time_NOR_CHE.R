@@ -10,6 +10,7 @@
 library(colorspace)
 library(ggrepel)
 library(gt)
+library(emmeans)
 
 # source data preparation scripts -----------------------------------------
 source("TMS4_Weatherstation_predictions_NOR.R")
@@ -775,10 +776,13 @@ t
 
 
 # function to filter data and fit model to test for sig differences -------
-fit_temp_model <- function(stage_data, region_name, stage_name) {
+fit_temp_model_aw <- function(stage_data, region_name, stage_name) {
   stage_region <- stage_data |> 
     filter(region == region_name,
            stage == stage_name)
+  
+  stage_region <- stage_region |>
+    mutate(treat_warming = factor(treat_warming, levels = c("warm", "ambi")))
   
   model <- lm(
     temp_mean ~ treat_warming * treat_competition,
@@ -807,24 +811,24 @@ fit_temp_model <- function(stage_data, region_name, stage_name) {
 
 
 
-m_bud_nor <- fit_temp_model(temp_stage_hi, "Norway", "Budding")
+m_bud_nor <- fit_temp_model_aw(temp_stage_hi, "Norway", "Budding")
 
-m_flower_nor <- fit_temp_model(temp_stage_hi, "Norway", "Flowering")
+m_flower_nor <- fit_temp_model_aw(temp_stage_hi, "Norway", "Flowering")
 
-m_fruit_nor <- fit_temp_model(temp_stage_hi, "Norway", "Fruiting")
+m_fruit_nor <- fit_temp_model_aw(temp_stage_hi, "Norway", "Fruiting")
 
-m_seed_nor <- fit_temp_model(temp_stage_hi, "Norway", "Seeds")
-
-
+m_seed_nor <- fit_temp_model_aw(temp_stage_hi, "Norway", "Seeds")
 
 
-m_bud_che <- fit_temp_model(temp_stage_hi, "Switzerland", "Budding")
 
-m_flower_che <- fit_temp_model(temp_stage_hi, "Switzerland", "Flowering")
 
-m_fruit_che <- fit_temp_model(temp_stage_hi, "Switzerland", "Fruiting")
+m_bud_che <- fit_temp_model_aw(temp_stage_hi, "Switzerland", "Budding")
 
-m_seed_che <- fit_temp_model(temp_stage_hi, "Switzerland", "Seeds")
+m_flower_che <- fit_temp_model_aw(temp_stage_hi, "Switzerland", "Flowering")
+
+m_fruit_che <- fit_temp_model_aw(temp_stage_hi, "Switzerland", "Fruiting")
+
+m_seed_che <- fit_temp_model_aw(temp_stage_hi, "Switzerland", "Seeds")
 
 
 
@@ -832,24 +836,193 @@ m_seed_che <- fit_temp_model(temp_stage_hi, "Switzerland", "Seeds")
 
 sig_hi <- bind_rows(
   
-  as.data.frame(m_bud_nor$pairs)    |> mutate(region = "Norway", stage = "Budding"),
-  as.data.frame(m_flower_nor$pairs) |> mutate(region = "Norway", stage = "Flowering"),
-  as.data.frame(m_fruit_nor$pairs)  |> mutate(region = "Norway", stage = "Fruiting"),
-  as.data.frame(m_seed_nor$pairs)   |> mutate(region = "Norway", stage = "Seeds"),
+  m_bud_nor$pairs    |> mutate(region = "Norway", stage = "Budding"),
+  m_flower_nor$pairs |> mutate(region = "Norway", stage = "Flowering"),
+  m_fruit_nor$pairs  |> mutate(region = "Norway", stage = "Fruiting"),
+  m_seed_nor$pairs   |> mutate(region = "Norway", stage = "Seeds"),
   
-  as.data.frame(m_bud_che$pairs)    |> mutate(region = "Switzerland", stage = "Budding"),
-  as.data.frame(m_flower_che$pairs) |> mutate(region = "Switzerland", stage = "Flowering"),
-  as.data.frame(m_fruit_che$pairs)  |> mutate(region = "Switzerland", stage = "Fruiting"),
-  as.data.frame(m_seed_che$pairs)   |> mutate(region = "Switzerland", stage = "Seeds")
+  m_bud_che$pairs    |> mutate(region = "Switzerland", stage = "Budding"),
+  m_flower_che$pairs |> mutate(region = "Switzerland", stage = "Flowering"),
+  m_fruit_che$pairs  |> mutate(region = "Switzerland", stage = "Fruiting"),
+  m_seed_che$pairs   |> mutate(region = "Switzerland", stage = "Seeds")
   
-)
+) |>
+  mutate(
+    stars = case_when(
+      p.value < 0.001 ~ "***",
+      p.value < 0.01  ~ "**",
+      p.value < 0.05  ~ "*",
+      TRUE            ~ ""
+    )
+  )
+sig_hi
+
+
+
+# function to test low-hi significances -----------------------------------
+
+fit_temp_model_lh <- function(stage_data, region_name, stage_name) {
+  stage_region <- stage_data |> 
+    filter(region == region_name,
+           stage == stage_name)
+  
+  stage_region <- stage_region |>
+    mutate(site = factor(site, levels = c("lo", "hi")))
+  
+  model <- lm(
+    temp_mean ~ site * treat_competition,
+    data = stage_region
+  )
+  
+  summary(model)
+  
+  anova(model)
+  
+  emm <- emmeans(model, ~ site | treat_competition)
+  
+  
+  results <- list(
+    model = model,
+    summary = summary(model),
+    anova = anova(model),
+    pairs = as.data.frame(pairs(emm)))
+  
+  print(results$anova)
+  print(results$pairs)
+  
+  return(results)
+  
+}
 
 
 
 
+m_bud_lh_nor <- fit_temp_model_lh(temp_stage_ambi, "Norway", "Budding")
+
+m_flower_lh_nor <- fit_temp_model_lh(temp_stage_ambi, "Norway", "Flowering")
+
+m_fruit_lh_nor <- fit_temp_model_lh(temp_stage_ambi, "Norway", "Fruiting")
+
+m_seed_lh_nor <- fit_temp_model_lh(temp_stage_ambi, "Norway", "Seeds")
 
 
 
+
+m_bud_lh_che <- fit_temp_model_lh(temp_stage_ambi, "Switzerland", "Budding")
+
+m_flower_lh_che <- fit_temp_model_lh(temp_stage_ambi, "Switzerland", "Flowering")
+
+m_fruit_lh_che <- fit_temp_model_lh(temp_stage_ambi, "Switzerland", "Fruiting")
+
+m_seed_lh_che <- fit_temp_model_lh(temp_stage_ambi, "Switzerland", "Seeds")
+
+
+
+
+sig_ambi <- bind_rows(
+  
+  m_bud_lh_nor$pairs    |> mutate(region = "Norway", stage = "Budding"),
+  m_flower_lh_nor$pairs |> mutate(region = "Norway", stage = "Flowering"),
+  m_fruit_lh_nor$pairs  |> mutate(region = "Norway", stage = "Fruiting"),
+  m_seed_lh_nor$pairs   |> mutate(region = "Norway", stage = "Seeds"),
+  
+  m_bud_lh_che$pairs    |> mutate(region = "Switzerland", stage = "Budding"),
+  m_flower_lh_che$pairs |> mutate(region = "Switzerland", stage = "Flowering"),
+  m_fruit_lh_che$pairs  |> mutate(region = "Switzerland", stage = "Fruiting"),
+  m_seed_lh_che$pairs   |> mutate(region = "Switzerland", stage = "Seeds")
+  
+) |>
+  mutate(
+    stars = case_when(
+      p.value < 0.001 ~ "***",
+      p.value < 0.01  ~ "**",
+      p.value < 0.05  ~ "*",
+      TRUE            ~ ""
+    )
+  )
+sig_ambi
+
+
+
+
+sig_hi <- sig_hi |>
+  mutate(type = "warmed-ambient")
+
+sig_ambi <- sig_ambi |>
+  mutate(type = "low-high")
+
+
+sig_all <- bind_rows(sig_hi, sig_ambi)
+sig_all
+
+
+delta_stage_combined <- delta_stage_combined |>
+  left_join(
+    sig_all |>
+      select(region, stage, treat_competition, type, stars),
+    by = c(
+      "region",
+      "stage",
+      "treat_competition",
+      "type"
+    )
+  )
+delta_stage_combined
+
+delta_temp_hl_aw <- ggplot(
+  delta_stage_combined,
+  aes(
+    x = type,
+    y = delta_T,
+    color = treat_competition,
+    shape = type
+  )
+) +
+  geom_point(
+    size = 3,
+    position = pd
+  ) +
+  facet_grid(region ~ stage) +
+  geom_hline(
+    yintercept = 0,
+    linetype = "dashed"
+  ) +
+  scale_color_manual(
+    values = c(
+      "with" = "#528B8B",
+      "without" = "#CD950C"
+    )
+  ) +
+  labs(
+    title = "Temperature difference during each stage",
+    x = "Temperature shift",
+    y = "Delta temperature (°C)",
+    color = "Biotic interactions"
+  ) +
+  theme(
+    legend.position = "bottom"
+  ) +
+  guides(shape = "none")+
+  geom_text_repel(
+    aes(label = round(delta_T, 1)),
+    size = 3,
+    position = pd,
+    show.legend = FALSE
+  ) +
+  geom_text(
+    aes(
+      label = stars,
+      y = delta_T + 0.2
+    ),
+    position = pd,
+    size = 5,
+    fontface = "bold",
+    show.legend = FALSE
+  )
+delta_temp_hl_aw
+
+# ggsave(filename = "Output/Temperature/Delta_temperature_stages_NOR_CHE.png", 
+#       plot = delta_temp_hl_aw, width = 14, height = 8, units = "in")
 
 
 
