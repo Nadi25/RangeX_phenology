@@ -505,5 +505,23 @@ b_f_fr6
 # ggsave(filename = "Output/Onset/Transplantation_Warming_onset_bud_flower_fruit_seeds_predictions_violin3.png", 
 #        plot = b_f_fr6, width = 18, height = 10, units = "in")
 
+library(emmeans)
 
+library(multcomp)
+library(multcompView)
+
+
+bud_letters_nor <- cld(
+  emmeans(
+    m_onset_bud_nor,
+    pairwise ~ treatment_site_temp * treat_competition
+  ),
+  adjust = "tukey",
+  Letters = letters
+)
+
+bud_letters_nor
+
+emmeans(m_onset_bud_nor,
+        pairwise ~ treatment_site_temp * treat_competition)
 
