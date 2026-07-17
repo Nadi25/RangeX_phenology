@@ -240,3 +240,20 @@ fit_onset_model_region <- function(onset_data) {
 }
 
 
+
+
+# get significance letters ------------------------------------------------
+
+get_signi <- function(model) {
+  
+  signi_letters <- cld(emmeans(
+      model,
+      pairwise ~ treatment_site_temp * treat_competition),
+    Letters = letters)
+  
+  print(signi_letters)
+  return(signi_letters)
+}
+
+
+

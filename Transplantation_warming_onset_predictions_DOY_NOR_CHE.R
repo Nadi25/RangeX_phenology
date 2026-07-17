@@ -14,6 +14,8 @@ library(emmeans)
 library(performance)
 library(see)
 library(sjPlot)
+library(multcomp)
+library(multcompView)
 
 
 # source script with functions --------------------------------------------
@@ -27,6 +29,11 @@ source("Data_preparation_phenology_NOR_CHE_combined.R")
 names(phenology2)
 
 theme_set(theme_bw())
+
+phenology2 <- phenology2 |>
+  mutate(treat_competition = factor(
+      treat_competition,
+      levels = c("with", "without")))
 
 
 # calculate first onset per species and plot for all stages ----------------
@@ -505,23 +512,60 @@ b_f_fr6
 # ggsave(filename = "Output/Onset/Transplantation_Warming_onset_bud_flower_fruit_seeds_predictions_violin3.png", 
 #        plot = b_f_fr6, width = 18, height = 10, units = "in")
 
-library(emmeans)
-
-library(multcomp)
-library(multcompView)
 
 
-bud_letters_nor <- cld(
-  emmeans(
-    m_onset_bud_nor,
-    pairwise ~ treatment_site_temp * treat_competition
-  ),
-  adjust = "tukey",
-  Letters = letters
-)
+# Get significance letters ------------------------------------------------
 
-bud_letters_nor
+bud_letters_nor <- get_signi(m_onset_bud_nor)
+flower_letters_nor <- get_signi(m_onset_flower_nor)
+fruit_letters_nor <- get_signi(m_onset_fruit_nor)
+seed_letters_nor <- get_signi(m_onset_seed_nor)
 
-emmeans(m_onset_bud_nor,
-        pairwise ~ treatment_site_temp * treat_competition)
+
+bud_letters_che <- get_signi(m_onset_bud_che)
+flower_letters_che <- get_signi(m_onset_flower_che)
+fruit_letters_che <- get_signi(m_onset_fruit_che)
+seed_letters_che <- get_signi(m_onset_seed_che)
+
+
+
+letters_all <- bind_rows(
+  bud_letters_nor    |> mutate(region = "Norway",      stage = "Budding"),
+  flower_letters_nor |> mutate(region = "Norway",      stage = "Flowering"),
+  fruit_letters_nor  |> mutate(region = "Norway",      stage = "Fruiting"),
+  seed_letters_nor   |> mutate(region = "Norway",      stage = "Seeds"),
+  
+  bud_letters_che    |> mutate(region = "Switzerland", stage = "Budding"),
+  flower_letters_che |> mutate(region = "Switzerland", stage = "Flowering"),
+  fruit_letters_che  |> mutate(region = "Switzerland", stage = "Fruiting"),
+  seed_letters_che   |> mutate(region = "Switzerland", stage = "Seeds")
+) |>
+  mutate(
+    .group = trimws(.group)
+  )
+
+letters_all <- letters_all |>
+  mutate(
+    y = upper.CL + 25
+  )
+letters_all
+
+
+b_f_fr6 <- b_f_fr6 +
+  geom_text(
+    data = letters_all,
+    aes(
+      x = treatment_site_temp,
+      y = y,
+      label = .group, 
+      group = treat_competition),
+    color = "grey43",
+    position = pd,
+    size = 5,
+    show.legend = FALSE)
+b_f_fr6
+
+# ggsave(filename = "Output/Onset/Transplantation_Warming_onset_bud_flower_fruit_seeds_predictions_violin3_sign.png", 
+#        plot = b_f_fr6, width = 18, height = 10, units = "in")
+
 
