@@ -397,6 +397,79 @@ b_f_fr_gdd
 
 
 
-
+ggplot(plot_df_all_gdd, aes(
+  x = treat_competition,
+  y = fit,
+  color = treat_competition,
+  shape = treatment_site_temp
+)) +
+  
+  # raw:
+  geom_violin(
+    data = plot_df_raw_all_gdd,
+    aes(
+      x = treat_competition,
+      y = onset,
+      fill = treat_competition
+      #group = interaction(treatment_site_temp, treat_competition)
+    ),
+    position = pd,
+    alpha = 0.25,
+    color = NA,
+    trim = FALSE,
+    adjust = 1.5 # makes it smoother so it looks less bubbly
+  ) +
+  
+  scale_fill_manual(values = c(
+    "with" = "#528B8B",
+    "without" = "#CD950C"
+  )) +
+  
+  # model predictions
+  geom_point(
+    position = pd,
+    size = 4,
+    stroke = 1.2
+  ) +
+  
+  geom_errorbar(
+    aes(ymin = lower, ymax = upper),
+    width = 0.2,
+    position = pd
+  ) +
+  
+  facet_grid(region ~ stage) +
+  
+  scale_color_manual(values = c(
+    "with" = "#528B8B",
+    "without" = "#CD950C"
+  )) +
+  
+  scale_shape_manual(values = c(
+    "lo_ambi" = 16,
+    "hi_ambi" = 17,
+    "hi_warm" = 2
+  )) +
+  
+  labs(
+    x = "Site temperature treatment",
+    y = "Onset (GDD)",
+    title = "Effect of transplantation and warming on onset GDD",
+    shape = "Treatment site × warming",
+    color = "Biotic interactions",
+    fill = "Biotic interactions")+
+  theme(legend.position = "bottom")+
+  guides(shape = "none")+
+  geom_text(
+    data = letters_all_gdd,
+    aes(
+      x = treat_competition,
+      y = y,
+      label = .group, 
+      group = treatment_site_temp),
+    color = "grey43",
+    position = pd,
+    size = 5,
+    show.legend = FALSE)
 
 
