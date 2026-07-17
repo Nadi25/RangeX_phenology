@@ -13,7 +13,7 @@ library(broom.mixed)
 library(emmeans)
 library(performance)
 library(see)
-library(sjPlot)
+library(gt)
 library(multcomp)
 library(multcompView)
 
@@ -567,5 +567,78 @@ b_f_fr6
 
 # ggsave(filename = "Output/Onset/Transplantation_Warming_onset_bud_flower_fruit_seeds_predictions_violin3_sign.png", 
 #        plot = b_f_fr6, width = 18, height = 10, units = "in")
+
+
+
+
+# significance table ------------------------------------------------------
+sig_tab_onset <- letters_all |>
+  select(
+    region, stage,
+    treatment_site_temp,
+    treat_competition,
+    emmean, lower.CL, upper.CL,
+    SE, .group
+  ) |>
+  gt(
+    groupname_col = "region"
+  ) |>
+  cols_label(
+    stage = "Stage",
+    treatment_site_temp = "Site treatment",
+    treat_competition = "Competition",
+    emmean = "Estimated mean",
+    lower.CL = "Lower CI",
+    upper.CL = "Upper CI",
+    SE = "SE",
+    .group = "Letters"
+  ) |>
+  fmt_number(
+    columns = c(emmean, lower.CL, upper.CL, SE),
+    decimals = 1
+  ) |>
+  tab_spanner(
+    label = "95% Confidence Interval",
+    columns = c(lower.CL, upper.CL)
+  ) |>
+  cols_align(
+    align = "center",
+    columns = c(.group, treat_competition)
+  ) |>
+  tab_style(
+    style = cell_text(weight = "bold"),
+    locations = cells_body(columns = .group)
+  ) |>
+  opt_table_font(
+    font = list(
+      google_font("Source Sans Pro"),
+      default_fonts()
+    )
+  ) |>
+  tab_header(
+    title = md("**Estimated Mean Response**"),
+    subtitle = "EMMs with confidence intervals and compact letter display"
+  ) |>
+  tab_options(
+    table.font.size = px(13),
+    heading.title.font.size = px(18),
+    data_row.padding = px(5)
+  )
+sig_tab_onset
+
+#gtsave(sig_tab_onset, "Output/Onset/Onset_signif_per_stage_NOR_CHE.docx")
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
