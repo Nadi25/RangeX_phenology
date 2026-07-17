@@ -1024,3 +1024,228 @@ delta_temp_hl_aw
 
 
 
+# One model for all comparisons -------------------------------------------
+
+tms_final_nor_che <- tms_final_nor_che |> 
+  mutate(treat_competition = recode(treat_competition,
+                                    "bare" = "without",
+                                    "vege" = "with"))
+
+
+
+temp_stage <- tms_final_nor_che |>
+  left_join(
+    stage_windows_long,
+    by = c(
+      "region",
+      "site",
+      "treat_competition",
+      "treat_warming"
+    )
+  ) |>
+  filter(
+    date >= start,
+    date <= end
+  )
+temp_stage
+
+
+mean_temp_stage <- temp_stage |>
+  group_by(
+    region,
+    site,
+    treat_competition,
+    treat_warming,
+    stage
+  ) |>
+  summarise(
+    mean_temp = mean(temp_mean, na.rm = TRUE),
+    sd_temp = sd(temp_mean, na.rm = TRUE),
+    n_days = n(),
+    .groups = "drop"
+  )
+
+mean_temp_stage
+
+
+# add site_warming treatment ----------------------------------------------
+mean_temp_stage$treatment_site_temp <- paste(mean_temp_stage$site, mean_temp_stage$treat_warming, sep = "_")
+
+
+mean_temp_stage <- mean_temp_stage |>
+  mutate(treatment_site_temp= factor(treatment_site_temp,
+                                     levels = c("lo_ambi",
+                                                "hi_warm",
+                                                "hi_ambi")))
+
+fit_temp_model <- function(stage_data, region_name, stage_name) {
+  stage_region <- stage_data |> 
+    filter(region == region_name,
+           stage == stage_name)
+  
+  model <- lm(temp_mean ~ treatment_site_temp * treat_competition,
+    data = stage_region)
+  
+  summary(model)
+  
+  anova(model)
+  
+  emm <- emmeans(model, ~ treatment_site_temp | treat_competition)
+  
+  
+  emm2 <- contrast(emm,
+                   method = list(
+                     "lo_ambi - hi_ambi" = c( 1, -1,  0),
+                     "lo_ambi - hi_warm" = c( 1,  0, -1),
+                     "hi_warm - hi_ambi" = c( 0, -1,  1)))
+  
+  results <- list(
+    model = model,
+    summary = summary(model),
+    anova = anova(model),
+    pairs = as.data.frame(emm2))
+  
+  print(results$anova)
+  print(results$pairs)
+  
+  return(results)
+  
+}
+
+
+
+m_bud_nor2 <- fit_temp_model(temp_stage, "Norway", "Budding")
+
+m_flower_nor2 <- fit_temp_model(temp_stage, "Norway", "Flowering")
+
+m_fruit_nor2 <- fit_temp_model(temp_stage, "Norway", "Fruiting")
+
+m_seed_nor2 <- fit_temp_model(temp_stage, "Norway", "Seeds")
+
+
+
+
+m_bud_che2 <- fit_temp_model(temp_stage, "Switzerland", "Budding")
+
+m_flower_che2 <- fit_temp_model(temp_stage, "Switzerland", "Flowering")
+
+m_fruit_che2 <- fit_temp_model(temp_stage, "Switzerland", "Fruiting")
+
+m_seed_che2 <- fit_temp_model(temp_stage, "Switzerland", "Seeds")
+
+
+
+
+
+
+sig_all2 <- bind_rows(
+  
+  m_bud_nor2$pairs    |> mutate(region = "Norway", stage = "Budding"),
+  m_flower_nor2$pairs |> mutate(region = "Norway", stage = "Flowering"),
+  m_fruit_nor2$pairs  |> mutate(region = "Norway", stage = "Fruiting"),
+  m_seed_nor2$pairs   |> mutate(region = "Norway", stage = "Seeds"),
+  
+  m_bud_che2$pairs    |> mutate(region = "Switzerland", stage = "Budding"),
+  m_flower_che2$pairs |> mutate(region = "Switzerland", stage = "Flowering"),
+  m_fruit_che2$pairs  |> mutate(region = "Switzerland", stage = "Fruiting"),
+  m_seed_che2$pairs   |> mutate(region = "Switzerland", stage = "Seeds")
+  
+) |>
+  mutate(
+    stars = case_when(
+      p.value < 0.001 ~ "***",
+      p.value < 0.01  ~ "**",
+      p.value < 0.05  ~ "*",
+      TRUE            ~ ""
+    )
+  )
+sig_all2
+
+sig_all2 <- sig_all2 |>
+  filter(contrast %in% c(
+      "lo_ambi - hi_ambi",
+      "hi_warm - hi_ambi"))
+sig_all2
+
+sig_all2 <- sig_all2 |>
+  mutate(type = case_when(
+      contrast == "lo_ambi - hi_ambi" ~ "low-high",
+      contrast == "hi_warm - hi_ambi" ~ "warmed-ambient"))
+sig_all2
+
+
+
+# Joined plot ambi warm and low high --------------------------------------
+delta_temp_stage_ambi$type <- "low-high"
+delta_temp_stage_hi$type <- "warmed-ambient"
+
+delta_stage_combined2 <- bind_rows(delta_temp_stage_ambi, delta_temp_stage_hi)
+
+
+delta_stage_combined2 <- delta_stage_combined2 |>
+  left_join(
+    sig_all2 |>
+      select(region, stage, treat_competition, type, stars),
+    by = c(
+      "region",
+      "stage",
+      "treat_competition",
+      "type"))
+delta_stage_combined2
+
+delta_temp <- ggplot(
+  delta_stage_combined,
+  aes(
+    x = type,
+    y = delta_T,
+    color = treat_competition,
+    shape = type
+  )
+) +
+  geom_point(
+    size = 3,
+    position = pd
+  ) +
+  facet_grid(region ~ stage) +
+  geom_hline(
+    yintercept = 0,
+    linetype = "dashed"
+  ) +
+  scale_color_manual(
+    values = c(
+      "with" = "#528B8B",
+      "without" = "#CD950C"
+    )
+  ) +
+  labs(
+    title = "Temperature difference during each stage",
+    x = "Temperature shift",
+    y = "Delta temperature (°C)",
+    color = "Biotic interactions"
+  ) +
+  theme(
+    legend.position = "bottom"
+  ) +
+  guides(shape = "none")+
+  geom_text_repel(
+    aes(label = round(delta_T, 2)),
+    size = 3,
+    position = pd,
+    show.legend = FALSE
+  ) +
+  geom_text(
+    aes(
+      label = stars,
+      y = delta_T + 0.2
+    ),
+    position = pd,
+    size = 5,
+    fontface = "bold",
+    show.legend = FALSE
+  )
+delta_temp
+
+# ggsave(filename = "Output/Temperature/Delta_temperature_stages_NOR_CHE.png", 
+#       plot = delta_temp, width = 14, height = 8, units = "in")
+
+
