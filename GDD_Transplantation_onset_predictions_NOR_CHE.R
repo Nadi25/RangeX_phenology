@@ -340,6 +340,62 @@ b_f_fr_gdd
 
 
 
+# Get significance letters ------------------------------------------------
+
+bud_letters_gdd_nor <- get_signi(m_onset_bud_gdd_nor)
+flower_letters_gdd_nor <- get_signi(m_onset_flower_gdd_nor)
+fruit_letters_gdd_nor <- get_signi(m_onset_fruit_gdd_nor)
+seed_letters_gdd_nor <- get_signi(m_onset_seed_gdd_nor)
+
+
+bud_letters_gdd_che <- get_signi(m_onset_bud_gdd_che)
+flower_letters_gdd_che <- get_signi(m_onset_flower_gdd_che)
+fruit_letters_gdd_che <- get_signi(m_onset_fruit_gdd_che)
+seed_letters_gdd_che <- get_signi(m_onset_seed_gdd_che)
+
+
+
+letters_all_gdd <- bind_rows(
+  bud_letters_gdd_nor    |> mutate(region = "Norway",      stage = "Budding"),
+  flower_letters_gdd_nor |> mutate(region = "Norway",      stage = "Flowering"),
+  fruit_letters_gdd_nor  |> mutate(region = "Norway",      stage = "Fruiting"),
+  seed_letters_gdd_nor   |> mutate(region = "Norway",      stage = "Seeds"),
+  
+  bud_letters_gdd_che    |> mutate(region = "Switzerland", stage = "Budding"),
+  flower_letters_gdd_che |> mutate(region = "Switzerland", stage = "Flowering"),
+  fruit_letters_gdd_che  |> mutate(region = "Switzerland", stage = "Fruiting"),
+  seed_letters_gdd_che   |> mutate(region = "Switzerland", stage = "Seeds")
+) |>
+  mutate(
+    .group = trimws(.group)
+  )
+
+letters_all_gdd <- letters_all_gdd |>
+  mutate(
+    y = upper.CL + 100
+  )
+letters_all_gdd
+
+
+b_f_fr_gdd <- b_f_fr_gdd +
+  geom_text(
+    data = letters_all_gdd,
+    aes(
+      x = treatment_site_temp,
+      y = y,
+      label = .group, 
+      group = treat_competition),
+    color = "grey43",
+    position = pd,
+    size = 5,
+    show.legend = FALSE)
+b_f_fr_gdd
+
+# ggsave(filename = "Output/Onset/GDD_Transplantation_Onset_bud_flower_fruit_seeds_tms_all_treat_sign.png", 
+#        plot = b_f_fr_gdd, width = 18, height = 10, units = "in")
+
+
+
 
 
 
