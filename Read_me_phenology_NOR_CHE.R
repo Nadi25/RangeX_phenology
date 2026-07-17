@@ -102,7 +102,7 @@ source("Number_of_flowers_quantiles_raw.R")
 
 # Temperature data --------------------------------------------------------
 
-# timeline and OTC effect
+# timeline and temperature differences lo-hi and warm-ambi
 source("TMS4_temp_over_time_NOR_CHE.R")
 
 
