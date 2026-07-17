@@ -1174,6 +1174,42 @@ sig_all2 <- sig_all2 |>
 sig_all2
 
 
+tab_dat <- sig_all2 |>
+  mutate(
+    result = sprintf("%.2f %s", estimate, stars)
+  ) |>
+  select(region, treat_competition, stage, type, result) |>
+  pivot_wider(
+    names_from  = type,
+    values_from = result
+  ) |>
+  arrange(region, stage)
+tab_dat
+
+temp_sig <- tab_dat |>
+  gt(groupname_col = "region") |>
+  cols_label(
+    "stage"            = "Stage",
+    "low-high"       = "Low–high",
+    "warmed-ambient" = "Warmed–ambient",
+    "treat_competition" ="Biotic interactions"
+  ) |>
+  cols_align(
+    align = "center",
+    columns = c(`low-high`, `warmed-ambient`)
+  ) |>
+  tab_header(
+    title = md("**Pairwise contrasts**")
+  ) |>
+  tab_source_note(
+    source_note = "* p < 0.05, ** p < 0.01, *** p < 0.001"
+  )
+temp_sig
+
+#gtsave(temp_sig, "Output/Temperature/Delta_temp_pairwise_contrasts_NOR_CHE.docx")
+
+
+
 
 # Joined plot ambi warm and low high --------------------------------------
 delta_temp_stage_ambi$type <- "low-high"
@@ -1193,6 +1229,8 @@ delta_stage_combined2 <- delta_stage_combined2 |>
       "type"))
 delta_stage_combined2
 
+theme_set(theme_bw(base_size = 20))
+
 delta_temp <- ggplot(
   delta_stage_combined,
   aes(
@@ -1203,7 +1241,7 @@ delta_temp <- ggplot(
   )
 ) +
   geom_point(
-    size = 3,
+    size = 4,
     position = pd
   ) +
   facet_grid(region ~ stage) +
@@ -1229,7 +1267,7 @@ delta_temp <- ggplot(
   guides(shape = "none")+
   geom_text_repel(
     aes(label = round(delta_T, 2)),
-    size = 3,
+    size = 4,
     position = pd,
     show.legend = FALSE
   ) +
@@ -1239,7 +1277,7 @@ delta_temp <- ggplot(
       y = delta_T + 0.2
     ),
     position = pd,
-    size = 5,
+    size = 6,
     fontface = "bold",
     show.legend = FALSE
   )
