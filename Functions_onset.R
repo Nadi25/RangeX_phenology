@@ -7,6 +7,11 @@ library(conflicted)
 conflict_prefer_all("dplyr", quiet = TRUE)
 library(tidyverse)
 conflict_prefer_all("lmerTest", quiet = TRUE)
+library(emmeans)
+library(gt)
+library(multcomp)
+library(multcompView)
+
 
 # function to get first onset per individual ----------------------------------------------
 get_onset <- function(data, stage_name, onset_type) {
