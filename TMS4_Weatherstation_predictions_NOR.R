@@ -1,4 +1,5 @@
 
+# 24 h - daytime and nighttime -----------------------------------------------------
 
 
 # Prepare TMS4 data for GDD - NOR -------------------------------------------------
@@ -24,6 +25,7 @@ library(conflicted)
 conflict_prefer_all("dplyr", quiet = TRUE)
 library(tidyverse)
 library(performance)
+library(lubridate)
 
 
 # source tms and climate station scripts ----------------------------------
@@ -35,23 +37,37 @@ source("Data_preparation_climate_station_NOR.R")
 theme_set(theme_bw())
 
 
+# climate station ---------------------------------------------------------
+
 # filter year 23 -------------------------------------------------------
 climate_23 <- climate |> 
   filter(year == 2023)
 
+climate_23 <- climate_23 |>
+  mutate(
+    date_time = lubridate::parse_date_time(
+      date_time,
+      orders = c("ymd HMS", "ymd")))
+
 climate_23_daily <- climate_23 |> 
-  mutate(date = as_date(date_time)) |> 
+  mutate(date = as_date(date_time),
+         hour = hour(date_time)) |> 
   group_by(site, date) |> 
   summarise(
+    
+    Tmean_24h = mean(AirTemp_Avg, na.rm = TRUE),
+    Tmean_12h = mean(AirTemp_Avg[hour >=8 & hour < 20], 
+                     na.rm = TRUE),
+    
     Tmax = max(AirTemp_Avg, na.rm = TRUE),
     Tmin = min(AirTemp_Avg, na.rm = TRUE),
-    Tmean = mean(AirTemp_Avg, na.rm = TRUE),
     Humidity = mean(Humidity_Avg, na.rm = TRUE),
     WindSpd = mean(WindSpd_Avg, na.rm = TRUE),
     Radiation = mean(Radiation_Avg, na.rm = TRUE),
     Rainfall = sum(Rainfall, na.rm = TRUE),
     
     .groups = "drop")
+
 
 # filter only year 2023 -----------------------------------------------------
 # has end of 2022 in 
@@ -65,7 +81,8 @@ climate_23_daily <- climate_23_daily |>
 # calculate Temp average per day -----------------
 tomst_nor_daily <- rx_tomst_23_clean |>
   filter(!is.na(date_time)) |>
-  mutate(date = as.Date(date_time)) |>
+  mutate(date = as.Date(date_time),
+         hour = hour(date_time)) |>
   group_by(
     date,
     site,
@@ -77,7 +94,9 @@ tomst_nor_daily <- rx_tomst_23_clean |>
   summarise(
     T1_mean = mean(TMS_T1, na.rm = TRUE),
     T2_mean = mean(TMS_T2, na.rm = TRUE),
-    T3_mean = mean(TMS_T3, na.rm = TRUE),
+    T3_mean_24h = mean(TMS_T3, na.rm = TRUE),
+    T3_mean_12h = mean(TMS_T3[hour >= 8 & hour < 20], 
+                       na.rm = TRUE),
     .groups = "drop"
   )
 
@@ -91,7 +110,7 @@ compare_temp <- tomst_nor_daily |>
 
 
 
-ggplot(compare_temp, aes(x = Tmean, y = T3_mean)) +
+ggplot(compare_temp, aes(x = Tmean_24h, y = T3_mean_24h)) +
   geom_point()+
   facet_wrap(~ site)
 
@@ -119,7 +138,7 @@ logger_models <- compare_temp |>
       distinct(unique_plot_ID) |>
       pull(unique_plot_ID)
   ) |>
-  map(~ lm(T3_mean ~ Tmean + Radiation + WindSpd, data = .x))
+  map(~ lm(T3_mean_24h ~ Tmean_24h + Radiation + WindSpd, data = .x))
 
 
 names(logger_models)
@@ -155,7 +174,7 @@ predict_logger <- function(id){
   
   # model
   m_logger <- lm(
-    T3_mean ~ Tmean + Radiation + WindSpd,
+    T3_mean_24h ~ Tmean_24h + Radiation + WindSpd,
     data = dat_logger
   )
   
@@ -213,7 +232,7 @@ tms_pred_clean <- pred_logger2 |>
 # real tms data
 tms_real <- tomst_nor_daily |> 
   mutate(logger_type = "tms_real")|>
-  rename(temp_mean = T3_mean) |> 
+  rename(temp_mean = T3_mean_24h) |> 
   select(date, site, treat_warming, treat_competition, added_focals, temp_mean, unique_plot_ID, logger_type)
 
 
@@ -294,7 +313,7 @@ tms_pred <- pred_logger |>
 
 tms_real <- tomst_nor_daily |> 
   mutate(logger_type = "tms_real")|>
-  rename(temp_mean_real = T3_mean)|> 
+  rename(temp_mean_real = T3_mean_24h)|> 
   select(date, site, treat_warming, treat_competition, added_focals, unique_plot_ID, temp_mean_real, logger_type)
 
 
