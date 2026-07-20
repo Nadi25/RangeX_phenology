@@ -32,6 +32,7 @@ library(emmeans)
 library(ggeffects)
 library(sjPlot)
 library(lattice)
+library(gt)
 
 theme_set(theme_bw(base_size = 20))
 
@@ -987,6 +988,69 @@ ts_hl_aw_sig
 # ggsave(filename = "Output/Sensitivity/Temperature_sensitivity_TMS_hi_lo_ambi_warm_signif_NOR_CHE.png", 
 #       plot = ts_hl_aw_sig,
 #       width = 15, height = 10, units = "in")
+
+
+
+
+
+# make significance table -------------------------------------------------
+
+tab_slopes <- sens_combined |> 
+  select(region, stage, type, treat_competition, Tmean.trend, 
+         lower.CL, upper.CL, p.value, slope_stars) |> 
+  rename(slope = Tmean.trend,
+         p_slope = p.value)
+tab_slopes
+
+tab_comp <- sig_combined |>
+  select(region, stage, type, estimate, p.value, stars) |>
+  rename(slope_difference = estimate,
+    p_difference = p.value,
+    difference_stars = stars)
+tab_comp
+
+
+tab_all <- tab_slopes |>
+  left_join(
+    tab_comp,
+    by = c("region", "stage", "type"))
+tab_all
+
+
+
+
+gt(tab_all) |>
+  fmt_number(
+    columns = c(
+      slope,
+      lower.CL,
+      upper.CL,
+      slope_difference
+    ),
+    decimals = 2
+  ) |>
+  fmt_scientific(
+    columns = c(
+      p_slope,
+      p_difference
+    ),
+    decimals = 2
+  ) |>
+  cols_label(
+    region = "Region",
+    stage = "Stage",
+    type = "Temperature shift",
+    treat_competition = "Biotic interactions",
+    slope = "Temp. sensitivity",
+    lower.CL = "Lower CI",
+    upper.CL = "Upper CI",
+    p_slope = "P(slope)",
+    slope_stars = "Slope sig.",
+    p_difference = "P(with vs without)",
+    difference_stars = "Difference sig.")
+
+
+
 
 
 
