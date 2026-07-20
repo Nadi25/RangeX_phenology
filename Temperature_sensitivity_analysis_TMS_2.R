@@ -635,22 +635,52 @@ ts_seed_lh_che <- get_temp_sens_coef(m_sens_seed_gs_lh_che)
 
 
 # combine sens from all stages -------------------------------------------
-sens_all <- bind_rows(
-  ts_bud_lh_nor    |> mutate(stage = "Budding", region = "Norway"),
-  ts_flower_lh_nor |> mutate(stage = "Flowering", region = "Norway"),
-  ts_fruit_lh_nor  |> mutate(stage = "Fruiting", region = "Norway"),
-  ts_seed_lh_nor   |> mutate(stage = "Seeds", region = "Norway"),
-  ts_bud_lh_che    |> mutate(stage = "Budding", region = "Switzerland"),
-  ts_flower_lh_che |> mutate(stage = "Flowering", region = "Switzerland"),
-  ts_fruit_lh_che  |> mutate(stage = "Fruiting", region = "Switzerland"),
-  ts_seed_lh_che   |> mutate(stage = "Seeds", region = "Switzerland")
+sens_all_lh <- bind_rows(
+  ts_bud_lh_nor$slopes    |> mutate(stage = "Budding", region = "Norway"),
+  ts_flower_lh_nor$slopes |> mutate(stage = "Flowering", region = "Norway"),
+  ts_fruit_lh_nor$slopes  |> mutate(stage = "Fruiting", region = "Norway"),
+  ts_seed_lh_nor$slopes   |> mutate(stage = "Seeds", region = "Norway"),
+  ts_bud_lh_che$slopes    |> mutate(stage = "Budding", region = "Switzerland"),
+  ts_flower_lh_che$slopes |> mutate(stage = "Flowering", region = "Switzerland"),
+  ts_fruit_lh_che$slopes  |> mutate(stage = "Fruiting", region = "Switzerland"),
+  ts_seed_lh_che$slopes   |> mutate(stage = "Seeds", region = "Switzerland")
 )
-sens_all
+sens_all_lh
 
+sens_all_lh <- sens_all_lh |>
+  mutate(
+    slope_stars = case_when(
+      p.value < 0.001 ~ "***",
+      p.value < 0.01 ~ "**",
+      p.value < 0.05 ~ "*",
+      TRUE ~ ""))
+
+sens_all_lh
+
+sig_all_lh <- bind_rows(
+  ts_bud_lh_nor$pairs    |> mutate(stage = "Budding", region = "Norway"),
+  ts_flower_lh_nor$pairs |> mutate(stage = "Flowering", region = "Norway"),
+  ts_fruit_lh_nor$pairs  |> mutate(stage = "Fruiting", region = "Norway"),
+  ts_seed_lh_nor$pairs   |> mutate(stage = "Seeds", region = "Norway"),
+  ts_bud_lh_che$pairs    |> mutate(stage = "Budding", region = "Switzerland"),
+  ts_flower_lh_che$pairs |> mutate(stage = "Flowering", region = "Switzerland"),
+  ts_fruit_lh_che$pairs  |> mutate(stage = "Fruiting", region = "Switzerland"),
+  ts_seed_lh_che$pairs   |> mutate(stage = "Seeds", region = "Switzerland")
+)
+sig_all_lh
+
+sig_all_lh <- sig_all_lh |>
+  mutate(
+    stars = case_when(
+      p.value < 0.001 ~ "***",
+      p.value < 0.01 ~ "**",
+      p.value < 0.05 ~ "*",
+      TRUE ~ "ns"))
+sig_all_lh
 
 
 # Plot sensitivity --------------------------------------------------------
-ts <- ggplot(sens_all, aes(x = treat_competition, y = Tmean.trend, color = treat_competition)) +
+ts <- ggplot(sens_all_lh, aes(x = treat_competition, y = Tmean.trend, color = treat_competition)) +
   geom_point(size = 3.5) +
   geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL), width = 0.1) +
   geom_hline(yintercept = 0, linetype = "dashed") +
@@ -749,16 +779,45 @@ ts_seed_aw_che <- get_temp_sens_coef(m_sens_seed_gs_aw_che)
 
 # combine sens from all stages -------------------------------------------
 sens_all_aw <- bind_rows(
-  ts_bud_aw_nor    |> mutate(stage = "Budding", region = "Norway"),
-  ts_flower_aw_nor |> mutate(stage = "Flowering", region = "Norway"),
-  ts_fruit_aw_nor  |> mutate(stage = "Fruiting", region = "Norway"),
-  ts_seed_aw_nor   |> mutate(stage = "Seeds", region = "Norway"),
-  ts_bud_aw_che    |> mutate(stage = "Budding", region = "Switzerland"),
-  ts_flower_aw_che |> mutate(stage = "Flowering", region = "Switzerland"),
-  ts_fruit_aw_che  |> mutate(stage = "Fruiting", region = "Switzerland"),
-  ts_seed_aw_che   |> mutate(stage = "Seeds", region = "Switzerland")
+  ts_bud_aw_nor$slopes    |> mutate(stage = "Budding", region = "Norway"),
+  ts_flower_aw_nor$slopes |> mutate(stage = "Flowering", region = "Norway"),
+  ts_fruit_aw_nor$slopes  |> mutate(stage = "Fruiting", region = "Norway"),
+  ts_seed_aw_nor$slopes   |> mutate(stage = "Seeds", region = "Norway"),
+  ts_bud_aw_che$slopes    |> mutate(stage = "Budding", region = "Switzerland"),
+  ts_flower_aw_che$slopes |> mutate(stage = "Flowering", region = "Switzerland"),
+  ts_fruit_aw_che$slopes  |> mutate(stage = "Fruiting", region = "Switzerland"),
+  ts_seed_aw_che$slopes   |> mutate(stage = "Seeds", region = "Switzerland")
 )
+
+sens_all_aw <- sens_all_aw |>
+  mutate(
+    slope_stars = case_when(
+      p.value < 0.001 ~ "***",
+      p.value < 0.01 ~ "**",
+      p.value < 0.05 ~ "*",
+      TRUE ~ ""))
 sens_all_aw
+
+sig_all_aw <- bind_rows(
+  ts_bud_aw_nor$pairs    |> mutate(stage = "Budding", region = "Norway"),
+  ts_flower_aw_nor$pairs |> mutate(stage = "Flowering", region = "Norway"),
+  ts_fruit_aw_nor$pairs  |> mutate(stage = "Fruiting", region = "Norway"),
+  ts_seed_aw_nor$pairs   |> mutate(stage = "Seeds", region = "Norway"),
+  ts_bud_aw_che$pairs    |> mutate(stage = "Budding", region = "Switzerland"),
+  ts_flower_aw_che$pairs |> mutate(stage = "Flowering", region = "Switzerland"),
+  ts_fruit_aw_che$pairs  |> mutate(stage = "Fruiting", region = "Switzerland"),
+  ts_seed_aw_che$pairs   |> mutate(stage = "Seeds", region = "Switzerland")
+)
+
+sig_all_aw <- sig_all_aw |>
+  mutate(
+    stars = case_when(
+      p.value < 0.001 ~ "***",
+      p.value < 0.01 ~ "**",
+      p.value < 0.05 ~ "*",
+      TRUE ~ "ns"))
+sig_all_aw
+
 
 
 
@@ -785,10 +844,10 @@ ts_aw
 # joined figure for hi vs lo and ambi vs warm -----------------------------
 
 
-sens_all$type <- "high low"
-sens_all_aw$type <- "ambient warming"
+sens_all_lh$type <- "low-high"
+sens_all_aw$type <- "warmed-ambient"
 
-sens_combined <- bind_rows(sens_all, sens_all_aw)
+sens_combined <- bind_rows(sens_all_lh, sens_all_aw)
 
 pd <- position_dodge(width = 0.4)
 
@@ -831,6 +890,103 @@ ts_hl_aw
 #       width = 15, height = 10, units = "in")
 
 
+# add significance stars --------------------------------------------------
+
+sig_all_lh$type <- "low-high"
+sig_all_aw$type <- "warmed-ambient"
+
+sig_combined <- bind_rows(sig_all_lh, sig_all_aw)
+sig_combined
+
+
+brackets <- sens_combined |>
+  group_by(region, stage, type) |>
+  summarise(
+    y_bracket = max(upper.CL) + 4,
+    .groups = "drop"
+  ) |>
+  left_join(
+    sig_combined |>
+      select(region, stage, type, stars),
+    by = c("region", "stage", "type")
+  ) |>
+  mutate(
+    x = ifelse(type == "low-high", 1, 2),
+    xmin = x - 0.2,
+    xmax = x + 0.2
+  )
+brackets
+
+ts_hl_aw_sig <- ts_hl_aw +
+  geom_text(
+    aes(
+      label = slope_stars,
+      y = upper.CL + 0.4
+    ),
+    position = pd,
+    show.legend = FALSE
+  ) +
+  
+  # horizontal line
+  geom_segment(
+    data = brackets,
+    aes(
+      x = xmin,
+      xend = xmax,
+      y = y_bracket,
+      yend = y_bracket
+    ),
+    inherit.aes = FALSE
+  ) +
+  
+  # left tick
+  geom_segment(
+    data = brackets,
+    aes(
+      x = xmin,
+      xend = xmin,
+      y = y_bracket,
+      yend = y_bracket - 0.3
+    ),
+    inherit.aes = FALSE
+  ) +
+  
+  # right tick
+  geom_segment(
+    data = brackets,
+    aes(
+      x = xmax,
+      xend = xmax,
+      y = y_bracket,
+      yend = y_bracket - 0.3
+    ),
+    inherit.aes = FALSE
+  ) +
+  
+  # significance text
+  geom_text(
+    data = brackets,
+    aes(
+      x = x,
+      y = y_bracket + 4,
+      label = stars
+    ),
+    inherit.aes = FALSE,
+    size = 5
+  )+
+  geom_text(
+    aes(
+      label = slope_stars,
+      y = upper.CL + 0.6),
+    position = pd,
+    show.legend = FALSE,
+    size = 5)
+ts_hl_aw_sig
+
+
+# ggsave(filename = "Output/Sensitivity/Temperature_sensitivity_TMS_hi_lo_ambi_warm_signif_NOR_CHE.png", 
+#       plot = ts_hl_aw_sig,
+#       width = 15, height = 10, units = "in")
 
 
 

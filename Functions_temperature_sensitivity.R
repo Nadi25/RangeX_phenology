@@ -164,9 +164,20 @@ make_sens_predictions <- function(temp_data, model) {
 
 get_temp_sens_coef <- function(model) {
   
-  slopes <- as.data.frame(emtrends(model, ~ treat_competition, var = "Tmean"))
+  emtr <- emtrends(model, ~ treat_competition, var = "Tmean")
   
-  return(slopes)
+  slopes <- summary(emtr, infer = c(TRUE, TRUE)) |>
+    as.data.frame()
+  
+  pairs <- pairs(emtr)|>
+    as.data.frame()
+  
+  print(slopes)
+  print(pairs)
+  
+  list(slopes = slopes,
+       pairs = pairs)
+  
 }
 
 #
