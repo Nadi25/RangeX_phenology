@@ -1,5 +1,7 @@
 
 
+# 24h - day and night time ------------------------------------------------
+
 # Data preparation tomst CHE ------------------------------------
 
 # Calculate GDD per treatment ---------------------------------------------
@@ -57,7 +59,8 @@ env_che <- env_che |> mutate(block_ID  = as.character(block_ID ))
 env_che_22 <- env_che |>
   mutate(
     date = as.Date(date_time),
-    year = lubridate::year(date_time)
+    year = lubridate::year(date_time),
+    hour = hour(date_time)
   ) |>
   filter(year == 2022)
 
@@ -98,7 +101,10 @@ env_che_22_ |>
 tms_che_treat <- env_che_22 |>
   group_by(date, site, treat_warming, treat_competition, added_focals) |>
   summarise(
-    temp_mean = mean(TMS_T3, na.rm = TRUE),
+    
+    T3_mean_24h = mean(TMS_T3, na.rm = TRUE),
+    T3_mean_12h = mean(TMS_T3[hour >=8 & hour < 20], 
+                     na.rm = TRUE),
     .groups = "drop")
 tms_che_treat
 
@@ -127,11 +133,15 @@ tms_final_che <- tms_final_che |>
 
 ggplot(tms_final_che,
        aes(date,
-           temp_mean, colour = treat_competition)) +
+          T3_mean_24h, colour = treat_competition)) +
   geom_line()+
   facet_grid( ~treatment_site_temp_comp)
 
-
+ggplot(tms_final_che,
+       aes(date,
+           T3_mean_12h, colour = treat_competition)) +
+  geom_line()+
+  facet_grid( ~treatment_site_temp_comp)
 
 
 # Calculate GDD per treatment ---------------------------------------------
@@ -144,14 +154,14 @@ Nconsec <- 5 # number of consecutive days above Tbase to define growing season s
 
 
 # 1) indicator: Tavg_tms > Tbase
-clim_flag_che_tms <- tms_che_treat |> 
+clim_flag_che_tms_24 <- tms_che_treat |> 
   arrange(site, treat_warming, treat_competition, date) |> 
-  mutate(is_warm = (temp_mean > Tbase))
+  mutate(is_warm = (T3_mean_24h > Tbase))
 
 
 # find out start of growing season -------------------------------------
 # 2) compute run of Nconsec TRUE per site and find first date
-season_start_che_tms <- clim_flag_che_tms |> 
+season_start_che_tms_24 <- clim_flag_che_tms_24 |> 
   filter(date >= as.Date("2022-01-07")) |> 
   group_by(site, treat_warming, treat_competition) |> 
   mutate(run_N = slider::slide_dbl(is_warm, ~ ifelse(sum(.x) == length(.x), 1, 0),
@@ -159,7 +169,7 @@ season_start_che_tms <- clim_flag_che_tms |>
   # run_N == 1 on the last day of a full Nconsec-run of TRUEs
   filter(run_N == 1) |> 
   summarise(season_start = min(date), .groups = "drop")
-season_start_che_tms
+season_start_che_tms_24
 
 
 # 1 hi    ambi          bare              2022-04-16  
@@ -173,33 +183,33 @@ season_start_che_tms
 
 # calculate gdd per treat ----------------------------------------------
 # 3) join start dates back and calculate GDD from that start in april
-climate_gdd_che_tms <- tms_final_che |> 
+climate_gdd_che_tms_24 <- tms_final_che |> 
   left_join(season_start_che_tms, by = c("site", "treat_warming", "treat_competition")) |> 
   filter(!is.na(season_start)) |> 
   group_by(site, treat_warming, treat_competition) |> 
   arrange(date) |> 
   mutate(
     # only accumulate on/after season_start
-    GDD_day = if_else(date >= season_start, pmax(0, temp_mean - Tbase), 0),
+    GDD_day = if_else(date >= season_start, pmax(0, T3_mean_24h - Tbase), 0),
     GDD_cum = cumsum(GDD_day)
   ) |> 
   ungroup()
-climate_gdd_che_tms
+climate_gdd_che_tms_24
 
 
 # rename date to date_measurement --------------------------------------
 # to match phenology
-climate_gdd_che_tms <- climate_gdd_che_tms |> 
+climate_gdd_che_tms_24 <- climate_gdd_che_tms_24 |> 
   rename("date_measurement" = "date")
 
 
 # get julian day ----------------------------------------------------------
-climate_gdd_che_tms <- climate_gdd_che_tms |>
+climate_gdd_che_tms_24 <- climate_gdd_che_tms_24 |>
   mutate(jday = lubridate::yday(date_measurement))
 
 
 # control plot ------------------------------------------------------------
-ggplot(climate_gdd_che_tms,
+ggplot(climate_gdd_che_tms_24,
        aes(x = date_measurement,
            y = GDD_cum,
            color = site)) +
@@ -216,7 +226,7 @@ ggplot(climate_gdd_che_tms,
     title = "Swiss cumulative GDD development"
   ) 
 
-ggplot(climate_gdd_che_tms,
+ggplot(climate_gdd_che_tms_24,
        aes(x = jday,
            y = GDD_cum,
            color = treatment_site_temp_comp)) +
