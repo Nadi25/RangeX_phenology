@@ -12,9 +12,9 @@ library(colorspace)
 
 
 # source data preparation scripts -----------------------------------------
-source("TMS4_Weatherstation_predictions_NOR.R")
+source("TMS4_Weatherstation_predictions_NOR_12h.R")
 
-source("Data_preparation_TMS4_CHE.R")
+source("Data_preparation_TMS4_CHE_12h.R")
 
 theme_set(theme_bw(base_size = 15))
 
@@ -24,24 +24,24 @@ theme_set(theme_bw(base_size = 15))
 # combine tms data --------------------------------------------------------
 
 # use 
-tms_final_nor$region <- "Norway" 
+tms_final_nor_12$region <- "Norway" 
 # and
 tms_final_che$region <- "Switzerland" 
 
 
-tms_final_nor_che <- bind_rows(tms_final_nor, tms_final_che)
+tms_final_nor_che <- bind_rows(tms_final_nor_12, tms_final_che)
 
 
 
 
 # add column region -------------------------------------------------------
-climate_gdd_nor_tms$region <- "Norway" 
+climate_gdd_nor_tms_12$region <- "Norway" 
 
 climate_gdd_che_tms$region <- "Switzerland" 
 
 
 # filter needed columns nor -----------------------------------------------
-gdd_nor_tms <- climate_gdd_nor_tms |> 
+gdd_nor_tms <- climate_gdd_nor_tms_12 |> 
   select(-n_pred, -n_real, -n_loggers, - perc_pred)
 
 
