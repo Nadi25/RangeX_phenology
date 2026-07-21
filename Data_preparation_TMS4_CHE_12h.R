@@ -152,7 +152,7 @@ ggplot(tms_final_che,
 # Calculate GDD per treatment ---------------------------------------------
 
 # define Tbase and growing season start  -------------------------
-Tbase <- 2 # base temperature for plants to grow
+Tbase <- 5 # base temperature for plants to grow
 Nconsec <- 5 # number of consecutive days above Tbase to define growing season start
 # 5 days above 5 degrees
 
@@ -245,5 +245,11 @@ ggplot(climate_gdd_che_tms,
     y = "Cumulative temperature (GDD2)",
     title = "Switzerland cumulative GDD")
 
+
+
+
+# rename T3_mean_12h  -----------------------------------------------------
+tms_final_che <- tms_final_che |> 
+  rename(temp_mean = T3_mean_12h)
 
 

@@ -282,4 +282,8 @@ climate_tomst_22_site
 climate_tomst_22_site <- climate_tomst_22_site |>
   filter(date >= as.Date("2022-01-07"))
 
+# rename T3_mean_12h  -----------------------------------------------------
+tms_final_che <- tms_final_che |> 
+  rename(temp_mean = T3_mean_24h)
+
 
