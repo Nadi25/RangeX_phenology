@@ -13,9 +13,9 @@ library(gt)
 library(emmeans)
 
 # source data preparation scripts -----------------------------------------
-source("TMS4_Weatherstation_predictions_NOR.R")
+source("TMS4_Weatherstation_predictions_NOR_12h.R")
 
-source("Data_preparation_TMS4_CHE.R")
+source("Data_preparation_TMS4_CHE_12h.R")
 
 theme_set(theme_bw(base_size = 15))
 
@@ -34,8 +34,8 @@ tms_final_nor_che <- bind_rows(tms_final_nor, tms_final_che)
 
 
 tms_final_nor_che_gs <- tms_final_nor_che |>
-  filter((region == "Norway" & date >= as.Date("2023-03-15") & date <= as.Date("2023-09-30")) |
-           (region == "Switzerland" & date >= as.Date("2022-03-15") & date <= as.Date("2022-09-30")))
+  filter((region == "Norway" & date >= as.Date("2023-01-07") & date <= as.Date("2023-09-30")) |
+           (region == "Switzerland" & date >= as.Date("2022-01-07") & date <= as.Date("2022-09-30")))
 
 tms_final_nor_che_gs <- tms_final_nor_che_gs |> 
   mutate(
@@ -111,13 +111,13 @@ temp_tms <- ggplot(tms_final_nor_che_gs,
              linetype = "dashed")+
   labs(
     x = "DOY",
-    y = "Daily mean temperature (°C)",
+    y = "Daily mean temperature (°C) 12h day",
     color = "Treatment") +
   facet_grid(region ~ ., scales = "free") +
   scale_color_manual(values = define_colors)
 temp_tms
 
-# ggsave(filename = "Output/Temperature/Temperature_daily_mean_over_time_NOR_CHE.png", 
+# ggsave(filename = "Output/Temperature/Temperature_daily_mean_over_time_NOR_CHE_12h.png", 
 #       plot = temp_tms, width = 16, height = 10, units = "in")
 
 
@@ -1256,7 +1256,7 @@ delta_temp <- ggplot(
     )
   ) +
   labs(
-    title = "Temperature difference during each stage",
+    title = "Temperature difference during each stage 12h",
     x = "Temperature shift",
     y = "Delta temperature (°C)",
     color = "Biotic interactions"
@@ -1283,7 +1283,7 @@ delta_temp <- ggplot(
   )
 delta_temp
 
-# ggsave(filename = "Output/Temperature/Delta_temperature_stages_NOR_CHE.png", 
+# ggsave(filename = "Output/Temperature/Delta_temperature_stages_NOR_CHE_12h.png", 
 #       plot = delta_temp, width = 14, height = 8, units = "in")
 
 
