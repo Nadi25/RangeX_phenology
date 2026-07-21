@@ -24,24 +24,24 @@ theme_set(theme_bw(base_size = 15))
 # combine tms data --------------------------------------------------------
 
 # use 
-tms_final_nor_12$region <- "Norway" 
+tms_final_nor$region <- "Norway" 
 # and
 tms_final_che$region <- "Switzerland" 
 
 
-tms_final_nor_che <- bind_rows(tms_final_nor_12, tms_final_che)
+tms_final_nor_che <- bind_rows(tms_final_nor, tms_final_che)
 
 
 
 
 # add column region -------------------------------------------------------
-climate_gdd_nor_tms_12$region <- "Norway" 
+climate_gdd_nor_tms$region <- "Norway" 
 
 climate_gdd_che_tms$region <- "Switzerland" 
 
 
 # filter needed columns nor -----------------------------------------------
-gdd_nor_tms <- climate_gdd_nor_tms_12 |> 
+gdd_nor_tms <- climate_gdd_nor_tms |> 
   select(-n_pred, -n_real, -n_loggers, - perc_pred)
 
 
@@ -121,9 +121,9 @@ gdd2 <- ggplot(
   scale_color_manual(values = define_colors)+
   labs(
     x = "Day of year (DOY)",
-    y = "Cumulative temperature (GDD2)",
+    y = "Cumulative temperature (GDD5)",
     color = "Treatment",
-    title = "Norway and Switzerland cumulative GDD")+
+    title = "Norway and Switzerland cumulative GDD 12h")+
   
   scale_linetype_manual(
     name = "TMS4 data",
@@ -135,7 +135,7 @@ gdd2 <- ggplot(
       "TRUE" = "(partly) predicted"))
 gdd2
 
-# ggsave(filename = "Output/Temperature/DOY_GDD_TMS4_NOR_CHE_2.png", 
+# ggsave(filename = "Output/Temperature/DOY_GDD5_TMS4_NOR_CHE_12h.png", 
 #       plot = gdd2, width = 15, height = 10, units = "in")
 
 
