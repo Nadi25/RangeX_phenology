@@ -397,7 +397,7 @@ temp <- ggplot(
     x = "Phenological stage",
     y = "Mean temperature °C",
     shape = "Treatment site warming",
-    title = "Mean temperature per stage (season start - stage end)") +
+    title = "Mean temperature per stage (season start - stage end) 12h") +
   scale_color_manual(values = define_colors) +
   scale_shape_manual(
     values = c(
@@ -408,7 +408,7 @@ temp <- ggplot(
   guides(color = "none")
 temp
 
-# ggsave(filename = "Output/Sensitivity/Temperature_mean_per_stage_NOR_CHE.png", 
+# ggsave(filename = "Output/Sensitivity/Temperature_mean_per_stage_NOR_CHE_12h.png", 
 #       plot = temp,
 #       width = 9, height = 7, units = "in")
 
