@@ -204,8 +204,9 @@ stage_windows <- stage_windows |>
     seed_start   = season_start,
     seed_end     = end_No_Seeds
   )
+stage_windows
 
-# write.csv(stage_windows, "Data/Stage_windows_NOR_CHE.csv")
+#write.csv(stage_windows, "Data/Stage_windows_NOR_CHE.csv")
 
 # Function to calculate mean temp per stage -------------------------------
 calc_mean_temp <- function(data, windows, start_col, end_col, label) {
@@ -830,7 +831,7 @@ ts_aw <- ggplot(sens_all_aw, aes(x = treat_competition, y = Tmean.trend, color =
   labs(y = "Temperature sensitivity (days / °C)",
        x = "Biotic interactions",
        title = "Temperature sensitivity high ambient vs warmed")+
-  facet_grid(region ~ stage, scale = "free")+
+  facet_grid(region ~ stage, scales = "free")+
   theme(legend.position = "none")+
   scale_color_manual(values = c("with" = "#528B8B", "without" = "#CD950C")) 
 ts_aw
@@ -843,7 +844,6 @@ ts_aw
 
 
 # joined figure for hi vs lo and ambi vs warm -----------------------------
-
 
 sens_all_lh$type <- "low-high"
 sens_all_aw$type <- "warmed-ambient"
@@ -875,6 +875,7 @@ ts_hl_aw <- ggplot(
   labs(
     y = "Temperature sensitivity (days / °C)",
     x = "Temperature shift",
+    title = "Temperature sensitivity 12h daily mean per stage",
     color = "Biotic interactions") +
   theme(legend.position = "right") +
   scale_color_manual(
@@ -974,18 +975,11 @@ ts_hl_aw_sig <- ts_hl_aw +
     ),
     inherit.aes = FALSE,
     size = 5
-  )+
-  geom_text(
-    aes(
-      label = slope_stars,
-      y = upper.CL + 0.6),
-    position = pd,
-    show.legend = FALSE,
-    size = 5)
+  )
 ts_hl_aw_sig
 
 
-# ggsave(filename = "Output/Sensitivity/Temperature_sensitivity_TMS_hi_lo_ambi_warm_signif_NOR_CHE.png", 
+# ggsave(filename = "Output/Sensitivity/Temperature_sensitivity_TMS_hi_lo_ambi_warm_signif_NOR_CHE_12h.png", 
 #       plot = ts_hl_aw_sig,
 #       width = 15, height = 10, units = "in")
 
@@ -1177,22 +1171,51 @@ ts_seed_gdd_lh_che <- get_temp_sens_coef(m_sens_seed_gdd_lh_che)
 
 
 # combine sens from all stages -------------------------------------------
-sens_all_gdd <- bind_rows(
-  ts_bud_gdd_lh_nor    |> mutate(stage = "Budding", region = "Norway"),
-  ts_flower_gdd_lh_nor |> mutate(stage = "Flowering", region = "Norway"),
-  ts_fruit_gdd_lh_nor  |> mutate(stage = "Fruiting", region = "Norway"),
-  ts_seed_gdd_lh_nor   |> mutate(stage = "Seeds", region = "Norway"),
-  ts_bud_gdd_lh_che    |> mutate(stage = "Budding", region = "Switzerland"),
-  ts_flower_gdd_lh_che |> mutate(stage = "Flowering", region = "Switzerland"),
-  ts_fruit_gdd_lh_che  |> mutate(stage = "Fruiting", region = "Switzerland"),
-  ts_seed_gdd_lh_che   |> mutate(stage = "Seeds", region = "Switzerland")
+sens_all_gdd_lh <- bind_rows(
+  ts_bud_gdd_lh_nor$slopes    |> mutate(stage = "Budding", region = "Norway"),
+  ts_flower_gdd_lh_nor$slopes |> mutate(stage = "Flowering", region = "Norway"),
+  ts_fruit_gdd_lh_nor$slopes  |> mutate(stage = "Fruiting", region = "Norway"),
+  ts_seed_gdd_lh_nor$slopes   |> mutate(stage = "Seeds", region = "Norway"),
+  ts_bud_gdd_lh_che$slopes    |> mutate(stage = "Budding", region = "Switzerland"),
+  ts_flower_gdd_lh_che$slopes |> mutate(stage = "Flowering", region = "Switzerland"),
+  ts_fruit_gdd_lh_che$slopes  |> mutate(stage = "Fruiting", region = "Switzerland"),
+  ts_seed_gdd_lh_che$slopes   |> mutate(stage = "Seeds", region = "Switzerland")
 )
-sens_all_gdd
+sens_all_gdd_lh
 
+
+sens_all_gdd_lh <- sens_all_gdd_lh |>
+  mutate(
+    slope_stars = case_when(
+      p.value < 0.001 ~ "***",
+      p.value < 0.01 ~ "**",
+      p.value < 0.05 ~ "*",
+      TRUE ~ ""))
+sens_all_gdd_lh
+
+sig_all_gdd_lh <- bind_rows(
+  ts_bud_gdd_lh_nor$pairs    |> mutate(stage = "Budding", region = "Norway"),
+  ts_flower_gdd_lh_nor$pairs |> mutate(stage = "Flowering", region = "Norway"),
+  ts_fruit_gdd_lh_nor$pairs  |> mutate(stage = "Fruiting", region = "Norway"),
+  ts_seed_gdd_lh_nor$pairs   |> mutate(stage = "Seeds", region = "Norway"),
+  ts_bud_gdd_lh_che$pairs    |> mutate(stage = "Budding", region = "Switzerland"),
+  ts_flower_gdd_lh_che$pairs |> mutate(stage = "Flowering", region = "Switzerland"),
+  ts_fruit_gdd_lh_che$pairs  |> mutate(stage = "Fruiting", region = "Switzerland"),
+  ts_seed_gdd_lh_che$pairs   |> mutate(stage = "Seeds", region = "Switzerland")
+)
+
+sig_all_gdd_lh <- sig_all_gdd_lh |>
+  mutate(
+    stars = case_when(
+      p.value < 0.001 ~ "***",
+      p.value < 0.01 ~ "**",
+      p.value < 0.05 ~ "*",
+      TRUE ~ "ns"))
+sig_all_gdd_lh
 
 
 # Plot sensitivity --------------------------------------------------------
-ts_gdd <- ggplot(sens_all_gdd, aes(x = treat_competition, y = Tmean.trend, color = treat_competition)) +
+ts_gdd_lh <- ggplot(sens_all_gdd_lh, aes(x = treat_competition, y = Tmean.trend, color = treat_competition)) +
   geom_point(size = 3.5) +
   geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL), width = 0.1) +
   geom_hline(yintercept = 0, linetype = "dashed") +
@@ -1202,10 +1225,10 @@ ts_gdd <- ggplot(sens_all_gdd, aes(x = treat_competition, y = Tmean.trend, color
   facet_grid(region ~ stage)+
   theme(legend.position = "none")+
   scale_color_manual(values = c("with" = "#528B8B", "without" = "#CD950C")) 
-ts_gdd
+ts_gdd_lh
 
 # ggsave(filename = "Output/Sensitivity/Temperature_sensitivity_TMS_GDD_low_high_NOR_CHE.png", 
-#       plot = ts_gdd,
+#       plot = ts_gdd_lh,
 #        width = 15, height = 10, units = "in")
 
 
@@ -1291,16 +1314,47 @@ ts_seed_gdd_aw_che <- get_temp_sens_coef(m_sens_seed_gdd_aw_che)
 
 # combine sens from all stages -------------------------------------------
 sens_all_gdd_aw <- bind_rows(
-  ts_bud_gdd_aw_nor    |> mutate(stage = "Budding", region = "Norway"),
-  ts_flower_gdd_aw_nor |> mutate(stage = "Flowering", region = "Norway"),
-  ts_fruit_gdd_aw_nor  |> mutate(stage = "Fruiting", region = "Norway"),
-  ts_seed_gdd_aw_nor   |> mutate(stage = "Seeds", region = "Norway"),
-  ts_bud_gdd_aw_che    |> mutate(stage = "Budding", region = "Switzerland"),
-  ts_flower_gdd_aw_che |> mutate(stage = "Flowering", region = "Switzerland"),
-  ts_fruit_gdd_aw_che  |> mutate(stage = "Fruiting", region = "Switzerland"),
-  ts_seed_gdd_aw_che   |> mutate(stage = "Seeds", region = "Switzerland")
+  ts_bud_gdd_aw_nor$slopes    |> mutate(stage = "Budding", region = "Norway"),
+  ts_flower_gdd_aw_nor$slopes |> mutate(stage = "Flowering", region = "Norway"),
+  ts_fruit_gdd_aw_nor$slopes  |> mutate(stage = "Fruiting", region = "Norway"),
+  ts_seed_gdd_aw_nor$slopes   |> mutate(stage = "Seeds", region = "Norway"),
+  ts_bud_gdd_aw_che$slopes    |> mutate(stage = "Budding", region = "Switzerland"),
+  ts_flower_gdd_aw_che$slopes |> mutate(stage = "Flowering", region = "Switzerland"),
+  ts_fruit_gdd_aw_che$slopes  |> mutate(stage = "Fruiting", region = "Switzerland"),
+  ts_seed_gdd_aw_che$slopes   |> mutate(stage = "Seeds", region = "Switzerland")
 )
 sens_all_gdd_aw
+
+
+sens_all_gdd_aw <- sens_all_gdd_aw |>
+  mutate(
+    slope_stars = case_when(
+      p.value < 0.001 ~ "***",
+      p.value < 0.01 ~ "**",
+      p.value < 0.05 ~ "*",
+      TRUE ~ ""))
+sens_all_gdd_aw
+
+sig_all_gdd_aw <- bind_rows(
+  ts_bud_gdd_aw_nor$pairs    |> mutate(stage = "Budding", region = "Norway"),
+  ts_flower_gdd_aw_nor$pairs |> mutate(stage = "Flowering", region = "Norway"),
+  ts_fruit_gdd_aw_nor$pairs  |> mutate(stage = "Fruiting", region = "Norway"),
+  ts_seed_gdd_aw_nor$pairs   |> mutate(stage = "Seeds", region = "Norway"),
+  ts_bud_gdd_aw_che$pairs    |> mutate(stage = "Budding", region = "Switzerland"),
+  ts_flower_gdd_aw_che$pairs |> mutate(stage = "Flowering", region = "Switzerland"),
+  ts_fruit_gdd_aw_che$pairs  |> mutate(stage = "Fruiting", region = "Switzerland"),
+  ts_seed_gdd_aw_che$pairs   |> mutate(stage = "Seeds", region = "Switzerland")
+)
+
+sig_all_gdd_aw <- sig_all_gdd_aw |>
+  mutate(
+    stars = case_when(
+      p.value < 0.001 ~ "***",
+      p.value < 0.01 ~ "**",
+      p.value < 0.05 ~ "*",
+      TRUE ~ "ns"))
+sig_all_gdd_aw
+
 
 
 
@@ -1309,7 +1363,7 @@ ts_gdd_aw <- ggplot(sens_all_gdd_aw, aes(x = treat_competition, y = Tmean.trend,
   geom_point(size = 3.5) +
   geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL), width = 0.1) +
   geom_hline(yintercept = 0, linetype = "dashed") +
-  labs(y = "Temperature sensitivity (GDD2 / °C)",
+  labs(y = "Temperature sensitivity (GDD5 / °C)",
        x = "Biotic interactions",
        title = "Temperature sensitivity high ambient vs warmed")+
   facet_grid(region ~ stage)+
@@ -1328,11 +1382,10 @@ ts_gdd_aw
 
 # joined figure for GDD hi vs lo and ambi vs warm -----------------------------
 
+sens_all_gdd_lh$type <- "low-high"
+sens_all_gdd_aw$type <- "warmed-ambient"
 
-sens_all_gdd$type <- "high low"
-sens_all_gdd_aw$type <- "ambient warming"
-
-sens_combined_gdd <- bind_rows(sens_all_gdd, sens_all_gdd_aw)
+sens_combined_gdd <- bind_rows(sens_all_gdd_lh, sens_all_gdd_aw)
 
 pd <- position_dodge(width = 0.4)
 
@@ -1357,8 +1410,9 @@ ts_hl_aw_gdd <- ggplot(
   geom_hline(yintercept = 0, linetype = "dashed") +
   facet_grid(region ~ stage, scales = "free") +
   labs(
-    y = "Temperature sensitivity (GDD2 / °C)",
+    y = "Temperature sensitivity (GDD5 / °C)",
     x = "Temperature shift",
+    title = "Temperature sensitivity 12h daily mean per stage 5°C base",
     color = "Biotic interactions") +
   theme(legend.position = "right") +
   scale_color_manual(
@@ -1375,6 +1429,98 @@ ts_hl_aw_gdd
 #       width = 15, height = 10, units = "in")
 
 
+
+
+# add significance stars --------------------------------------------------
+
+sig_all_gdd_lh$type <- "low-high"
+sig_all_gdd_aw$type <- "warmed-ambient"
+
+sig_combined_gdd <- bind_rows(sig_all_gdd_lh, sig_all_gdd_aw)
+sig_combined_gdd
+
+
+brackets_gdd <- sens_combined_gdd |>
+  group_by(region, stage, type) |>
+  summarise(
+    y_bracket = max(upper.CL) + 50,
+    .groups = "drop"
+  ) |>
+  left_join(
+    sig_combined_gdd |>
+      select(region, stage, type, stars),
+    by = c("region", "stage", "type")
+  ) |>
+  mutate(
+    x = ifelse(type == "low-high", 1, 2),
+    xmin = x - 0.2,
+    xmax = x + 0.2
+  )
+brackets_gdd
+
+ts_hl_aw_sig_gdd <- ts_hl_aw_gdd +
+  geom_text(
+    aes(
+      label = slope_stars,
+      y = upper.CL + 0.4
+    ),
+    position = pd,
+    show.legend = FALSE
+  ) +
+  
+  # horizontal line
+  geom_segment(
+    data = brackets_gdd,
+    aes(
+      x = xmin,
+      xend = xmax,
+      y = y_bracket,
+      yend = y_bracket
+    ),
+    inherit.aes = FALSE
+  ) +
+  
+  # left tick
+  geom_segment(
+    data = brackets_gdd,
+    aes(
+      x = xmin,
+      xend = xmin,
+      y = y_bracket,
+      yend = y_bracket - 0.3
+    ),
+    inherit.aes = FALSE
+  ) +
+  
+  # right tick
+  geom_segment(
+    data = brackets_gdd,
+    aes(
+      x = xmax,
+      xend = xmax,
+      y = y_bracket,
+      yend = y_bracket - 0.3
+    ),
+    inherit.aes = FALSE
+  ) +
+  
+  # significance text
+  geom_text(
+    data = brackets_gdd,
+    aes(
+      x = x,
+      y = y_bracket + 30,
+      label = stars
+    ),
+    inherit.aes = FALSE,
+    size = 5
+  )
+ts_hl_aw_sig_gdd
+
+
+# ggsave(filename = "Output/Sensitivity/Temperature_sensitivity_TMS_hi_lo_ambi_warm_GDD5_NOR_CHE_12h.png", 
+#       plot = ts_hl_aw_sig_gdd,
+#       width = 15, height = 10, units = "in")
 
 
 
