@@ -121,7 +121,7 @@ model_summaries$hypmac
 # get the actual sensitivity from coefficient -----------------------------
 temp_sens <- map(models_species, get_temp_sens_coef)
 
-temp_sens$cennig
+temp_sens$cennig$slopes
 temp_sens$hypmac
 
 
@@ -129,9 +129,12 @@ temp_sens$hypmac
 temp_sens_all_species <- bind_rows(temp_sens, .id = "species")
 temp_sens_all_species
 
+temp_sens_slopes_all_species <- map_dfr(temp_sens, "slopes", .id = "species")
+
+temp_sens_pairs_all_species <- map_dfr(temp_sens, "pairs", .id = "species")
 
 # add region
-temp_sens_all_species <- temp_sens_all_species |>
+temp_sens_slopes_all_species <- temp_sens_slopes_all_species |>
   mutate(
     region = ifelse(
       species %in% c(
@@ -146,7 +149,7 @@ temp_sens_all_species <- temp_sens_all_species |>
 
 # Plot --------------------------------------------------------------------
 ts_species <- ggplot(
-  temp_sens_all_species,
+  temp_sens_slopes_all_species,
   aes(
     x = treat_competition,
     y = Tmean.trend,
@@ -180,7 +183,7 @@ ts_species
 pd <- position_dodge(width = 0.2)
 
 ts_species <- ggplot(
-  temp_sens_all_species,
+  temp_sens_slopes_all_species,
   aes(
     x = treat_competition,
     y = Tmean.trend,
@@ -224,7 +227,7 @@ ts_species
 
 
 # plot with label of species ----------------------------------------------
-label_data <- temp_sens_all_species |> 
+label_data <- temp_sens_slopes_all_species |> 
   group_by(region, species) |>
   arrange(
     is.na(Tmean.trend),          # valid values first
@@ -239,7 +242,7 @@ label_data |>
 
 
 ts_species_label <- ggplot(
-  temp_sens_all_species,
+  temp_sens_slopes_all_species,
   aes(
     x = treat_competition,
     y = Tmean.trend,
@@ -314,10 +317,10 @@ table(species_flowering$region, species_flowering$flowering_time)
 
 
 # join label data with early late type ------------------------------------
-temp_sens_all_species <- temp_sens_all_species |> 
+temp_sens_slopes_all_species <- temp_sens_slopes_all_species |> 
   left_join(species_flowering, by = c("region", "species")) |> 
   select(-c(cutoff, mean_onset))
-temp_sens_all_species
+temp_sens_slopes_all_species
 
 
 label_data <- label_data |> 
@@ -325,7 +328,7 @@ label_data <- label_data |>
   select(-c(cutoff, mean_onset))
 
 ts_species_label <- ggplot(
-  temp_sens_all_species,
+  temp_sens_slopes_all_species,
   aes(
     x = treat_competition,
     y = Tmean.trend,
@@ -461,8 +464,11 @@ temp_sens_aw$hypmac
 temp_sens_all_species_aw <- bind_rows(temp_sens_aw, .id = "species")
 temp_sens_all_species_aw
 
+temp_sens_slopes_all_species_aw <- map_dfr(temp_sens_aw, "slopes", .id = "species")
 
-temp_sens_all_species_aw <- temp_sens_all_species_aw |>
+temp_sens_pairs_all_species_aw <- map_dfr(temp_sens_aw, "pairs", .id = "species")
+
+temp_sens_slopes_all_species_aw <- temp_sens_slopes_all_species_aw |>
   mutate(
     region = ifelse(
       species %in% c(
@@ -478,7 +484,7 @@ temp_sens_all_species_aw <- temp_sens_all_species_aw |>
 pd <- position_dodge(width = 0.2)
 
 # plot with label of species ----------------------------------------------
-label_data_aw <- temp_sens_all_species_aw |> 
+label_data_aw <- temp_sens_slopes_all_species_aw |> 
   group_by(region, species) |>
   arrange(
     is.na(Tmean.trend),          # valid values first
@@ -499,7 +505,7 @@ label_data_aw <- label_data_aw |>
 
 
 # add early vs late flowering data ----------------------------------------
-temp_sens_all_species_aw <- temp_sens_all_species_aw |>
+temp_sens_slopes_all_species_aw <- temp_sens_slopes_all_species_aw |>
   left_join(species_flowering, by = c("region", "species")) |>
   select(-c(cutoff, mean_onset))
 
@@ -507,7 +513,7 @@ temp_sens_all_species_aw <- temp_sens_all_species_aw |>
 
 # Plot ambi vs warm per species flowering ---------------------------------
 ts_species_label_aw <- ggplot(
-  temp_sens_all_species_aw,
+  temp_sens_slopes_all_species_aw,
   aes(
     x = treat_competition,
     y = Tmean.trend,
@@ -561,16 +567,16 @@ ts_species_label_aw
 
 
 # Joined figure flowering lo hi and ambi warm -------------------------------------------------
-temp_sens_all_species$comparison <- "low high"
-temp_sens_all_species_aw$comparison <- "ambient warmed"
+temp_sens_slopes_all_species$comparison <- "low-high"
+temp_sens_slopes_all_species_aw$comparison <- "warmed-ambient"
 
 temp_sens_combined <- bind_rows(
-  temp_sens_all_species,
-  temp_sens_all_species_aw
+  temp_sens_slopes_all_species,
+  temp_sens_slopes_all_species_aw
 )
 
-label_data$comparison <- "low high"
-label_data_aw$comparison <- "ambient warmed"
+label_data$comparison <- "low-high"
+label_data_aw$comparison <- "warmed-ambient"
 
 label_data_combined <- bind_rows(
   label_data,
@@ -622,14 +628,14 @@ temp_sens_flo_comb <- ggplot(
   labs(
     y = "Temperature sensitivity (days / °C)",
     x = "Biotic interactions",
-    title = "Temperature sensitivity flowering per species hi vs lo and ambi vs warm",
+    title = "Temperature sensitivity flowering per species hi vs lo and ambi vs warm 12h",
     shape = "Flowering time"
   ) +
   theme(legend.position = "bottom")
 temp_sens_flo_comb
 
 
-# ggsave(filename = "Output/Sensitivity/Temperature_sensitivity_TMS_hi_lo_ambi_warm_flowering_species.png", 
+# ggsave(filename = "Output/Sensitivity/Temperature_sensitivity_TMS_hi_lo_ambi_warm_flowering_species_12h.png", 
 #        plot = temp_sens_flo_comb,
 #        width = 18, height = 18, units = "in")
 
