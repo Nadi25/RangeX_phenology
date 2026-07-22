@@ -416,6 +416,104 @@ temp
 
 
 
+
+temp_all |>
+  select(
+    stage,
+    region,
+    treatment_site_temp,
+    treat_competition,
+    mean_temp
+  ) |>
+  arrange(stage, region, treatment_site_temp, treat_competition) |>
+  pivot_wider(names_from = region,
+              values_from = mean_temp) |> 
+  gt(groupname_col = "stage") |> 
+  cols_label(treatment_site_temp = "Site temp treatment",
+             treat_competition = "Biotic interactions")
+
+
+
+
+pivot_wider(
+  names_from = region,
+  values_from = c(estimate_ci, letters)
+) |>
+  gt(rowname_col = NULL,
+     groupname_col = "stage") |>
+  tab_spanner(
+    label = "Norway",
+    columns = c(
+      estimate_ci_Norway,
+      letters_Norway
+    )
+  ) |>
+  tab_spanner(
+    label = "Switzerland",
+    columns = c(
+      estimate_ci_Switzerland,
+      letters_Switzerland
+    )
+  )
+
+
+
+
+
+temp_tab <- temp_all |>
+  select(
+    stage,
+    region,
+    site,
+    treatment_site_temp,
+    treat_competition,
+    mean_temp
+  ) |>
+  arrange(stage, region, treatment_site_temp, treat_competition) |>
+  gt(
+    groupname_col = "stage"
+  ) |>
+  cols_label(
+    region = "Region",
+    site = "Site",
+    treatment_site_temp = "Site temp treatment",
+    treat_competition = "Biotic interactions",
+    mean_temp = "Mean temperature (°C)"
+  ) |>
+  fmt_number(
+    columns = mean_temp,
+    decimals = 1
+  ) |>
+  cols_align(
+    align = "center",
+    columns = c(
+      site,
+      treatment_site_temp,
+      treat_competition,
+      mean_temp
+    )
+  ) |>
+  tab_header(
+    title = md("**Mean temperatures by treatment**"),
+    subtitle = "Average temperatures for each region, stage and treatment combination"
+  ) |>
+  opt_table_font(
+    font = list(
+      google_font("Source Sans Pro"),
+      default_fonts()
+    )
+  ) |>
+  tab_options(
+    table.font.size = px(13),
+    heading.title.font.size = px(18),
+    row_group.font.weight = "bold",
+    row_group.background.color = "grey95",
+    data_row.padding = px(5)
+  )
+
+temp_tab
+
+
 # calculate mean onset per species and individual for all stages ----------------
 onset_bud    <- get_mean_onset(phenology2, "No_Buds", "jday")
 onset_flower <- get_mean_onset(phenology2, "No_FloOpen", "jday")
