@@ -585,9 +585,9 @@ sig_tab_onset <- letters_all |>
   ) |>
   cols_label(
     stage = "Stage",
-    treatment_site_temp = "Site treatment",
-    treat_competition = "Competition",
-    emmean = "Estimated mean",
+    treatment_site_temp = "Site temp treatment",
+    treat_competition = "Biotic interactions",
+    emmean = "Predicted mean onset",
     lower.CL = "Lower CI",
     upper.CL = "Upper CI",
     SE = "SE",
@@ -616,7 +616,7 @@ sig_tab_onset <- letters_all |>
     )
   ) |>
   tab_header(
-    title = md("**Estimated Mean Response**"),
+    title = md("**Predicted mean onset DOY**"),
     subtitle = "EMMs with confidence intervals and compact letter display"
   ) |>
   tab_options(
@@ -629,14 +629,91 @@ sig_tab_onset
 #gtsave(sig_tab_onset, "Output/Onset/Onset_signif_per_stage_NOR_CHE.docx")
 
 
+sig_tab_onset_wide <- letters_all |>
+  mutate(
+    estimate_ci = sprintf(
+      "%.1f (%.1f, %.1f)",
+      emmean,
+      lower.CL,
+      upper.CL
+    ),
+    letters = trimws(.group)
+  ) |>
+  select(
+    stage,
+    treatment_site_temp,
+    treat_competition,
+    region,
+    estimate_ci,
+    letters
+  ) |>
+  pivot_wider(
+    names_from = region,
+    values_from = c(estimate_ci, letters)
+  ) |>
+  gt(rowname_col = NULL,
+     groupname_col = "stage") |>
+  tab_spanner(
+    label = "Norway",
+    columns = c(
+      estimate_ci_Norway,
+      letters_Norway
+    )
+  ) |>
+  tab_spanner(
+    label = "Switzerland",
+    columns = c(
+      estimate_ci_Switzerland,
+      letters_Switzerland
+    )
+  ) |>
+  cols_label(
+    stage = "Stage",
+    treatment_site_temp = "Site temp treatment",
+    treat_competition = "Biotic interactions",
+    
+    estimate_ci_Norway = "Estimate (95% CI)",
+    letters_Norway = "Letters",
+    
+    estimate_ci_Switzerland = "Estimate (95% CI)",
+    letters_Switzerland = "Letters"
+  ) |>
+  cols_align(
+    align = "center",
+    columns = c(
+      letters_Norway,
+      letters_Switzerland,
+      treat_competition
+    )
+  ) |>
+  tab_style(
+    style = cell_text(weight = "bold"),
+    locations = cells_body(
+      columns = c(
+        letters_Norway,
+        letters_Switzerland
+      )
+    )
+  ) |>
+  tab_header(
+    title = md("**Predicted mean onset DOY**"),
+    subtitle = "EMMs (95% CI) with compact letter display"
+  ) |>
+  opt_table_font(
+    font = list(
+      google_font("Source Sans Pro"),
+      default_fonts()
+    )
+  ) |>
+  tab_options(
+    table.font.size = px(13),
+    heading.title.font.size = px(18),
+    data_row.padding = px(5)
+  )
 
+sig_tab_onset_wide
 
-
-
-
-
-
-
+#gtsave(sig_tab_onset_wide, "Output/Onset/Onset_signif_per_stage_wide_NOR_CHE.docx")
 
 
 
