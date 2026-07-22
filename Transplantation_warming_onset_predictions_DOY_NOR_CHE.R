@@ -483,7 +483,7 @@ b_f_fr6 <- ggplot(plot_df_all2, aes(
     position = pd
   ) +
   
-  facet_grid(region ~ stage, scales = "free_y") +
+  facet_grid(region ~ stage) +
   
   scale_color_manual(values = c(
     "with" = "#528B8B",
