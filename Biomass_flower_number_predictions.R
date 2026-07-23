@@ -68,8 +68,8 @@ phenology_bio_species$treatment_site_temp <- paste(phenology_bio_species$site, p
 phenology_bio_species <- phenology_bio_species |>
   mutate(treatment_site_temp= factor(treatment_site_temp,
                                      levels = c("low_ambient",
-                                                "high_ambient",
-                                                "high_warmed")))
+                                                "high_warmed",
+                                                "high_ambient")))
 
 # exclude cennig and sildio -----------------------------------------------
 # cennig is a calculation
@@ -193,7 +193,7 @@ make_predictions_bio <- function(model, data) {
   biomass_mean <- mean(data$pred_log_biomass_species, na.rm = TRUE)
   
   newdat <- expand.grid(
-    treatment_site_temp = c("low_ambient", "high_ambient", "high_warmed"),
+    treatment_site_temp = c("low_ambient", "high_warmed", "high_ambient"),
     treat_competition = c("with", "without"),
     pred_log_biomass_species = biomass_mean
   )|>
@@ -234,21 +234,21 @@ pred_bio2
 # rename treat info -------------------------------------------------------
 pred_bio$treatment_site_temp <- 
   recode(pred_bio$treatment_site_temp,
-         "low_ambient" = "low ambient",
-         "high_ambient" = "high ambient",
-         "high_warmed" = "high warm")
+         "low_ambient" = "lo_ambi",
+         "high_ambient" = "hi_ambi",
+         "high_warmed" = "hi_warm")
 
 pred_bio2$treatment_site_temp <- 
   recode(pred_bio$treatment_site_temp,
-         "low_ambient" = "low ambient",
-         "high_ambient" = "high ambient",
-         "high_warmed" = "high warm")
+         "low_ambient" = "lo_ambi",
+         "high_ambient" = "hi_ambi",
+         "high_warmed" = "hi_warm")
 
 max_flower_per_plant_bio$treatment_site_temp <- 
   recode(max_flower_per_plant_bio$treatment_site_temp,
-         "low_ambient" = "low ambient",
-         "high_ambient" = "high ambient",
-         "high_warmed" = "high warm")
+         "low_ambient" = "lo_ambi",
+         "high_ambient" = "hi_ambi",
+         "high_warmed" = "hi_warm")
 
 
 
@@ -289,9 +289,9 @@ flow_no_bio2 <- ggplot(pred_bio2, aes(
   
   scale_shape_manual(
     values = c(
-      "low ambient" = 16,   # circle
-      "high ambient" = 17,    # triangle
-      "high warm" = 2    # square 
+      "lo_ambi" = 16,   # circle
+      "hi_ambi" = 17,    # triangle
+      "hi_warm" = 2    # square 
     )
   ) +
   
@@ -347,9 +347,9 @@ flow_no_bio3 <- ggplot(pred_bio2, aes(
   
   scale_shape_manual(
     values = c(
-      "low ambient" = 16,
-      "high ambient" = 17,
-      "high warm" = 2
+      "lo_ambi" = 16,
+      "hi_ambi" = 17,
+      "hi_warm" = 2
     )
   ) +
   
@@ -410,9 +410,9 @@ flow_no_bio4 <- ggplot(pred_bio, aes(
   
   scale_shape_manual(
     values = c(
-      "low ambient" = 16,
-      "high ambient" = 17,
-      "high warm" = 2
+      "lo_ambi" = 16,
+      "hi_ambi" = 17,
+      "hi_warm" = 2
     )
   ) +
   
