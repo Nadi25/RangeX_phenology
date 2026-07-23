@@ -26,6 +26,9 @@ library(broom.mixed)
 library(emmeans)
 library(lubridate)
 library(ggplot2)
+library(gt)
+library(multcomp)
+library(multcompView)
 
 # set theme for plots ------------------------------------
 theme_set(theme_bw())
@@ -80,8 +83,26 @@ m_flower_number <- glmer.nb(max_flower_number ~ treatment_site_temp * treat_comp
 
 summary(m_flower_number)
 
-emmeans(m_flower_number,
+emm <- emmeans(m_flower_number,
         pairwise ~ treatment_site_temp * treat_competition)
+emm
+
+
+get_signi <- function(model) {
+  
+  signi_letters <- cld(emmeans(
+    model,
+    pairwise ~ treatment_site_temp * treat_competition),
+    Letters = letters)
+  
+  print(signi_letters)
+  return(signi_letters)
+}
+
+emm_sig <- get_signi(m_flower_number)
+
+
+
 
 
 
@@ -94,7 +115,7 @@ plot(pred)
 make_predictions <- function(model) {
   
   newdat <- expand.grid(
-    treatment_site_temp = c("lo_ambi", "hi_ambi", "hi_warm"),
+    treatment_site_temp = c("lo_ambi", "hi_warm", "hi_ambi"),
     treat_competition = c("with", "without")) |> 
     as_tibble()
   
@@ -121,17 +142,17 @@ flower_number_pred
 
 
 # rename treat info -------------------------------------------------------
-flower_number_pred$treatment_site_temp <- 
-  recode(flower_number_pred$treatment_site_temp,
-  "lo_ambi" = "low ambient",
-  "hi_ambi" = "high ambient",
-  "hi_warm" = "high warm")
-
-max_flower_per_plant$treatment_site_temp <- 
-  recode(max_flower_per_plant$treatment_site_temp,
-  "lo_ambi" = "low ambient",
-  "hi_ambi" = "high ambient",
-  "hi_warm" = "high warm")
+# flower_number_pred$treatment_site_temp <- 
+#   recode(flower_number_pred$treatment_site_temp,
+#   "lo_ambi" = "low ambient",
+#   "hi_ambi" = "high ambient",
+#   "hi_warm" = "high warm")
+# 
+# max_flower_per_plant$treatment_site_temp <- 
+#   recode(max_flower_per_plant$treatment_site_temp,
+#   "lo_ambi" = "low ambient",
+#   "hi_ambi" = "high ambient",
+#   "hi_warm" = "high warm")
 
 
 
@@ -172,9 +193,9 @@ flow_no <- ggplot(flower_number_pred, aes(
   
   scale_shape_manual(
     values = c(
-      "low ambient" = 16,   # circle
-      "high ambient" = 17,    # triangle
-      "high warm" = 2    # square 
+      "lo_ambi" = 16,   # circle
+      "hi_ambi" = 17,    # triangle
+      "hi_warm" = 2    # square 
     )
   ) +
   
@@ -229,9 +250,9 @@ flow_no2 <- ggplot(flower_number_pred, aes(
   
   scale_shape_manual(
     values = c(
-      "low ambient" = 16,
-      "high ambient" = 17,
-      "high warm" = 2
+      "lo_ambi" = 16,
+      "hi_ambi" = 17,
+      "hi_warm" = 2
     )
   ) +
   
@@ -241,11 +262,11 @@ flow_no2 <- ggplot(flower_number_pred, aes(
     title = "Effect of transplantation and warming on flower number",
     shape = "Treatment site × warming",
     color = "Biotic interactions",
-    fill = "Biotic interactions"
-  ) +
+    fill = "Biotic interactions") +
   
   guides(shape = "none")+
-  coord_transform(y = "log1p")
+  coord_transform(y = "log1p")+
+  theme(legend.position = "bottom")
 
 flow_no2
 
@@ -256,6 +277,27 @@ flow_no2
 
 
 
+# plot with significance letters ------------------------------------------
+emm_sig <- emm_sig |>
+  mutate(
+    y = asymp.UCL + 10
+  )
+emm_sig
+
+
+flow_no3 <- flow_no2 +
+  geom_text(
+    data = emm_sig,
+    aes(
+      x = treatment_site_temp,
+      y = y,
+      label = .group, 
+      group = treat_competition),
+    color = "grey43",
+    position = pd,
+    size = 5,
+    show.legend = FALSE)
+flow_no3
 
 
 
@@ -263,9 +305,104 @@ flow_no2
 
 
 
+# plot with stars as significances ----------------------------------------
+
+emm_contr <- emm$contrasts |> 
+  as.data.frame()
+
+emm_contr <- emm_contr |> mutate(stars = case_when(p.value < 0.001 ~ "***",
+                                                   p.value < 0.01 ~ "**",
+                                                   p.value < 0.05 ~ "*",
+                                                   TRUE ~ ""))
+emm_contr
+
+emm_contr2 <- emm_contr |> 
+  filter(contrast %in% c("lo_ambi with - lo_ambi without",
+                         "hi_warm with - hi_warm without",
+                         "hi_ambi with - hi_ambi without",
+                         "lo_ambi with - hi_ambi with",
+                         "lo_ambi without - hi_ambi without",
+                         "hi_warm with - hi_ambi with",
+                         "hi_warm without - hi_ambi without"))
+
+pos_df <- tibble(
+  group = c(
+    "lo_ambi with",
+    "lo_ambi without",
+    "hi_warm with",
+    "hi_warm without",
+    "hi_ambi with",
+    "hi_ambi without"
+  ),
+  x = c(
+    0.775, 1.225,
+    1.775, 2.225,
+    2.775, 3.225
+  )
+)
 
 
 
+brackets <- emm_contr2 |>
+  separate(
+    contrast,
+    into = c("group1", "group2"),
+    sep = " - "
+  )
+brackets <- brackets |>
+  left_join(pos_df, by = c("group1" = "group")) |>
+  rename(xmin = x) |>
+  left_join(pos_df, by = c("group2" = "group")) |>
+  rename(xmax = x)
+brackets
+
+
+brackets |>
+  select(group1, group2, xmin, xmax, stars)
+
+top_y <- max(flower_number_pred$upper)
+
+brackets <- brackets |>
+  mutate(
+    y = top_y + c(18, 6, 27, 6, 6, 13, 22)
+  )
+brackets
+
+theme_set(theme_bw(base_size = 20))
+
+flow_no2_sig <- flow_no2 +
+  geom_segment(
+    data = brackets,
+    aes(x = xmin, xend = xmax,
+        y = y, yend = y),
+    inherit.aes = FALSE
+  ) +
+  geom_segment(
+    data = brackets,
+    aes(x = xmin, xend = xmin,
+        y = y, yend = y - 0.5),
+    inherit.aes = FALSE
+  ) +
+  geom_segment(
+    data = brackets,
+    aes(x = xmax, xend = xmax,
+        y = y, yend = y - 0.5),
+    inherit.aes = FALSE
+  ) +
+  geom_text(
+    data = brackets,
+    aes(
+      x = (xmin + xmax)/2,
+      y = y + 0.5,
+      label = stars
+    ),
+    inherit.aes = FALSE
+  )
+flow_no2_sig
+
+
+# ggsave(filename = "Output/Biomass/Transplantation_warming_flower_number_predictions_NOR_glmer.nb_violin_sig.png", 
+#       plot = flow_no2_sig, width = 12, height = 9, units = "in")
 
 
 
