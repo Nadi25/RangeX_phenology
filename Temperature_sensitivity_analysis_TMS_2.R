@@ -434,27 +434,27 @@ temp_all |>
 
 
 
-
-pivot_wider(
-  names_from = region,
-  values_from = c(estimate_ci, letters)
-) |>
-  gt(rowname_col = NULL,
-     groupname_col = "stage") |>
-  tab_spanner(
-    label = "Norway",
-    columns = c(
-      estimate_ci_Norway,
-      letters_Norway
-    )
-  ) |>
-  tab_spanner(
-    label = "Switzerland",
-    columns = c(
-      estimate_ci_Switzerland,
-      letters_Switzerland
-    )
-  )
+# 
+# pivot_wider(
+#   names_from = region,
+#   values_from = c(estimate_ci, letters)
+# ) |>
+#   gt(rowname_col = NULL,
+#      groupname_col = "stage") |>
+#   tab_spanner(
+#     label = "Norway",
+#     columns = c(
+#       estimate_ci_Norway,
+#       letters_Norway
+#     )
+#   ) |>
+#   tab_spanner(
+#     label = "Switzerland",
+#     columns = c(
+#       estimate_ci_Switzerland,
+#       letters_Switzerland
+#     )
+#   )
 
 
 
