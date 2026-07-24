@@ -181,43 +181,43 @@ ts_species
 
 
 pd <- position_dodge(width = 0.2)
-
-ts_species <- ggplot(
-  temp_sens_slopes_all_species,
-  aes(
-    x = treat_competition,
-    y = Tmean.trend,
-    color = species,
-    group = species
-  )
-) +
-  geom_pointrange(
-    aes(
-      ymin = lower.CL,
-      ymax = upper.CL
-    ),
-    position = pd,
-    linewidth = 0.5
-  ) +
-  geom_line(
-    position = pd,
-    linewidth = 0.8
-  ) +
-  
-  geom_text_repel(
-    data = subset(
-      temp_sens_all_species,
-      treat_competition == "with"
-    ),
-    aes(label = species),
-    segment.color = NA,
-    show.legend = FALSE,
-    max.overlaps = Inf
-  )+
-  geom_hline(yintercept = 0, linetype = "dashed") +
-  facet_wrap(~ region) +
-  theme(legend.position = "none")
-ts_species
+# 
+# ts_species <- ggplot(
+#   temp_sens_slopes_all_species,
+#   aes(
+#     x = treat_competition,
+#     y = Tmean.trend,
+#     color = species,
+#     group = species
+#   )
+# ) +
+#   geom_pointrange(
+#     aes(
+#       ymin = lower.CL,
+#       ymax = upper.CL
+#     ),
+#     position = pd,
+#     linewidth = 0.5
+#   ) +
+#   geom_line(
+#     position = pd,
+#     linewidth = 0.8
+#   ) +
+#   
+#   geom_text_repel(
+#     data = subset(
+#       temp_sens_all_species,
+#       treat_competition == "with"
+#     ),
+#     aes(label = species),
+#     segment.color = NA,
+#     show.legend = FALSE,
+#     max.overlaps = Inf
+#   )+
+#   geom_hline(yintercept = 0, linetype = "dashed") +
+#   facet_wrap(~ region) +
+#   theme(legend.position = "none")
+# ts_species
 
 
 # ggsave(filename = "Output/Sensitivity/Temperature_sensitivity_TMS_lo_hi_species.png", 
@@ -623,7 +623,7 @@ temp_sens_flo_comb <- ggplot(
       "late" = 18
     )
   ) +
-  facet_grid(comparison~ region, scales = "free") +
+  facet_grid(region~ comparison, scales = "free") +
   guides(color = "none") +
   labs(
     y = "Temperature sensitivity (days / °C)",
@@ -635,9 +635,9 @@ temp_sens_flo_comb <- ggplot(
 temp_sens_flo_comb
 
 
-# ggsave(filename = "Output/Sensitivity/Temperature_sensitivity_TMS_hi_lo_ambi_warm_flowering_species_12h.png", 
+# ggsave(filename = "Output/Sensitivity/Temperature_sensitivity_TMS_hi_lo_ambi_warm_flowering_species_12h2.png", 
 #        plot = temp_sens_flo_comb,
-#        width = 18, height = 18, units = "in")
+#        width = 18, height = 15, units = "in")
 
 
 
