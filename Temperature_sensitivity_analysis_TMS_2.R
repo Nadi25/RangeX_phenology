@@ -387,8 +387,8 @@ temp <- ggplot(
     group = interaction(site, treat_warming, treat_competition))) +
   geom_point(size = 3) +
   geom_line(linewidth = 1) +
-  facet_grid(treat_competition
-     ~ region,
+  facet_grid(region
+     ~ treat_competition,
     labeller = labeller(
       treat_competition = c(
         "with" = "With biotic interactions",
