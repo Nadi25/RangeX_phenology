@@ -28,6 +28,8 @@ library(broom.mixed)
 library(emmeans)
 library(lubridate)
 library(multcomp)
+library(multcompView)
+library(gt)
 
 
 
@@ -556,7 +558,42 @@ flow_no_bio4_sig
 #       plot = flow_no_bio4_sig, width = 12, height = 9, units = "in")
 
 
+tab <- emm_bio_contr2 |>
+  gt() |>
+  fmt_number(
+    columns = c(ratio, SE),
+    decimals = 2
+  ) |>
+  fmt_number(
+    columns = p.value,
+    decimals = 3
+  ) |>
+  cols_label(
+    contrast = "Contrast",
+    ratio = "Ratio",
+    SE = "SE",
+    p.value = "p",
+    stars = ""
+  ) |>
+  cols_hide(c(df, null, z.ratio)) |>
+  tab_header(
+    title = md("**Number of flowers adjusted for biomass comparisons**")
+  )
+tab
 
+#gtsave(tab, "Output/Biomass/Number_flowers_Biomass_signif_NOR.docx")
+
+
+
+t2 <- tbl_regression(
+  m_flower_number_bio2,
+  exponentiate = TRUE) |>
+  as_gt() |>
+  tab_header(
+    title = md("**Number of flowers adj biomass NOR glm.nb**"))
+t2
+
+#gtsave(t2, "Output/Biomass/Number_flowers_Biomass_model_summary_NOR.docx")
 
 
 

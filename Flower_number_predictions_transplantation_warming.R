@@ -29,6 +29,8 @@ library(ggplot2)
 library(gt)
 library(multcomp)
 library(multcompView)
+library(gtsummary)
+
 
 # set theme for plots ------------------------------------
 theme_set(theme_bw())
@@ -82,6 +84,26 @@ m_flower_number <- glmer.nb(max_flower_number ~ treatment_site_temp * treat_comp
                             control = glmerControl(optimizer = "bobyqa"))
 
 summary(m_flower_number)
+
+car::Anova(m_flower_number)
+
+
+tbl_regression(
+  m_flower_number,
+  exponentiate = TRUE
+)
+
+t1 <- tbl_regression(
+  m_flower_number,
+  exponentiate = TRUE) |>
+  as_gt() |>
+  tab_header(
+    title = md("**Number of flowers NOR glm.nb**"))
+t1
+#gtsave(t1, "Output/Biomass/Number_flowers_model_summary_NOR.docx")
+
+
+
 
 emm <- emmeans(m_flower_number,
         pairwise ~ treatment_site_temp * treat_competition)
@@ -405,4 +427,29 @@ flow_no2_sig
 #       plot = flow_no2_sig, width = 12, height = 9, units = "in")
 
 
+
+tab2 <- emm_contr2 |>
+  gt() |>
+  fmt_number(
+    columns = c(estimate, SE),
+    decimals = 2
+  ) |>
+  fmt_number(
+    columns = p.value,
+    decimals = 3
+  ) |>
+  cols_label(
+    contrast = "Contrast",
+    estimate = "Estimate",
+    SE = "SE",
+    p.value = "p",
+    stars = ""
+  ) |>
+  cols_hide(c(df, z.ratio)) |>
+  tab_header(
+    title = md("**Number of flowers comparisons**")
+  )
+tab2
+
+#gtsave(tab2, "Output/Biomass/Number_flowers_signif_NOR.docx")
 
