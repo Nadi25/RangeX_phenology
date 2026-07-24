@@ -64,12 +64,17 @@ phenology_bio_species <- phenology |>
 # add site_warming treatment ----------------------------------------------
 phenology_bio_species$treatment_site_temp <- paste(phenology_bio_species$site, phenology_bio_species$treat_warming, sep = "_")
 
+phenology_bio_species$treatment_site_temp <- 
+  recode(phenology_bio_species$treatment_site_temp,
+         "low_ambient" = "lo_ambi",
+         "high_ambient" = "hi_ambi",
+         "high_warmed" = "hi_warm")
 
 phenology_bio_species <- phenology_bio_species |>
   mutate(treatment_site_temp= factor(treatment_site_temp,
-                                     levels = c("low_ambient",
-                                                "high_warmed",
-                                                "high_ambient")))
+                                     levels = c("lo_ambi",
+                                                "hi_warm",
+                                                "hi_ambi")))
 
 # exclude cennig and sildio -----------------------------------------------
 # cennig is a calculation
@@ -112,47 +117,61 @@ emmeans(m_flower_number_bio,
 
 biomass_mean <- mean(
   max_flower_per_plant_bio$pred_log_biomass_species,
-  na.rm = TRUE
-)
+  na.rm = TRUE)
 biomass_mean
 
 
-emmeans(
+emm_bio <- emmeans(
   m_flower_number_bio,
   pairwise ~ treatment_site_temp * treat_competition,
   at = list(
-    pred_log_biomass_species = biomass_mean
-  ),
-  type = "response"
-)
-
+    pred_log_biomass_species = biomass_mean),
+  type = "response")
+emm_bio
 
 
 small_bio <- quantile(
   max_flower_per_plant_bio$pred_log_biomass_species,
-  0.25, na.rm = TRUE
-)
+  0.25, na.rm = TRUE)
 
 large_bio <- quantile(
   max_flower_per_plant_bio$pred_log_biomass_species,
-  0.75, na.rm = TRUE
-)
+  0.75, na.rm = TRUE)
 
 
-emmeans(
+emm_bio_small <- emmeans(
   m_flower_number_bio,
   pairwise ~ treatment_site_temp * treat_competition,
   at = list(pred_log_biomass_species = small_bio),
-  type = "response"
-)
+  type = "response")
+emm_bio_small
 
-
-emmeans(
+emm_bio_large <- emmeans(
   m_flower_number_bio,
   pairwise ~ treatment_site_temp * treat_competition,
   at = list(pred_log_biomass_species = large_bio),
-  type = "response"
-)
+  type = "response")
+emm_bio_large
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -193,7 +212,7 @@ make_predictions_bio <- function(model, data) {
   biomass_mean <- mean(data$pred_log_biomass_species, na.rm = TRUE)
   
   newdat <- expand.grid(
-    treatment_site_temp = c("low_ambient", "high_warmed", "high_ambient"),
+    treatment_site_temp = c("lo_ambi", "hi_warm", "hi_ambi"),
     treat_competition = c("with", "without"),
     pred_log_biomass_species = biomass_mean
   )|>
@@ -232,24 +251,24 @@ pred_bio2
 
 
 # rename treat info -------------------------------------------------------
-pred_bio$treatment_site_temp <- 
-  recode(pred_bio$treatment_site_temp,
-         "low_ambient" = "lo_ambi",
-         "high_ambient" = "hi_ambi",
-         "high_warmed" = "hi_warm")
-
-pred_bio2$treatment_site_temp <- 
-  recode(pred_bio$treatment_site_temp,
-         "low_ambient" = "lo_ambi",
-         "high_ambient" = "hi_ambi",
-         "high_warmed" = "hi_warm")
-
-max_flower_per_plant_bio$treatment_site_temp <- 
-  recode(max_flower_per_plant_bio$treatment_site_temp,
-         "low_ambient" = "lo_ambi",
-         "high_ambient" = "hi_ambi",
-         "high_warmed" = "hi_warm")
-
+# pred_bio$treatment_site_temp <- 
+#   recode(pred_bio$treatment_site_temp,
+#          "low_ambient" = "lo_ambi",
+#          "high_ambient" = "hi_ambi",
+#          "high_warmed" = "hi_warm")
+# 
+# pred_bio2$treatment_site_temp <- 
+#   recode(pred_bio$treatment_site_temp,
+#          "low_ambient" = "lo_ambi",
+#          "high_ambient" = "hi_ambi",
+#          "high_warmed" = "hi_warm")
+# 
+# max_flower_per_plant_bio$treatment_site_temp <- 
+#   recode(max_flower_per_plant_bio$treatment_site_temp,
+#          "low_ambient" = "lo_ambi",
+#          "high_ambient" = "hi_ambi",
+#          "high_warmed" = "hi_warm")
+# 
 
 
 # this should be new script
@@ -422,11 +441,11 @@ flow_no_bio4 <- ggplot(pred_bio, aes(
     title = "Effect of transplantation and warming on flower number adjusted for biomass interactive",
     shape = "Treatment site × warming",
     color = "Biotic interactions",
-    fill = "Biotic interactions"
-  ) +
+    fill = "Biotic interactions") +
   
   guides(shape = "none")+
-  coord_transform(y = "log1p")
+  coord_transform(y = "log1p")+
+  theme(legend.position = "bottom")
 
 flow_no_bio4
 
@@ -437,6 +456,104 @@ flow_no_bio4
 
 
 
+# plot with stars as significances ----------------------------------------
+
+emm_bio_contr <- emm_bio$contrasts |> 
+  as.data.frame()
+
+emm_bio_contr <- emm_bio_contr |> mutate(stars = case_when(p.value < 0.001 ~ "***",
+                                                   p.value < 0.01 ~ "**",
+                                                   p.value < 0.05 ~ "*",
+                                                   TRUE ~ ""))
+emm_bio_contr
+
+emm_bio_contr2 <- emm_bio_contr |> 
+  filter(contrast %in% c("lo_ambi with / lo_ambi without",
+                         "hi_warm with / hi_warm without",
+                         "hi_ambi with / hi_ambi without",
+                         "lo_ambi with / hi_ambi with",
+                         "lo_ambi without / hi_ambi without",
+                         "hi_warm with / hi_ambi with",
+                         "hi_warm without / hi_ambi without"))
+emm_bio_contr2
+
+pos_df <- tibble(
+  group = c(
+    "lo_ambi with",
+    "lo_ambi without",
+    "hi_warm with",
+    "hi_warm without",
+    "hi_ambi with",
+    "hi_ambi without"
+  ),
+  x = c(
+    0.775, 1.225,
+    1.775, 2.225,
+    2.775, 3.225
+  )
+)
+
+
+
+brackets <- emm_bio_contr2 |>
+  separate(
+    contrast,
+    into = c("group1", "group2"),
+    sep = " / "
+  )
+brackets <- brackets |>
+  left_join(pos_df, by = c("group1" = "group")) |>
+  rename(xmin = x) |>
+  left_join(pos_df, by = c("group2" = "group")) |>
+  rename(xmax = x)
+brackets
+
+
+brackets |>
+  select(group1, group2, xmin, xmax, stars)
+
+top_y <- max(flower_number_pred$upper)
+
+brackets <- brackets |>
+  mutate(
+    y = top_y + c(18, 6, 27, 6, 6, 13, 22)
+  )
+brackets
+
+theme_set(theme_bw(base_size = 20))
+
+flow_no_bio4_sig <- flow_no_bio4 +
+  geom_segment(
+    data = brackets,
+    aes(x = xmin, xend = xmax,
+        y = y, yend = y),
+    inherit.aes = FALSE
+  ) +
+  geom_segment(
+    data = brackets,
+    aes(x = xmin, xend = xmin,
+        y = y, yend = y - 0.5),
+    inherit.aes = FALSE
+  ) +
+  geom_segment(
+    data = brackets,
+    aes(x = xmax, xend = xmax,
+        y = y, yend = y - 0.5),
+    inherit.aes = FALSE
+  ) +
+  geom_text(
+    data = brackets,
+    aes(
+      x = (xmin + xmax)/2,
+      y = y + 0.5,
+      label = stars
+    ),
+    inherit.aes = FALSE)+
+  theme(plot.title = element_text(size = 15))
+flow_no_bio4_sig
+
+# ggsave(filename = "Output/Biomass/Transplantation_warming_flower_number_predictions_Biomass_NOR_glmer.nb_violin_interactive_sig.png", 
+#       plot = flow_no_bio4_sig, width = 12, height = 9, units = "in")
 
 
 
