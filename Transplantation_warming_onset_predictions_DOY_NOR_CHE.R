@@ -13,7 +13,9 @@ library(broom.mixed)
 library(emmeans)
 library(performance)
 library(see)
+library(sjPlot)
 library(gt)
+library(gtsummary)
 library(multcomp)
 library(multcompView)
 
@@ -79,6 +81,18 @@ plot_model(
 )
 
 VarCorr(m_onset_bud_nor)
+
+t <- tbl_regression(
+  m_onset_bud_nor,
+  exponentiate = TRUE) |>
+  as_gt() |>
+  tab_header(
+    title = md("**Onset DOY budding**"))
+t
+
+#gtsave(t2, "Output/Biomass/.docx")
+
+
 
 # flower
 summary(m_onset_flower_nor)
@@ -157,6 +171,103 @@ model_performance(m_onset_seed_che)
 
 emmeans(m_onset_seed_che,
         pairwise ~ treatment_site_temp * treat_competition)
+
+
+
+
+compare_performance(m_onset_bud_nor, m_onset_bud_che,
+                    m_onset_flower_nor, m_onset_flower_che) |>
+  gt()
+
+
+
+# table with summary outputs ----------------------------------------------
+tab <- bind_rows(
+  get_estimates(m_onset_bud_nor) |> filter(effect == "fixed") |> mutate(model = "Bud onset (NOR)"),
+  get_estimates(m_onset_bud_che) |> filter(effect == "fixed") |> mutate(model = "Bud onset (CHE)"),
+  get_estimates(m_onset_flower_nor) |> filter(effect == "fixed") |> mutate(model = "Flower onset (NOR)"),
+  get_estimates(m_onset_flower_che) |> filter(effect == "fixed") |> mutate(model = "Flower onset (CHE)"),
+  get_estimates(m_onset_fruit_nor) |> filter(effect == "fixed") |> mutate(model = "Fruit onset (NOR)"),
+  get_estimates(m_onset_fruit_che) |> filter(effect == "fixed") |> mutate(model = "Fruit onset (CHE)"),
+  get_estimates(m_onset_seed_nor) |> filter(effect == "fixed") |> mutate(model = "Seed onset (NOR)"),
+  get_estimates(m_onset_seed_che) |> filter(effect == "fixed") |> mutate(model = "Seed onset (CHE)")
+)
+
+tab_wide <- tab |>
+  mutate(
+    stars = case_when(
+      p.value < 0.001 ~ "***",
+      p.value < 0.01  ~ "**",
+      p.value < 0.05  ~ "*",
+      TRUE ~ ""
+    ),
+    value = sprintf("%.2f%s (%.2f)",
+                    estimate, stars, std.error)
+  ) |>
+  select(term, model, value) |>
+  pivot_wider(names_from = model, values_from = value)
+
+t1 <- tab_wide |>
+  gt()
+t1
+
+#gtsave(t1, "Output/Onset/Onset_DOY_summary_tab_NOR_CHE.docx")
+
+
+
+
+# random effects table ----------------------------------------------
+
+rand_tab <- bind_rows(
+  as.data.frame(VarCorr(m_onset_bud_nor))    |> mutate(model = "Bud onset (NOR)"),
+  as.data.frame(VarCorr(m_onset_bud_che))    |> mutate(model = "Bud onset (CHE)"),
+  as.data.frame(VarCorr(m_onset_flower_nor)) |> mutate(model = "Flower onset (NOR)"),
+  as.data.frame(VarCorr(m_onset_flower_che)) |> mutate(model = "Flower onset (CHE)"),
+  as.data.frame(VarCorr(m_onset_fruit_nor))  |> mutate(model = "Fruit onset (NOR)"),
+  as.data.frame(VarCorr(m_onset_fruit_che))  |> mutate(model = "Fruit onset (CHE)"),
+  as.data.frame(VarCorr(m_onset_seed_nor))   |> mutate(model = "Seed onset (NOR)"),
+  as.data.frame(VarCorr(m_onset_seed_che))   |> mutate(model = "Seed onset (CHE)")
+)
+rand_tab
+
+rand_wide <- rand_tab |>
+  mutate(
+    effect = paste(grp, var1),
+    value = sprintf("%.2f", sdcor)
+  ) |>
+  select(effect, model, value) |>
+  pivot_wider(names_from = model, values_from = value)
+
+
+
+
+rand_wide <- rand_tab |>
+  filter(is.na(var2)) |>
+  mutate(
+    random_effect = case_when(
+      grp == "species"   ~ paste("species", var1),
+      grp == "species.1" ~ paste("species.1", var1),
+      grp == "block_ID"  ~ paste("block_ID", var1),
+      grp == "Residual"  ~ "Residual"
+    ),
+    value = sprintf("%.2f", sdcor)
+  ) |>
+  select(random_effect, model, value) |>
+  distinct() |>
+  pivot_wider(names_from = model, values_from = value)
+
+gt(rand_wide)
+
+t2 <- rand_wide |>
+  gt()
+t2
+
+#gtsave(t2, "Output/Onset/Onset_DOY_summary_tab_random_NOR_CHE.docx")
+
+
+
+
+
 
 
 
