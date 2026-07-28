@@ -6,6 +6,7 @@
 library(conflicted)
 conflict_prefer_all("dplyr", quiet = TRUE)
 library(tidyverse)
+library(lmerTest)
 conflict_prefer_all("lmerTest", quiet = TRUE)
 library(emmeans)
 library(gt)
