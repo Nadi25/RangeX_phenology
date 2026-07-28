@@ -9,10 +9,16 @@
 library(conflicted)
 conflict_prefer_all("dplyr", quiet = TRUE)
 library(tidyverse)
+conflict_prefer_all("lmerTest", quiet = TRUE)
 library(lubridate)
 library(performance)
 library(see)
 library(emmeans)
+library(gt)
+library(gtsummary)
+library(multcomp)
+library(multcompView)
+library(modelsummary)
 
 # source script with functions --------------------------------------------
 source("Functions_onset.R")
@@ -150,6 +156,49 @@ model_performance(m_onset_seed_gdd_che)
 
 emmeans(m_onset_seed_gdd_che,
         pairwise ~ treatment_site_temp * treat_competition)
+
+
+
+
+
+
+# table with summary outputs ----------------------------------------------
+tab_gdd <- bind_rows(
+  get_estimates(m_onset_bud_gdd_nor) |> filter(effect == "fixed") |> mutate(model = "Bud onset (NOR)"),
+  get_estimates(m_onset_bud_gdd_che) |> filter(effect == "fixed") |> mutate(model = "Bud onset (CHE)"),
+  get_estimates(m_onset_flower_gdd_nor) |> filter(effect == "fixed") |> mutate(model = "Flower onset (NOR)"),
+  get_estimates(m_onset_flower_gdd_che) |> filter(effect == "fixed") |> mutate(model = "Flower onset (CHE)"),
+  get_estimates(m_onset_fruit_gdd_nor) |> filter(effect == "fixed") |> mutate(model = "Fruit onset (NOR)"),
+  get_estimates(m_onset_fruit_gdd_che) |> filter(effect == "fixed") |> mutate(model = "Fruit onset (CHE)"),
+  get_estimates(m_onset_seed_gdd_nor) |> filter(effect == "fixed") |> mutate(model = "Seed onset (NOR)"),
+  get_estimates(m_onset_seed_gdd_che) |> filter(effect == "fixed") |> mutate(model = "Seed onset (CHE)")
+)
+
+tab_wide_gdd <- tab_gdd |>
+  mutate(
+    stars = case_when(
+      p.value < 0.001 ~ "***",
+      p.value < 0.01  ~ "**",
+      p.value < 0.05  ~ "*",
+      TRUE ~ ""
+    ),
+    value = sprintf("%.2f%s (%.2f)",
+                    estimate, stars, std.error)
+  ) |>
+  select(term, model, value) |>
+  pivot_wider(names_from = model, values_from = value)
+
+t1_gdd <- tab_wide_gdd |>
+  gt()
+t1_gdd
+
+#gtsave(t1_gdd, "Output/Onset/GDD_Onset_summary_tab_NOR_CHE.docx")
+
+
+
+
+
+
 
 
 
