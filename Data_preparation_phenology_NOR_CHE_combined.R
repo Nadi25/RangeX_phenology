@@ -1,12 +1,13 @@
 
 
+# 01 Data prep phenology NOR CHE ------------------------------------------
 
 # RangeX phenology data preparation NOR and CHE ------------
 
 ## Data used: RangeX_clean_Phenology_2022_CHE.csv
 ##            RangeX_clean_phenology_2023_NOR.csv
 ##            RangeX_clean_MetadataFocal_CHE.csv
-##            RangeX_metadata_focal_NOR.csv
+##            RangeX_clean_MetadataFocal_NOR.csv
 ## Date:      14.08.25
 ## Author:    Nadine Arzt
 ## Purpose:   Combine NOR and CHE data and prepare

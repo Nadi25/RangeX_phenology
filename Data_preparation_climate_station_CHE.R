@@ -1,7 +1,14 @@
 
+# 02 Data prep climate station CHE ------------------------------------------
 
 
 # Data preparation climate station CHE ------------------------------------
+
+## Data used: RangeX_WeatherStation_CleanData_20251227_CHE.csv
+##            Data_preparation_TMS4_CHE.R
+## Date:      14.08.25
+## Author:    Nadine Arzt
+## Purpose:   Prepare cliamte station data
 
 
 # load library ------------------------------------------------------------

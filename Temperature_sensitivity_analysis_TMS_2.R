@@ -283,6 +283,7 @@ temp_all
 # add combined treatment
 temp_all$treatment_site_temp <- paste(temp_all$site, temp_all$treat_warming, sep = "_")
 
+
 # plot
 ggplot(temp_all,
        aes(x = stage,
@@ -458,13 +459,18 @@ temp_all |>
 
 
 
-
+temp_all <- temp_all |> 
+  mutate(stage = recode(stage,
+  "budding" = "Budding",
+  "flowering" = "Flowering",
+  "fruiting" = "Fruiting",
+  "seeds" = "Seeds")) |> 
+  select(-site)
 
 temp_tab <- temp_all |>
   select(
     stage,
     region,
-    site,
     treatment_site_temp,
     treat_competition,
     mean_temp
@@ -475,7 +481,6 @@ temp_tab <- temp_all |>
   ) |>
   cols_label(
     region = "Region",
-    site = "Site",
     treatment_site_temp = "Site temp treatment",
     treat_competition = "Biotic interactions",
     mean_temp = "Mean temperature (°C)"
@@ -487,14 +492,13 @@ temp_tab <- temp_all |>
   cols_align(
     align = "center",
     columns = c(
-      site,
       treatment_site_temp,
       treat_competition,
       mean_temp
     )
   ) |>
   tab_header(
-    title = md("**Mean temperatures by treatment**"),
+    title = md("**Mean temperatures by stage and treatment**"),
     subtitle = "Average temperatures for each region, stage and treatment combination"
   ) |>
   opt_table_font(
@@ -507,11 +511,54 @@ temp_tab <- temp_all |>
     table.font.size = px(13),
     heading.title.font.size = px(18),
     row_group.font.weight = "bold",
-    row_group.background.color = "grey95",
+    #row_group.background.color = "grey95",
     data_row.padding = px(5)
   )
 
 temp_tab
+
+
+
+temp_tab <- temp_all |>
+  select(
+    stage,
+    region,
+    treatment_site_temp,
+    treat_competition,
+    mean_temp
+  ) |>
+  tidyr::pivot_wider(
+    names_from = region,
+    values_from = mean_temp
+  ) |>
+  arrange(stage, treatment_site_temp, treat_competition) |>
+  gt(
+    groupname_col = "stage"
+  ) |>
+  cols_label(
+    treatment_site_temp = "Site temp treatment",
+    treat_competition = "Biotic interactions",
+    Norway = "Norway (°C)",
+    Switzerland = "Switzerland (°C)"
+  ) |>
+  fmt_number(
+    columns = c(Norway, Switzerland),
+    decimals = 1
+  ) |> 
+  tab_header(
+    title = md("**Mean temperatures by stage and treatment**")) 
+temp_tab
+
+
+#gtsave(temp_tab, "Output/Sensitivity/Mean_temp_stage_NOR_CHE.docx")
+
+
+
+
+
+
+
+
 
 
 # calculate mean onset per species and individual for all stages ----------------

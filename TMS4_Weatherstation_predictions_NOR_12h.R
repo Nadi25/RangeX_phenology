@@ -1,4 +1,6 @@
 
+# 05 Data prep TMS4 NOR ------------------------------------------
+
 
 # 12 h - only daytime -----------------------------------------------------
 
@@ -11,12 +13,13 @@
 
 ## Data used: Data/Data_tomst_loggers/tomst_2023/,
 ##            tomst_plot_codes_2023.csv,
+## Script:    Data_preparation_climate_station_NOR.R
 ##            RangeX_clean_MetadataPlot_NOR.csv
 ## Date:      19.06.2026
 ## Author:    Nadine Arzt
 ## Purpose:   Predict tms data for the beginning of the year with weather station data
 ##            Make one dataset with used daily mean per treatment
-##            Calculate GDD, tbase = 2
+##            Calculate GDD, tbase = 5, only daytime is considered (8-20)
 
 
 

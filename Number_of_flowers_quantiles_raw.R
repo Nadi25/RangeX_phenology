@@ -71,7 +71,7 @@ phenology_median_quant <- phenology_median_quant |>
                                       "hi_ambi" = "high ambient",
                                       "hi_warm" = "high warmed")) |> 
   mutate(treatment_site_temp = factor(treatment_site_temp, 
-                                      levels = c("low ambient", "high warmed", "high ambient"))) |> 
+                                      levels = c("high ambient", "high warmed", "low ambient"))) |> 
   mutate(phenology_stage = recode(phenology_stage,
                                   "No_Buds" = "Buds",
                                   "No_FloOpen" = "Flowers",

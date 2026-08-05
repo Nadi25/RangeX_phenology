@@ -1,4 +1,6 @@
 
+# 03 Data prep TMS4 CHE ------------------------------------------
+
 # 12h - only daytime ------------------------------------------------
 
 # Data preparation tomst CHE ------------------------------------
@@ -11,7 +13,7 @@
 ## Date:      19.06.2026
 ## Author:    Nadine Arzt
 ## Purpose:   Make one dataset with used daily mean per treatment
-##            Calculate GDD, tbase = 2
+##            Calculate GDD, tbase = 5, only daytime is considered (8-20)
 
 
 # load library ------------------------------------------------------------
