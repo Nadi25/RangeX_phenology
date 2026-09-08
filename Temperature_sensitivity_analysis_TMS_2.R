@@ -1280,7 +1280,7 @@ ts_hl_aw3 <- ggplot(
   facet_grid(region ~ type, scales = "free") +
   labs(
     y = "Temperature sensitivity (days / °C)",
-    x = "Temperature shift",
+    x = "Stage",
     title = "Temperature sensitivity 12h daily mean per stage",
     color = "Biotic interactions"
   ) +
@@ -1314,6 +1314,8 @@ ts_hl_aw3
 
 
 # Plot final temp sens jday -----------------------------------------------
+theme_set(theme_bw(base_size = 20))
+
 ts_hl_aw_sig3 <- ts_hl_aw3 +
   
   # horizontal line
