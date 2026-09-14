@@ -584,7 +584,7 @@ label_data_combined <- bind_rows(
 )
 
 
-theme_set(theme_bw(base_size = 20))
+theme_set(theme_bw(base_size = 30))
 
 temp_sens_flo_comb <- ggplot(
   temp_sens_combined,
@@ -635,7 +635,7 @@ temp_sens_flo_comb <- ggplot(
 temp_sens_flo_comb
 
 
-# ggsave(filename = "Output/Sensitivity/Temperature_sensitivity_TMS_hi_lo_ambi_warm_flowering_species_12h2.png", 
+# ggsave(filename = "Output/Sensitivity/Temperature_sensitivity_TMS_hi_lo_ambi_warm_flowering_species_12h3.png", 
 #        plot = temp_sens_flo_comb,
 #        width = 18, height = 15, units = "in")
 
