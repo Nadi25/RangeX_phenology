@@ -30,7 +30,7 @@ library(lubridate)
 library(multcomp)
 library(multcompView)
 library(gt)
-
+library(patchwork)
 
 
 # source the phenology data -----------------------------------------------
@@ -597,4 +597,39 @@ t2
 
 
 
+# combine figure of max flower with adjusted for biomass ------------------
+# read script Flower_number_predictions_transplantation_warming.R
+combined_flow <- flow_no2_sig +
+  flow_no_bio4_sig +
+  plot_annotation(
+    tag_levels = "A"   # gives A, B labels
+  )
+
+combined_flow
+
+
+
+flow_no_bio4_sig <- flow_no_bio4_sig +
+  theme(legend.position = "none")
+
+combined_flow <- (
+  flow_no2_sig +
+    labs(title = NULL)
+) +
+  (
+    flow_no_bio4_sig +
+      labs(
+        title = NULL,
+        y = NULL
+      ) 
+  ) +
+  plot_annotation(tag_levels = "A") &
+  theme(
+    plot.tag = element_text(size = 18, face = "bold")
+  )
+
+combined_flow
+
+# ggsave(filename = "Output/Biomass/Transplantation_warming_flower_number_predictions_Biomass_NOR_glmer.nb_violin_interactive_sig_combined.png", 
+#      plot = combined_flow, width = 16, height = 9, units = "in")
 
