@@ -761,6 +761,70 @@ delta_temp_hl_aw
 #       plot = delta_temp_hl_aw, width = 14, height = 8, units = "in")
 
 
+
+
+pd <- position_dodge(width = 0.4)
+
+delta_temp_hl_aw2 <- ggplot(
+  delta_stage_combined,
+  aes(
+    x = stage,
+    y = delta_T,
+    color = treat_competition,
+    shape = stage
+  )
+) +
+  geom_point(
+    size = 3,
+    position = pd
+  ) +
+  facet_grid(region ~ type) +
+  geom_hline(
+    yintercept = 0,
+    linetype = "dashed"
+  ) +
+  scale_color_manual(
+    values = c(
+      "with" = "#528B8B",
+      "without" = "#CD950C"
+    )
+  ) +
+  labs(
+    title = "Temperature difference during each stage",
+    x = "Stage",
+    y = "Delta temperature (°C)",
+    color = "Biotic interactions"
+  ) +
+  theme(
+    legend.position = "bottom"
+  ) +
+  guides(shape = "none")
+delta_temp_hl_aw2
+
+delta_temp_hl_aw2 <- delta_temp_hl_aw2 +
+  geom_text_repel(
+    aes(label = round(delta_T, 1)),
+    size = 3,
+    show.legend = FALSE,
+    position = pd
+  )
+delta_temp_hl_aw2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 t <- bind_rows(
   mutate(delta_temp_stage_hi, type = "Warm ambient"),
   mutate(delta_temp_stage_ambi, type = "Low high")
@@ -1285,5 +1349,80 @@ delta_temp
 
 # ggsave(filename = "Output/Temperature/Delta_temperature_stages_NOR_CHE_12h.png", 
 #       plot = delta_temp, width = 14, height = 8, units = "in")
+
+
+
+
+# final plot with stage on x axis and transplant vs warm as panels --------
+
+delta_stage_combined <- delta_stage_combined |> 
+  mutate(sign = ifelse(is.na(stars)| stars == "", "no","yes"))
+
+delta_stage_combined <- delta_stage_combined |>
+  mutate(
+    sign_group = ifelse(sign == "yes", treat_competition, "no"))
+delta_stage_combined
+
+theme_set(theme_bw(base_size = 20))
+
+delta_temp2 <- ggplot(
+  delta_stage_combined,
+  aes(
+    x = stage,
+    y = delta_T,
+    color = treat_competition,
+    shape = stage,
+    fill = sign_group
+  )
+) +
+  geom_point(
+    size = 4,
+    position = pd
+  ) +
+  facet_grid(region ~ type) +
+  geom_hline(
+    yintercept = 0,
+    linetype = "dashed"
+  ) +
+  scale_color_manual(
+    values = c(
+      "with" = "#528B8B",
+      "without" = "#CD950C"
+    )
+  ) +
+  scale_fill_manual(values = c("with" = "#528B8B",
+                               "without" = "#CD950C",
+                               "no" = "white"))+
+  guides(shape = "none",
+         fill = "none")+
+  labs(
+    title = "Temperature difference during each stage 12h",
+    x = "Stage",
+    y = "Delta temperature (°C)",
+    color = "Biotic interactions"
+  ) +
+  theme(
+    legend.position = "bottom"
+  ) +
+  geom_text_repel(
+    aes(label = round(delta_T, 2)),
+    size = 4,
+    position = pd,
+    show.legend = FALSE
+  )+
+  scale_shape_manual(values = c(
+    "Budding" = 21,
+    "Flowering" = 22,
+    "Fruiting" = 23,
+    "Seeds" = 24))
+delta_temp2
+
+# ggsave(filename = "Output/Temperature/Delta_temperature_stages_NOR_CHE_12h2.png", 
+#       plot = delta_temp2, width = 15, height = 10, units = "in")
+
+
+
+
+
 
 
