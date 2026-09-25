@@ -1363,7 +1363,7 @@ delta_stage_combined <- delta_stage_combined |>
     sign_group = ifelse(sign == "yes", treat_competition, "no"))
 delta_stage_combined
 
-theme_set(theme_bw(base_size = 20))
+theme_set(theme_bw(base_size = 22))
 
 delta_temp2 <- ggplot(
   delta_stage_combined,
@@ -1376,7 +1376,7 @@ delta_temp2 <- ggplot(
   )
 ) +
   geom_point(
-    size = 4,
+    size = 6,
     position = pd
   ) +
   facet_grid(region ~ type) +
@@ -1408,7 +1408,9 @@ delta_temp2 <- ggplot(
     aes(label = round(delta_T, 2)),
     size = 4,
     position = pd,
-    show.legend = FALSE
+    show.legend = FALSE,
+    box.padding = 0.5,
+    point.padding = 0.5
   )+
   scale_shape_manual(values = c(
     "Budding" = 21,
