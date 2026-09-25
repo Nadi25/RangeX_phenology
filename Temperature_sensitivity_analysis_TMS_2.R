@@ -1405,7 +1405,7 @@ tab_all
 
 
 
-gt(tab_all) |>
+ts_tab_doy <- gt(tab_all) |>
   fmt_number(
     columns = c(
       slope,
@@ -1434,6 +1434,9 @@ gt(tab_all) |>
     slope_stars = "Slope sig.",
     p_difference = "P(with vs without)",
     difference_stars = "Difference sig.")
+ts_tab_doy
+
+#gtsave(ts_tab_doy, "Output/Sensitivity/Temp_sens_DOY_NOR_CHE.docx")
 
 
 
