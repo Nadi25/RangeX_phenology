@@ -6,7 +6,7 @@
 # load library ------------------------------------------------------------
 library(lme4)
 library(ggeffects)
-library(broom.mixed)
+#library(broom.mixed)
 library(emmeans)
 library(lubridate)
 library(ggplot2)
@@ -118,7 +118,35 @@ ggplot(phenology_clean_median_quant_leuvul, aes(x = date_measurement)) +
   scale_fill_manual(values = c("#00BB00FF", "#500050FF", "#FFBBFFFF")) +
   theme(legend.position = "top")
 
+leuvul <- ggplot(phenology_clean_median_quant_leuvul, aes(x = date_measurement)) +
+  geom_line(aes(y = median, color = phenology_stage)) +
+  geom_ribbon(
+    aes(y = median, ymin = lo, ymax = hi, fill = phenology_stage),
+    alpha = 0.5
+  ) +
+  facet_grid(
+    rows = vars(treatment_site_temp),
+    cols = vars(treat_competition)
+  ) +
+  labs(
+    y = "Median +/- quantiles",
+    x = NULL,
+    #title = species_title,
+    fill = "Phenology stage"
+  ) +
+  scale_color_manual(
+    values = c("#00BB00FF", "#500050FF", "#FFBBFFFF")
+  ) +
+  scale_fill_manual(
+    values = c("#00BB00FF", "#500050FF", "#FFBBFFFF")
+  ) +
+  theme(legend.position = "bottom")+
+  guides(color = "none")
+leuvul
 
+# ggsave(filename = "Output/Number_flowers/Leuvul_presentation.png", 
+#       plot = leuvul,
+#       width = 14, height = 9, units = "in")
 
 
 
@@ -244,44 +272,63 @@ for (sp in names(species_names)) {
 }
 
 
-# Median for all species together -----------------------------------------
-community_summary <- phenology_count_nor |>
-  group_by(
-    date_measurement,
-    treatment_site_temp,
-    treat_competition,
-    phenology_stage
-  ) |>
-  summarise(
-    median = median(value, na.rm = TRUE),
-    lo = quantile(value, 0.1, na.rm = TRUE),
-    hi = quantile(value, 0.9, na.rm = TRUE),
-    .groups = "drop"
-  )
 
-ggplot(
-  community_summary,
-  aes(x = date_measurement)
-) +
-  geom_line(
-    aes(y = median, colour = phenology_stage)
-  ) +
-  geom_ribbon(
-    aes(
-      ymin = lo,
-      ymax = hi,
-      fill = phenology_stage
-    ),
-    alpha = 0.4
-  ) +
-  facet_grid(
-    rows = vars(treatment_site_temp),
-    cols = vars(treat_competition)
-  ) +
-  labs(
-    y = "Median count",
-    x = "",
-    title = "Community-level phenology"
-  )
+# make smoother plot for leuvul coneptual figure --------------------------
+
+plot_phenology_species2 <- function(data, species_name, species_title) {
+  
+  # Smooth the data before plotting
+  data_smooth <- data |>
+    filter(species == species_name) |>
+    group_by(treatment_site_temp, treat_competition, phenology_stage) |>
+    
+    # creates 200 new dates
+    group_modify(~ {
+      x <- as.numeric(.x$date_measurement)
+      x_new <- seq(min(x), max(x), length.out = 200)
+      
+      tibble(
+        date_measurement = as.Date(x_new, origin = "1970-01-01"),
+        median = splinefun(x, .x$median, method = "monoH.FC")(x_new),
+        lo = splinefun(x, .x$lo, method = "monoH.FC")(x_new),
+        hi = splinefun(x, .x$hi, method = "monoH.FC")(x_new))
+    }) |>
+    ungroup()
+  
+  # Plot
+  data_smooth |>
+    ggplot(aes(x = date_measurement)) +
+    geom_line(aes(y = median, color = phenology_stage),
+              linewidth = 2) +
+    geom_ribbon(
+      aes(ymin = lo, ymax = hi, fill = phenology_stage),
+      alpha = 0.5) +
+    facet_grid(
+      rows = vars(treatment_site_temp),
+      cols = vars(treat_competition)) +
+    labs(
+      y = "Median number of reproductive structures",
+      x = NULL,
+      title = species_title,
+      fill = "Phenology stage") +
+    scale_color_manual(
+      values = c("#00BB00FF", "#500050FF", "#FFBBFFFF")) +
+    scale_fill_manual(
+      values = c("#00BB00FF", "#500050FF", "#FFBBFFFF")) +
+    theme(legend.position = "bottom") +
+    guides(color = "none")
+}
+
+p_leuvul2 <- plot_phenology_species2(
+  phenology_median_quant,
+  "leuvul",
+  "Leucanthemum vulgare")
+p_leuvul2
+
+
+# ggsave(filename = "Output/Number_flowers/Leuvul_conceptual.png", 
+#       plot = p_leuvul2,
+#       width = 11, height = 10)
+
 
 
