@@ -34,6 +34,7 @@ library(sjPlot)
 library(lattice)
 library(gt)
 
+
 theme_set(theme_bw(base_size = 20))
 
 
@@ -1264,19 +1265,20 @@ ts_hl_aw3 <- ggplot(
     color = treat_competition,
     shape = stage,
     fill = sign_group,
-    #alpha = slope_stars != ""
   )
 ) +
-  geom_point(
-    size = 4,
-    position = pd
-  ) +
   geom_errorbar(
     aes(ymin = lower.CL, ymax = upper.CL),
     width = 0.1,
     position = pd
   ) +
-  geom_hline(yintercept = 0, linetype = "dashed") +
+  geom_point(
+    size = 3,
+    position = pd
+  ) +
+  
+  geom_hline(yintercept = 0, linetype = "dashed",
+             color = "grey66") +
   facet_grid(region ~ type, scales = "free") +
   labs(
     y = "Temperature sensitivity (days / °C)",
@@ -1290,18 +1292,11 @@ ts_hl_aw3 <- ggplot(
       "without" = "#CD950C"
     )
   ) +
-  # scale_alpha_manual(
-  #   values = c(
-  #     "TRUE" = 1,
-  #     "FALSE" = 0.3
-  #   ),
-  #   guide = "none"
-  # ) +
   scale_shape_manual(values = c(
     "Budding" = 21,
-    "Flowering" = 22,
-    "Fruiting" = 23,
-    "Seeds" = 24))+
+    "Flowering" = 21,
+    "Fruiting" = 21,
+    "Seeds" = 21))+
   scale_fill_manual(values = c("1" = "#528B8B",
                                "2" = "#CD950C",
                                "no" = "white"))+
@@ -1318,7 +1313,8 @@ ts_hl_aw3
 
 
 # Plot final temp sens jday -----------------------------------------------
-theme_set(theme_bw(base_size = 20))
+#theme_set(theme_bw(base_size = 20))
+theme_set(theme_bw(base_size = 10))
 
 ts_hl_aw_sig3 <- ts_hl_aw3 +
   
@@ -1367,13 +1363,18 @@ ts_hl_aw_sig3 <- ts_hl_aw3 +
       label = stars
     ),
     inherit.aes = FALSE,
-    size = 5
+    size = 3
   )
 ts_hl_aw_sig3
 
-# ggsave(filename = "Output/Sensitivity/Temperature_sensitivity_TMS_hi_lo_ambi_warm_signif_NOR_CHE_12h_2.png", 
+
+ts_hl_aw_sig3 <- ts_hl_aw_sig3+
+  theme(plot.title = element_blank()) # remove title
+ts_hl_aw_sig3
+
+# ggsave(filename = "Output/Sensitivity/Figures_for_manuscript/Temperature_sensitivity_days_hi_lo_ambi_warm_signif_NOR_CHE_12h.png", 
 #       plot = ts_hl_aw_sig3,
-#       width = 15, height = 10, units = "in")
+#       width = 18, height = 12, units = "cm", dpi = 600)
 
 
 
