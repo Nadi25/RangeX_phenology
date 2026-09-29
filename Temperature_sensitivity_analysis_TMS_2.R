@@ -1273,7 +1273,7 @@ ts_hl_aw3 <- ggplot(
     position = pd
   ) +
   geom_point(
-    size = 3,
+    size = 2.5,
     position = pd
   ) +
   
@@ -1783,7 +1783,6 @@ sens_all_gdd_aw$type <- "warmed-ambient"
 
 sens_combined_gdd <- bind_rows(sens_all_gdd_lh, sens_all_gdd_aw)
 
-pd <- position_dodge(width = 0.4)
 
 ts_hl_aw_gdd <- ggplot(
   sens_combined_gdd,
@@ -1995,6 +1994,8 @@ sens_combined_gdd <- sens_combined_gdd |>
     sign_group = ifelse(sign == "yes", treat_competition, "no"))
 sens_combined_gdd
 
+pd <- position_dodge(width = 0.4)
+
 ts_hl_aw_gdd3 <- ggplot(
   sens_combined_gdd,
   aes(
@@ -2002,52 +2003,39 @@ ts_hl_aw_gdd3 <- ggplot(
     y = Tmean.trend,
     color = treat_competition,
     shape = stage,
-    fill = sign_group,
-    #alpha = slope_stars != ""
-  )
-) +
-  geom_point(
-    size = 4,
-    position = pd
-  ) +
+    fill = sign_group)) +
   geom_errorbar(
     aes(ymin = lower.CL, ymax = upper.CL),
     width = 0.1,
-    position = pd
-  ) +
-  geom_hline(yintercept = 0, linetype = "dashed") +
+    position = pd) +
+  geom_point(
+    size = 2.5,
+    position = pd) +
+  geom_hline(yintercept = 0, linetype = "dashed",
+             color = "grey66") +
   facet_grid(region ~ type, scales = "free") +
   labs(
     y = "Temperature sensitivity (GDD5 / °C)",
     x = "Stage",
     title = "Temperature sensitivity 12h daily mean per stage",
-    color = "Biotic interactions"
-  ) +
+    color = "Biotic interactions") +
   scale_color_manual(
     values = c(
       "with" = "#528B8B",
-      "without" = "#CD950C"
-    )
-  ) +
-  # scale_alpha_manual(
-  #   values = c(
-  #     "TRUE" = 1,
-  #     "FALSE" = 0.3
-  #   ),
-  #   guide = "none"
-  # ) +
+      "without" = "#CD950C")) +
   scale_shape_manual(values = c(
     "Budding" = 21,
-    "Flowering" = 22,
-    "Fruiting" = 23,
-    "Seeds" = 24))+
+    "Flowering" = 21,
+    "Fruiting" = 21,
+    "Seeds" = 21))+
   scale_fill_manual(values = c("1" = "#528B8B",
                                "2" = "#CD950C",
                                "no" = "white"))+
   guides(shape = "none",
          fill = "none") +
   theme(
-    legend.position = "bottom")
+    legend.position = "bottom",
+    plot.title = element_blank())
 
 ts_hl_aw_gdd3
 
@@ -2056,7 +2044,7 @@ ts_hl_aw_gdd3
 #       width = 15, height = 10, units = "in")
 
 # Plot final temp sens jday -----------------------------------------------
-theme_set(theme_bw(base_size = 20))
+theme_set(theme_bw(base_size = 10))
 
 ts_hl_aw_sig_gdd3 <- ts_hl_aw_gdd3 +
   
@@ -2067,10 +2055,8 @@ ts_hl_aw_sig_gdd3 <- ts_hl_aw_gdd3 +
       x = xmin,
       xend = xmax,
       y = y_bracket,
-      yend = y_bracket
-    ),
-    inherit.aes = FALSE
-  ) +
+      yend = y_bracket),
+    inherit.aes = FALSE) +
   
   # left tick
   geom_segment(
@@ -2079,10 +2065,8 @@ ts_hl_aw_sig_gdd3 <- ts_hl_aw_gdd3 +
       x = xmin,
       xend = xmin,
       y = y_bracket,
-      yend = y_bracket - 0.3
-    ),
-    inherit.aes = FALSE
-  ) +
+      yend = y_bracket - 0.3),
+    inherit.aes = FALSE) +
   
   # right tick
   geom_segment(
@@ -2093,8 +2077,7 @@ ts_hl_aw_sig_gdd3 <- ts_hl_aw_gdd3 +
       y = y_bracket,
       yend = y_bracket - 0.3
     ),
-    inherit.aes = FALSE
-  ) +
+    inherit.aes = FALSE) +
   
   # significance text
   geom_text(
@@ -2105,13 +2088,12 @@ ts_hl_aw_sig_gdd3 <- ts_hl_aw_gdd3 +
       label = stars
     ),
     inherit.aes = FALSE,
-    size = 5
-  )
+    size = 3)
 ts_hl_aw_sig_gdd3
 
-# ggsave(filename = "Output/Sensitivity/Temperature_sensitivity_TMS_hi_lo_ambi_warm_GDD5_NOR_CHE_12h_2.png", 
-#       plot = ts_hl_aw_sig_gdd3,
-#       width = 15, height = 10, units = "in")
+# ggsave(filename = "Output/Sensitivity/Figures_for_manuscript/Temperature_sensitivity_GDD5_hi_lo_ambi_warm_signif_NOR_CHE_12h.png", 
+#        plot = ts_hl_aw_sig_gdd3,
+#        width = 18, height = 12, units = "cm", dpi = 600)
 
 
 
