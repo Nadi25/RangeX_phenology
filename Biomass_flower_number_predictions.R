@@ -514,7 +514,7 @@ brackets
 brackets |>
   select(group1, group2, xmin, xmax, stars)
 
-top_y <- max(flower_number_pred$upper)
+top_y <- max(pred_bio2$upper)
 
 brackets <- brackets |>
   mutate(
@@ -597,6 +597,114 @@ t2
 
 
 
+
+
+
+# figure for manuscript ---------------------------------------------------
+# with jitter instead of violins for raw data
+
+pred_bio <- pred_bio |>
+  mutate(
+    point_fill = case_when(
+      treatment_site_temp == "hi_warm" ~ "white",
+      treat_competition == "with" ~ "#528B8B",
+      treat_competition == "without" ~ "#CD950C"))
+
+pd <- position_dodge(width = 0.7) 
+
+theme_set(theme_bw(base_size = 8))
+
+flow_no_bio5 <- ggplot(pred_bio, aes(
+  x = treatment_site_temp,
+  y = fit,
+  color = treat_competition,
+  shape = treatment_site_temp)) +
+  
+  # distribution of raw data
+  geom_jitter(
+    data = max_flower_per_plant_bio,
+    aes(
+      x = treatment_site_temp,
+      y = max_flower_number,
+      color = treat_competition),
+    position = position_jitterdodge(dodge.width = 0.7, jitter.width = 0.25),
+    alpha = 0.14) +
+  
+  # model estimates
+  geom_errorbar(
+    aes(ymin = lower, ymax = upper),
+    width = 0.15,
+    position = pd) +
+  geom_point(position = pd, size = 2.5, stroke = 0.8,
+             aes(fill = point_fill)) +
+  
+  scale_color_manual(values = c("#528B8B", "#CD950C")) +
+  scale_fill_manual(values = c("#528B8B", "#CD950C", "white")) +
+  
+  scale_shape_manual(
+    values = c(
+      "lo_ambi" = 16,
+      "hi_ambi" = 17,
+      "hi_warm" = 24)) +
+  scale_x_discrete(
+    labels = c(
+      "lo_ambi" = "low ambient",
+      "hi_ambi" = "high ambient",
+      "hi_warm" = "high warmed"))+
+  labs(
+    x = "Site temperature treatment",
+    y = "Log (max flower number)",
+    title = "Effect of transplantation and warming on flower number adjusted for biomass interactive",
+    shape = "Treatment site × warming",
+    color = "Biotic interactions") +
+  
+  guides(shape = "none",
+         fill = "none")+
+  coord_transform(y = "log1p")+
+  theme(legend.position = "bottom",
+        plot.title = element_blank())
+flow_no_bio5
+
+
+flow_no_bio5_sig <- flow_no_bio5 +
+  geom_segment(
+    data = brackets,
+    aes(x = xmin, xend = xmax,
+        y = y, yend = y),
+    inherit.aes = FALSE
+  ) +
+  geom_segment(
+    data = brackets,
+    aes(x = xmin, xend = xmin,
+        y = y, yend = y - 0.5),
+    inherit.aes = FALSE
+  ) +
+  geom_segment(
+    data = brackets,
+    aes(x = xmax, xend = xmax,
+        y = y, yend = y - 0.5),
+    inherit.aes = FALSE
+  ) +
+  geom_text(
+    data = brackets,
+    aes(
+      x = (xmin + xmax)/2,
+      y = y + 0.5,
+      label = stars
+    ),
+    inherit.aes = FALSE)
+flow_no_bio5_sig
+
+# ggsave(filename = "Output/Biomass/Figures_for_manuscript/Flower_number_adj_biomass_NOR.png", 
+#        plot = flow_no_bio5_sig,
+#        width = 9, height = 8, units = "cm", dpi = 600)
+
+
+
+
+
+
+# probably delete ---------------------------------------------------------
 # combine figure of max flower with adjusted for biomass ------------------
 # read script Flower_number_predictions_transplantation_warming.R
 combined_flow <- flow_no2_sig +
@@ -632,4 +740,5 @@ combined_flow
 
 # ggsave(filename = "Output/Biomass/Transplantation_warming_flower_number_predictions_Biomass_NOR_glmer.nb_violin_interactive_sig_combined.png", 
 #      plot = combined_flow, width = 16, height = 9, units = "in")
+
 
