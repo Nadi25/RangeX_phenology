@@ -163,6 +163,18 @@ define_colors <- c(
   "low ambient without" = lighten("grey34", 0.7))
 
 
+gdd_nor_che <- gdd_nor_che |>
+  mutate(treatment_site_temp_comp = factor(
+      treatment_site_temp_comp,
+      levels = c(
+        "high ambient without",
+        "high ambient with",
+        "high warmed without",
+        "high warmed with",
+        "low ambient without",
+        "low ambient with")))
+
+
 theme_set(theme_bw(base_size = 10))
 
 doy_gdd3 <- ggplot(
@@ -173,7 +185,7 @@ doy_gdd3 <- ggplot(
     color = treatment_site_temp_comp,
     linetype = predicted,
     group = interaction(treatment_site_temp_comp, segment))) +
-  geom_line(linewidth = 0.8) +
+  geom_line(linewidth = 0.75) +
   facet_grid(~region) +
   scale_color_manual(values = define_colors)+
   labs(
@@ -195,7 +207,7 @@ doy_gdd3 <- ggplot(
   theme(legend.position = c(0.15, 0.75),
         legend.background = element_rect(
           fill = alpha("white", 0.7),
-          colour = NA),
+          colour = "NA"),
         legend.title = element_text(size = 8),
         legend.text = element_text(size = 7),
         legend.key.height = unit(0.4, "cm"),
