@@ -140,3 +140,75 @@ gdd2
 
 
 
+
+
+# rename treatments -------------------------------------------------------
+
+gdd_nor_che <- gdd_nor_che |>
+  mutate(treatment_site_temp_comp = recode(
+      treatment_site_temp_comp,
+      "hi_ambi_bare" = "high ambient without",
+      "hi_ambi_vege" = "high ambient with",
+      "hi_warm_bare" = "high warmed without",
+      "hi_warm_vege" = "high warmed with",
+      "lo_ambi_bare" = "low ambient without",
+      "lo_ambi_vege" = "low ambient with"))
+
+define_colors <- c(
+  "high ambient with" = "turquoise4",
+  "high ambient without" = lighten("turquoise4", 0.7),
+  "high warmed with" = "darkred",
+  "high warmed without" = lighten("darkred", 0.7),
+  "low ambient with" = "grey34",
+  "low ambient without" = lighten("grey34", 0.7))
+
+
+theme_set(theme_bw(base_size = 10))
+
+doy_gdd3 <- ggplot(
+  gdd_nor_che,
+  aes(
+    jday,
+    GDD_cum,
+    color = treatment_site_temp_comp,
+    linetype = predicted,
+    group = interaction(treatment_site_temp_comp, segment))) +
+  geom_line(linewidth = 0.8) +
+  facet_grid(~region) +
+  scale_color_manual(values = define_colors)+
+  labs(
+    x = "Day of year (DOY)",
+    y = "Cumulative temperature (GDD5)",
+    color = "Treatment",
+    title = "Norway and Switzerland cumulative GDD 12h")+
+  
+  scale_linetype_manual(
+    name = "Temperature data",
+    values = c(
+      "FALSE" = "solid",
+      "TRUE" = "dotted"),
+    labels = c(
+      "FALSE" = "measured",
+      "TRUE" = "(partly) predicted"))+
+  theme(plot.title = element_blank())+
+  
+  theme(legend.position = c(0.15, 0.75),
+        legend.background = element_rect(
+          fill = alpha("white", 0.7),
+          colour = NA),
+        legend.title = element_text(size = 8),
+        legend.text = element_text(size = 7),
+        legend.key.height = unit(0.4, "cm"),
+        legend.key.width = unit(0.6, "cm"),
+        legend.spacing.y = unit(0.05, "cm"),
+        legend.margin = margin(2, 2, 2, 2))
+doy_gdd3
+
+# ggsave(filename = "Output/Temperature/Figures_for_manuscript/DOY_GDD5_TMS4_NOR_CHE_12h.png", 
+#       plot = doy_gdd3, width = 18, height = 12, units = "cm", dpi = 600)
+
+
+
+
+
+
