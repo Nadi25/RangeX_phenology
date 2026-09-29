@@ -584,7 +584,7 @@ label_data_combined <- bind_rows(
 )
 
 
-theme_set(theme_bw(base_size = 30))
+theme_set(theme_bw(base_size = 10))
 
 temp_sens_flo_comb <- ggplot(
   temp_sens_combined,
@@ -593,51 +593,51 @@ temp_sens_flo_comb <- ggplot(
     y = Tmean.trend,
     color = species,
     group = species,
-    shape = flowering_time
-  )
-) +
+    shape = flowering_time,
+    fill = flowering_time)) +
   geom_pointrange(
     aes(
       ymin = lower.CL,
-      ymax = upper.CL
-    ),
+      ymax = upper.CL),
     position = pd,
-    linewidth = 0.5
-  ) +
+    linewidth = 0.3) +
   geom_line(
     position = pd,
-    linewidth = 0.8
-  ) +
+    linewidth = 0.8) +
   geom_text_repel(
     data = label_data_combined,
     aes(label = species),
-    size = 7,
+    size = 2.8,
     segment.color = NA,
     show.legend = FALSE,
-    max.overlaps = Inf
-  ) +
-  geom_hline(yintercept = 0, linetype = "dashed") +
+    max.overlaps = Inf) +
+  geom_hline(yintercept = 0, linetype = "dashed",
+             color = "grey66") +
   scale_shape_manual(
     values = c(
-      "early" = 1,
-      "late" = 18
-    )
-  ) +
+      "early" = 21,
+      "late" = 18)) +
+  scale_fill_manual(
+    values = c(
+      "early" = "white",
+      "late" = "grey")) +
   facet_grid(region~ comparison, scales = "free") +
-  guides(color = "none") +
+  guides(color = "none",
+         fill = "none") +
   labs(
     y = "Temperature sensitivity (days / °C)",
     x = "Biotic interactions",
     title = "Temperature sensitivity flowering per species hi vs lo and ambi vs warm 12h",
-    shape = "Flowering time"
-  ) +
-  theme(legend.position = "bottom")
+    shape = "Flowering time") +
+  theme(legend.position = "bottom",
+        plot.title = element_blank())
+
 temp_sens_flo_comb
 
 
-# ggsave(filename = "Output/Sensitivity/Temperature_sensitivity_TMS_hi_lo_ambi_warm_flowering_species_12h3.png", 
+# ggsave(filename = "Output/Sensitivity/Figures_for_manuscript/Temperature_sensitivity_DOY_hi_lo_ambi_warm_flowering_species_12h.png", 
 #        plot = temp_sens_flo_comb,
-#        width = 18, height = 15, units = "in")
+#        width = 18, height = 15, units = "cm", dpi = 600)
 
 
 
