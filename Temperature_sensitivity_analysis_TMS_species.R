@@ -315,6 +315,42 @@ species_flowering
 
 table(species_flowering$region, species_flowering$flowering_time)
 
+theme_set(theme_bw(base_size = 10))
+
+early_late <- ggplot(
+  species_flowering,
+  aes(
+    x = mean_onset,
+    y = fct_reorder(species, mean_onset),
+    colour = flowering_time
+  )
+) +
+  geom_point(size = 3) +
+  facet_grid(region~., scales = "free_y") +
+  geom_vline(aes(xintercept = cutoff),
+             linetype = "dashed",
+             colour = "grey40") +
+  scale_colour_manual(
+    values = c(
+      "early" = "steelblue",
+      "late" = "darkred"
+    )
+  ) +
+  labs(
+    x = "Mean flowering onset (DOY)",
+    y = "Species",
+    colour = "Flowering group"
+  ) +
+  theme(
+    panel.grid.minor = element_blank(),
+    legend.position = "bottom"
+  )
+early_late
+
+# ggsave(filename = "Output/Sensitivity/Early_late_flowering_species_NOR_CHE.png", 
+#       plot = early_late,
+#       width = 12, height = 15, units = "cm")
+
 
 # join label data with early late type ------------------------------------
 temp_sens_slopes_all_species <- temp_sens_slopes_all_species |> 
