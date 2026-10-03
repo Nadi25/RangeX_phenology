@@ -428,6 +428,112 @@ flow_no2_sig
 
 
 
+
+
+
+
+
+# figure for manuscript ---------------------------------------------------
+# with jitter instead of violins for raw data
+
+flower_number_pred <- flower_number_pred |>
+  mutate(
+    point_fill = case_when(
+      treatment_site_temp == "hi_warm" ~ "white",
+      treat_competition == "with" ~ "#528B8B",
+      treat_competition == "without" ~ "#CD950C"))
+
+pd <- position_dodge(width = 0.7) 
+
+theme_set(theme_bw(base_size = 8))
+
+
+flow_no_4 <- ggplot(flower_number_pred, aes(
+  x = treatment_site_temp,
+  y = fit,
+  color = treat_competition,
+  shape = treatment_site_temp)) +
+  
+  # distribution of raw data
+  geom_jitter(
+    data = max_flower_per_plant,
+    aes(
+      x = treatment_site_temp,
+      y = max_flower_number,
+      color = treat_competition),
+    position = position_jitterdodge(dodge.width = 0.7, jitter.width = 0.25),
+    alpha = 0.14) +
+  
+  # model estimates
+  geom_errorbar(
+    aes(ymin = lower, ymax = upper),
+    width = 0.15,
+    position = pd) +
+  geom_point(position = pd, size = 2.5, stroke = 0.8,
+             aes(fill = point_fill)) +
+  
+  scale_color_manual(values = c("#528B8B", "#CD950C")) +
+  scale_fill_manual(values = c("#528B8B", "#CD950C", "white")) +
+  
+  scale_shape_manual(
+    values = c(
+      "lo_ambi" = 16,
+      "hi_ambi" = 17,
+      "hi_warm" = 24)) +
+  scale_x_discrete(
+    labels = c(
+      "lo_ambi" = "low ambient",
+      "hi_ambi" = "high ambient",
+      "hi_warm" = "high warmed"))+
+  labs(
+    x = "Site temperature treatment",
+    y = "Log (max flower number)",
+    title = "Effect of transplantation and warming on flower number adjusted for biomass interactive",
+    shape = "Treatment site × warming",
+    color = "Biotic interactions") +
+  
+  guides(shape = "none",
+         fill = "none")+
+  coord_transform(y = "log1p")+
+  theme(legend.position = "bottom",
+        plot.title = element_blank())
+flow_no_4
+
+
+flow_no_4_sig <- flow_no_4 +
+  geom_segment(
+    data = brackets,
+    aes(x = xmin, xend = xmax,
+        y = y, yend = y),
+    inherit.aes = FALSE
+  ) +
+  geom_segment(
+    data = brackets,
+    aes(x = xmin, xend = xmin,
+        y = y, yend = y - 0.5),
+    inherit.aes = FALSE
+  ) +
+  geom_segment(
+    data = brackets,
+    aes(x = xmax, xend = xmax,
+        y = y, yend = y - 0.5),
+    inherit.aes = FALSE
+  ) +
+  geom_text(
+    data = brackets,
+    aes(
+      x = (xmin + xmax)/2,
+      y = y + 0.5,
+      label = stars
+    ),
+    inherit.aes = FALSE)
+flow_no_4_sig
+
+# ggsave(filename = "Output/Biomass/Figures_for_manuscript/Flower_number_NOR.png", 
+#        plot = flow_no_4_sig,
+#        width = 9, height = 8, units = "cm", dpi = 600)
+
+
 tab2 <- emm_contr2 |>
   gt() |>
   fmt_number(
