@@ -828,5 +828,133 @@ sig_tab_onset_wide
 
 
 
+# figure for manuscript appendix ------------------------------------------
+# plot_df_all2 <- plot_df_all2 |>
+#   mutate(
+#     point_fill = case_when(
+#       treatment_site_temp == "hi_warm" ~ "white",
+#       treat_competition == "with" ~ "#528B8B",
+#       treat_competition == "without" ~ "#CD950C"))
+# plot_df_all2
+
+onset_doy <- ggplot(
+  plot_df_all2,
+  aes(
+    x = treatment_site_temp,
+    y = fit,
+    color = treat_competition,
+    shape = treatment_site_temp
+  )
+) +
+  
+  # raw
+  geom_violin(
+    data = plot_df_raw_all,
+    aes(
+      x = treatment_site_temp,
+      y = onset,
+      fill = treat_competition
+    ),
+    position = pd,
+    alpha = 0.25,
+    color = NA,
+    trim = FALSE,
+    adjust = 1.5
+  ) +
+  
+  # model predictions
+  geom_errorbar(
+    aes(ymin = lower, ymax = upper),
+    width = 0.1,
+    position = pd
+  ) +
+  
+  # normal points
+  geom_point(
+    data = plot_df_all2 |> filter(treatment_site_temp != "hi_warm"),
+    position = pd,
+    size = 2.4,
+    aes(fill = treat_competition)
+  ) +
+  
+  # warmed points
+  geom_point(
+    data = plot_df_all2 |> filter(treatment_site_temp == "hi_warm"),
+    position = pd,
+    size = 2,
+    fill = "white"
+  ) +
+  
+  scale_fill_manual(values = c(
+    "with" = "#528B8B",
+    "without" = "#CD950C"
+  )) +
+  
+  scale_color_manual(values = c(
+    "with" = "#528B8B",
+    "without" = "#CD950C"
+  )) +
+  
+  scale_shape_manual(values = c(
+    "lo_ambi" = 16,
+    "hi_ambi" = 17,
+    "hi_warm" = 24
+  )) +
+  
+  facet_grid(region ~ stage) +
+  
+  scale_x_discrete(
+    labels = c(
+      "lo_ambi" = "low\nambient",
+      "hi_ambi" = "high\nambient",
+      "hi_warm" = "high\nwarmed"
+    )
+  ) +
+  
+  labs(
+    x = "Site temperature treatment",
+    y = "Onset (DOY)",
+    title = "Effect of transplantation and warming on onset",
+    shape = "Treatment site × warming",
+    color = "Biotic interactions",
+    fill = "Biotic interactions"
+  ) +
+  
+  guides(shape = "none") +
+  
+  theme(
+    legend.position = "bottom",
+    plot.title = element_blank()
+  )
+onset_doy
+
+# Get significance letters ------------------------------------------------
+letters_all <- letters_all |>
+  mutate(
+    y = upper.CL + 25
+  )
+letters_all
+
+theme_set(theme_bw(base_size = 10))
+
+onset_doy <- onset_doy +
+  geom_text(
+    data = letters_all,
+    aes(
+      x = treatment_site_temp,
+      y = y,
+      label = .group, 
+      group = treat_competition),
+    color = "grey43",
+    position = pd,
+    size = 2.5,
+    show.legend = FALSE)
+onset_doy
+
+# ggsave(filename = "Output/Onset/Figures_for_manuscript/Onset_DOY_NOR_CHE.png", 
+#        plot = onset_doy,
+#        width = 18, height = 12, units = "cm", dpi = 600)
+
+
 
 
