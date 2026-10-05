@@ -108,5 +108,8 @@ source("TMS4_temp_over_time_NOR_CHE.R")
 
 
 
+# citation for all packages in the project --------------------------------
+library(grateful)
+cite_packages(out.format = "docx", out.dir = ".")
 
 
