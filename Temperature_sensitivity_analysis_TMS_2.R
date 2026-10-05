@@ -1404,43 +1404,87 @@ tab_all <- tab_slopes |>
 tab_all
 
 
-
-
-ts_tab_doy <- gt(tab_all) |>
-  fmt_number(
+ts_tab_doy <- tab_all |>
+  mutate(slope_ci = sprintf(
+      "%.2f (%.2f, %.2f)", slope,
+      lower.CL, upper.CL)) |>
+  select(
+    stage,
+    type,
+    treat_competition,
+    region,
+    slope_ci,
+    p_slope,
+    slope_stars,
+    slope_difference,
+    p_difference,
+    difference_stars) |>
+  pivot_wider(names_from = region,
+    values_from = c(slope_ci, p_slope, slope_stars, slope_difference,
+                    p_difference, difference_stars)) |>
+  gt(rowname_col = NULL) |>
+  tab_spanner(label = "Norway",
     columns = c(
-      slope,
-      lower.CL,
-      upper.CL,
-      slope_difference
-    ),
-    decimals = 2
-  ) |>
-  fmt_scientific(
-    columns = c(
-      p_slope,
-      p_difference
-    ),
-    decimals = 2
-  ) |>
-  cols_label(
-    region = "Region",
-    stage = "Stage",
-    type = "Temperature shift",
-    treat_competition = "Biotic interactions",
-    slope = "Temp. sensitivity",
-    lower.CL = "Lower CI",
-    upper.CL = "Upper CI",
-    p_slope = "P(slope)",
-    slope_stars = "Slope sig.",
-    p_difference = "P(with vs without)",
-    difference_stars = "Difference sig.")
+      slope_ci_Norway,
+      p_slope_Norway,
+      slope_stars_Norway,
+      slope_difference_Norway,
+      p_difference_Norway,
+      difference_stars_Norway)) |>
+  tab_spanner(label = "Switzerland",
+    columns = c(slope_ci_Switzerland,
+      p_slope_Switzerland,
+      slope_stars_Switzerland,
+      slope_difference_Switzerland,
+      p_difference_Switzerland,
+      difference_stars_Switzerland)) |>
+  cols_label(stage = "Stage",
+             type = "Temperature shift",
+             treat_competition = "Biotic interactions",
+    slope_ci_Norway = "Sensitivity (95% CI)",
+    p_slope_Norway = "P",
+    slope_stars_Norway = "Sig.",
+    slope_difference_Norway = "Comp biotic interactions",
+    p_difference_Norway = "P",
+    difference_stars_Norway = "Sig.",
+    
+    slope_ci_Switzerland = "Sensitivity (95% CI)",
+    p_slope_Switzerland = "P",
+    slope_stars_Switzerland = "Sig.",
+    slope_difference_Switzerland = "Comp biotic interactions",
+    p_difference_Switzerland = "P",
+    difference_stars_Switzerland = "Sig.") |>
+  fmt_scientific(columns = c(
+      p_slope_Norway,
+      p_difference_Norway,
+      p_slope_Switzerland,
+      p_difference_Switzerland),
+    decimals = 2) |>
+  cols_align(
+    align = "center",
+    columns = everything()) |>
+  tab_style(
+    style = cell_text(weight = "bold"),
+    locations = cells_body(
+      columns = c(
+        slope_stars_Norway,
+        difference_stars_Norway,
+        slope_stars_Switzerland,
+        difference_stars_Switzerland))) |>
+  tab_header(
+    title = md("**Temperature sensitivity of onset DOY**"),
+    subtitle = "Estimated slopes, 95% CI, and comparisons") |>
+  opt_table_font(
+    font = list(
+      google_font("Source Sans Pro"),
+      default_fonts())) |>
+  tab_options(
+    table.font.size = px(13),
+    heading.title.font.size = px(18),
+    data_row.padding = px(5))
 ts_tab_doy
 
 #gtsave(ts_tab_doy, "Output/Sensitivity/Temp_sens_DOY_NOR_CHE.docx")
-
-
-
 
 
 
@@ -2096,4 +2140,108 @@ ts_hl_aw_sig_gdd3
 #        width = 18, height = 12, units = "cm", dpi = 600)
 
 
+
+# make significance table gdd -------------------------------------------------
+tab_slopes_gdd <- sens_combined_gdd |> 
+  select(region, stage, type, treat_competition, Tmean.trend, 
+         lower.CL, upper.CL, p.value, slope_stars) |> 
+  rename(slope = Tmean.trend,
+         p_slope = p.value)
+tab_slopes_gdd
+
+tab_comp_gdd <- sig_combined_gdd |>
+  select(region, stage, type, estimate, p.value, stars) |>
+  rename(slope_difference = estimate,
+         p_difference = p.value,
+         difference_stars = stars)
+tab_comp_gdd
+
+
+tab_all_gdd <- tab_slopes_gdd |>
+  left_join(
+    tab_comp_gdd,
+    by = c("region", "stage", "type"))
+tab_all_gdd
+
+ts_tab_gdd <- tab_all_gdd |>
+  mutate(slope_ci = sprintf(
+    "%.2f (%.2f, %.2f)", slope,
+    lower.CL, upper.CL)) |>
+  select(
+    stage,
+    type,
+    treat_competition,
+    region,
+    slope_ci,
+    p_slope,
+    slope_stars,
+    slope_difference,
+    p_difference,
+    difference_stars) |>
+  pivot_wider(names_from = region,
+              values_from = c(slope_ci, p_slope, slope_stars, slope_difference,
+                              p_difference, difference_stars)) |>
+  gt(rowname_col = NULL) |>
+  tab_spanner(label = "Norway",
+              columns = c(
+                slope_ci_Norway,
+                p_slope_Norway,
+                slope_stars_Norway,
+                slope_difference_Norway,
+                p_difference_Norway,
+                difference_stars_Norway)) |>
+  tab_spanner(label = "Switzerland",
+              columns = c(slope_ci_Switzerland,
+                          p_slope_Switzerland,
+                          slope_stars_Switzerland,
+                          slope_difference_Switzerland,
+                          p_difference_Switzerland,
+                          difference_stars_Switzerland)) |>
+  cols_label(stage = "Stage",
+             type = "Temperature shift",
+             treat_competition = "Biotic interactions",
+             slope_ci_Norway = "Sensitivity (95% CI)",
+             p_slope_Norway = "P",
+             slope_stars_Norway = "Sig.",
+             slope_difference_Norway = "Comp biotic interactions",
+             p_difference_Norway = "P",
+             difference_stars_Norway = "Sig.",
+             
+             slope_ci_Switzerland = "Sensitivity (95% CI)",
+             p_slope_Switzerland = "P",
+             slope_stars_Switzerland = "Sig.",
+             slope_difference_Switzerland = "Comp biotic interactions",
+             p_difference_Switzerland = "P",
+             difference_stars_Switzerland = "Sig.") |>
+  fmt_scientific(columns = c(
+    p_slope_Norway,
+    p_difference_Norway,
+    p_slope_Switzerland,
+    p_difference_Switzerland),
+    decimals = 2) |>
+  cols_align(
+    align = "center",
+    columns = everything()) |>
+  tab_style(
+    style = cell_text(weight = "bold"),
+    locations = cells_body(
+      columns = c(
+        slope_stars_Norway,
+        difference_stars_Norway,
+        slope_stars_Switzerland,
+        difference_stars_Switzerland))) |>
+  tab_header(
+    title = md("**Temperature sensitivity of onset DOY**"),
+    subtitle = "Estimated slopes, 95% CI, and comparisons") |>
+  opt_table_font(
+    font = list(
+      google_font("Source Sans Pro"),
+      default_fonts())) |>
+  tab_options(
+    table.font.size = px(13),
+    heading.title.font.size = px(18),
+    data_row.padding = px(5))
+ts_tab_gdd
+
+#gtsave(ts_tab_gdd, "Output/Sensitivity/Temp_sens_GDD_NOR_CHE.docx")
 
