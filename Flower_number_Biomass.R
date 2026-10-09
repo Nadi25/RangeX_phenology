@@ -117,7 +117,7 @@ emmeans(m_flowering,
         pairwise ~ treatment_site_temp * treat_competition)
 
 biomass_mean <- mean(
-  max_flower_per_plant_bio$pred_log_biomass_species,
+  flower_pre_abs$pred_log_biomass_species,
   na.rm = TRUE)
 biomass_mean
 
@@ -176,7 +176,22 @@ flower_obs <- flower_pre_abs |>
   )
 flower_obs
 
+flower_obs_species <- flower_pre_abs |>
+  group_by(treatment_site_temp, treat_competition, species) |>
+  summarise(
+    obs_prop = mean(flower_presence),
+    .groups = "drop"
+  )
+flower_obs_species
+
 pd <- position_dodge(width = 0.7)
+
+pred_flowering <- pred_flowering |>
+  mutate(
+    point_fill = case_when(
+      treatment_site_temp == "hi_warm" ~ "white",
+      treat_competition == "with" ~ "#528B8B",
+      treat_competition == "without" ~ "#CD950C"))
 
 flower_presence_plot <- ggplot(
   pred_flowering,
@@ -184,34 +199,32 @@ flower_presence_plot <- ggplot(
     x = treatment_site_temp,
     y = probability,
     colour = treat_competition,
-    shape = treatment_site_temp
-  )
-) +
+    shape = treatment_site_temp)) +
+  #raw 
+  geom_col(
+    data = flower_obs,
+    aes(y = obs_prop,
+        fill = treat_competition),
+    alpha = 0.1,
+    position = pd,
+    width = 0.3, linewidth = 0.01)+
   # confidence intervals
   geom_errorbar(
     aes(
       ymin = lower,
       ymax = upper
     ),
-    width = 0.15,
+    width = 0.1,
     position = pd) +
   
-  # predictions
-  geom_point(
-    position = pd,
-    size = 2.5,
-    stroke = 0.8,
-    aes(fill = treat_competition)) +
-  
+  geom_point(position = pd, size = 2.5, stroke = 0.4,
+             aes(fill = point_fill)) +
   scale_color_manual(
     values = c(
       "with" = "#528B8B",
       "without" = "#CD950C")) +
   
-  scale_fill_manual(
-    values = c(
-      "with" = "#528B8B",
-      "without" = "#CD950C")) +
+  scale_fill_manual(values = c("#528B8B", "#CD950C", "white", "#528B8B", "#CD950C")) +
   
   scale_shape_manual(
     values = c(
@@ -230,31 +243,24 @@ flower_presence_plot <- ggplot(
     y = "Probability of flowering",
     colour = "Biotic interactions") +
   
-  guides(
-    shape = "none",
-    fill = "none") +
-  
   theme(legend.position = "bottom")+
-  # scale_y_continuous(limits = c(0,1),
-  #                    breaks = seq(0, 1, by = 0.2))+
-  # coord_cartesian(
-  #   ylim = c(0, 1.7),
-  #   clip = "off"
-  # )+
+
   scale_y_continuous(
-    breaks = seq(0,1,0.2)
-  ) +
+    breaks = seq(0,1,0.2)) +
   coord_cartesian(
     ylim = c(0,1.25),
-    clip = "off"
-  )+
-  geom_col(
-    data = flower_obs,
-    aes(y = obs_prop,
-        fill = treat_competition),
-    alpha = 0.1,
-    position = pd,
-    width = 0.3)
+    clip = "off")+
+  geom_jitter(
+    data = flower_obs_species,
+    aes(
+      x = treatment_site_temp,
+      y = obs_prop,
+      color = treat_competition),
+    position = position_jitterdodge(dodge.width = 0.7, jitter.width = 0.2),
+    alpha = 0.3)+
+  guides(
+    shape = "none",
+    fill = "none")
 flower_presence_plot
 
 
@@ -288,14 +294,11 @@ pos_df <- tibble(
     "hi_warm with",
     "hi_warm without",
     "hi_ambi with",
-    "hi_ambi without"
-  ),
+    "hi_ambi without"),
   x = c(
     0.775, 1.225,
     1.775, 2.225,
-    2.775, 3.225
-  )
-)
+    2.775, 3.225))
 
 
 
@@ -318,40 +321,32 @@ brackets |>
 
 top_y <- max(pred_flowering$upper)
 
-brackets <- brackets |>
-  mutate(
-    y = top_y + c(0.35, 0.2, 0.55, 0.2, 0.2, 0.45, 0.65)
-  )
-brackets
 
 brackets <- brackets |>
   mutate(
-    y = top_y + c(
-      0.05,
-      0.02,
-      0.10,
-      0.02,
-      0.02,
-      0.15,
-      0.20
-    )
-  )
+    y = top_y + c(0.075, 0.03, 0.2, 0.03, 0.03, 0.15, 0.25))
+brackets
+
+
+pd <- position_dodge(width = 0.7) 
+
+theme_set(theme_bw(base_size = 8))
 
 flower_presence_plot2 <- flower_presence_plot +
   geom_segment(
-    data = brackets,
+    data = brackets, linewidth = 0.25,
     aes(x = xmin, xend = xmax,
         y = y, yend = y),
     inherit.aes = FALSE
   ) +
   geom_segment(
-    data = brackets,
+    data = brackets,linewidth = 0.25,
     aes(x = xmin, xend = xmin,
         y = y, yend = y - 0.02),
     inherit.aes = FALSE
   ) +
   geom_segment(
-    data = brackets,
+    data = brackets,linewidth = 0.25,
     aes(x = xmax, xend = xmax,
         y = y, yend = y - 0.02),
     inherit.aes = FALSE
@@ -360,13 +355,15 @@ flower_presence_plot2 <- flower_presence_plot +
     data = brackets,
     aes(
       x = (xmin + xmax)/2,
-      y = y + 0.04,
+      y = y + 0.015,
       label = stars
     ),
-    inherit.aes = FALSE)+
-  theme(plot.title = element_text(size = 15))
+    inherit.aes = FALSE)
 flower_presence_plot2
 
+# ggsave(filename = "Output/Biomass/Figures_for_manuscript/Flower_presence_absence_adj_biomass_NOR.png", 
+#        plot = flower_presence_plot2,
+#        width = 9, height = 8, units = "cm", dpi = 600)
 
 
 
