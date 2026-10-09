@@ -79,7 +79,8 @@ source("Temperature_sensitivity_analysis_TMS_species.R")
 # Flower number -----------------------------------------------------------------
 
 # flower number as it is
-source("Flower_number_predictions_transplantation_warming.R")
+#source("Flower_number_predictions_transplantation_warming.R")
+source("Flower_number.R")
 
 # predicting biomass for 23
 source("Biomass_traits_correlation_per_species.R")
@@ -90,8 +91,8 @@ source("Biomass_prediction_23_per_species.R")
 source("Biomass_phenology_combine_species_models.R")
 
 # flower number adjusted for biomass
-source("Biomass_flower_number_predictions.R")
-
+#source("Biomass_flower_number_predictions.R")
+source("Flower_number_Biomass.R")
 
 
 # raw data quantiles NOR
