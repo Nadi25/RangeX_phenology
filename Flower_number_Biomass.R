@@ -207,7 +207,7 @@ flower_presence_plot <- ggplot(
         fill = treat_competition),
     alpha = 0.1,
     position = pd,
-    width = 0.3, linewidth = 0.01)+
+    width = 0.3, linewidth = 0.01, show.legend = F)+
   # confidence intervals
   geom_errorbar(
     aes(
