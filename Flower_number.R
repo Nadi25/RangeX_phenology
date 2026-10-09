@@ -812,9 +812,9 @@ flow_no_4_sig <- flow_no_4 +
     inherit.aes = FALSE)
 flow_no_4_sig
 
-# ggsave(filename = "Output/Biomass/Figures_for_manuscript/Flower_number_NOR.png", 
-#        plot = flow_no_4_sig,
-#        width = 9, height = 8, units = "cm", dpi = 600)
+ggsave(filename = "Output/Biomass/Figures_for_manuscript/Flower_number_NOR.png", 
+       plot = flow_no_4_sig,
+       width = 9, height = 8, units = "cm", dpi = 600)
 
 
 tab2 <- emm_contr2 |>
