@@ -1379,8 +1379,6 @@ ts_hl_aw_sig3
 
 
 
-
-
 # make significance table -------------------------------------------------
 tab_slopes <- sens_combined |> 
   select(region, stage, type, treat_competition, Tmean.trend, 
