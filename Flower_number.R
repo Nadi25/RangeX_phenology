@@ -812,9 +812,9 @@ flow_no_4_sig <- flow_no_4 +
     inherit.aes = FALSE)
 flow_no_4_sig
 
-ggsave(filename = "Output/Biomass/Figures_for_manuscript/Flower_number_NOR.png", 
-       plot = flow_no_4_sig,
-       width = 9, height = 8, units = "cm", dpi = 600)
+# ggsave(filename = "Output/Biomass/Figures_for_manuscript/Flower_number_NOR.png", 
+#        plot = flow_no_4_sig,
+#        width = 9, height = 8, units = "cm", dpi = 600)
 
 
 tab2 <- emm_contr2 |>
@@ -841,5 +841,22 @@ tab2 <- emm_contr2 |>
 tab2
 
 #gtsave(tab2, "Output/Biomass/Number_flowers_signif_NOR.docx")
+
+
+
+# one combined figure -----------------------------------------------------
+# using patchwork
+combined <- (flower_presence_plot2 |
+               (flow_no_4_sig + guides(colour = "none"))) +
+  plot_layout(guides = "collect") &
+  theme(legend.position = "bottom")
+
+combined
+
+
+# ggsave(filename = "Output/Biomass/Figures_for_manuscript/Flower_NOR.png", 
+#        plot = combined,
+#        width = 18, height = 12, units = "cm", dpi = 600)
+
 
 

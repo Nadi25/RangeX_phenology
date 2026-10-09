@@ -219,10 +219,16 @@ flower_presence_plot <- ggplot(
   
   geom_point(position = pd, size = 2.5, stroke = 0.4,
              aes(fill = point_fill)) +
+  # scale_color_manual(
+  #   values = c(
+  #     "with" = "#528B8B",
+  #     "without" = "#CD950C")) +
   scale_color_manual(
     values = c(
       "with" = "#528B8B",
-      "without" = "#CD950C")) +
+      "without" = "#CD950C"
+    )
+  )+
   
   scale_fill_manual(values = c("#528B8B", "#CD950C", "white", "#528B8B", "#CD950C")) +
   
@@ -895,7 +901,12 @@ flow_no_bio5 <- ggplot(pred_bio, aes(
   geom_point(position = pd, size = 2.5, stroke = 0.8,
              aes(fill = point_fill)) +
   
-  scale_color_manual(values = c("#528B8B", "#CD950C")) +
+  scale_color_manual(
+    values = c(
+      "with" = "#528B8B",
+      "without" = "#CD950C"
+    )
+  )+
   scale_fill_manual(values = c("#528B8B", "#CD950C", "white")) +
   
   scale_shape_manual(
@@ -959,6 +970,22 @@ flow_no_bio5_sig
 
 
 
+
+
+
+# one combined figure -----------------------------------------------------
+# using patchwork
+combined <- (flower_presence_plot2 |
+    (flow_no_bio5_sig + guides(colour = "none"))) +
+  plot_layout(guides = "collect") &
+  theme(legend.position = "bottom")
+
+combined
+
+
+# ggsave(filename = "Output/Biomass/Figures_for_manuscript/Flower_adj_biomass_NOR.png", 
+#        plot = combined,
+#        width = 18, height = 12, units = "cm", dpi = 600)
 
 
 
