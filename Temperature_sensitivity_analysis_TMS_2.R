@@ -1267,7 +1267,7 @@ ts_hl_aw3 <- ggplot(
     fill = sign_group,
   )
 ) +
-  geom_pointrange(
+  geom_errorbar(
     aes(ymin = lower.CL, ymax = upper.CL),
     width = 0.1,
     position = pd
