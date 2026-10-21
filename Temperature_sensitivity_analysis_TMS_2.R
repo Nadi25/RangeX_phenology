@@ -1281,7 +1281,7 @@ ts_hl_aw3 <- ggplot(
              color = "grey66") +
   facet_grid(region ~ type, scales = "free") +
   labs(
-    y = "Temperature sensitivity (days / °C)",
+    y = expression("Temperature sensitivity (" * Delta * " days / " * degree * "C)"),
     x = "Stage",
     title = "Temperature sensitivity 12h daily mean per stage",
     color = "Biotic interactions"
@@ -2057,7 +2057,7 @@ ts_hl_aw_gdd3 <- ggplot(
              color = "grey66") +
   facet_grid(region ~ type, scales = "free") +
   labs(
-    y = "Temperature sensitivity (GDD5 / °C)",
+    y = expression("Temperature sensitivity (" * Delta * " GDD5 / " * degree * "C)"),
     x = "Stage",
     title = "Temperature sensitivity 12h daily mean per stage",
     color = "Biotic interactions") +
