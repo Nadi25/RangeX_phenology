@@ -620,7 +620,7 @@ label_data_combined <- bind_rows(
 )
 
 
-theme_set(theme_bw(base_size = 10))
+theme_set(theme_bw(base_size = 8))
 
 temp_sens_flo_comb <- ggplot(
   temp_sens_combined,
@@ -639,14 +639,20 @@ temp_sens_flo_comb <- ggplot(
     linewidth = 0.3) +
   geom_line(
     position = pd,
-    linewidth = 0.8) +
+    linewidth = 0.4) +
+  
   geom_text_repel(
     data = label_data_combined,
     aes(label = species),
     size = 2.8,
-    segment.color = NA,
-    show.legend = FALSE,
-    max.overlaps = Inf) +
+    segment.color = "grey70",
+    segment.size = 0.2,
+    point.padding = 0.02,
+    box.padding = 0.1,
+    force = 0.3,
+    max.overlaps = Inf,
+    show.legend = FALSE
+  ) +
   geom_hline(yintercept = 0, linetype = "dashed",
              color = "grey66") +
   scale_shape_manual(
@@ -657,11 +663,12 @@ temp_sens_flo_comb <- ggplot(
     values = c(
       "early" = "white",
       "late" = "grey")) +
-  facet_grid(region~ comparison, scales = "free") +
+  #facet_grid(region~ comparison, scales = "free") +
+  facet_grid(region~ comparison) +
   guides(color = "none",
          fill = "none") +
   labs(
-    y = "Temperature sensitivity (days / °C)",
+    y = expression("Temperature sensitivity (" * Delta * " days / " * degree * "C)"),
     x = "Biotic interactions",
     title = "Temperature sensitivity flowering per species hi vs lo and ambi vs warm 12h",
     shape = "Flowering time") +
@@ -674,15 +681,6 @@ temp_sens_flo_comb
 # ggsave(filename = "Output/Sensitivity/Figures_for_manuscript/Temperature_sensitivity_DOY_hi_lo_ambi_warm_flowering_species_12h.png", 
 #        plot = temp_sens_flo_comb,
 #        width = 18, height = 15, units = "cm", dpi = 600)
-
-
-
-
-
-
-
-
-
 
 
 
