@@ -768,17 +768,90 @@ temp_lh_che_s
 # NOR ---------------------------------------------------------------------
 
 ts_bud_lh_nor <- get_temp_sens_coef(m_sens_bud_gs_lh_nor)
+# this flips from low-high to high-low sites
+ts_bud_lh_nor$slopes <- ts_bud_lh_nor$slopes |>
+  mutate(
+    temp_lower = -upper.CL,
+    temp_upper = -lower.CL,
+    Tmean.trend = -Tmean.trend,
+    lower.CL = temp_lower,
+    upper.CL = temp_upper) |>
+  select(-temp_lower, -temp_upper)
+
 ts_flower_lh_nor <- get_temp_sens_coef(m_sens_flower_gs_lh_nor)
+ts_flower_lh_nor$slopes <- ts_flower_lh_nor$slopes |>
+  mutate(
+    temp_lower = -upper.CL,
+    temp_upper = -lower.CL,
+    Tmean.trend = -Tmean.trend,
+    lower.CL = temp_lower,
+    upper.CL = temp_upper) |>
+  select(-temp_lower, -temp_upper)
+
 ts_fruit_lh_nor <- get_temp_sens_coef(m_sens_fruit_gs_lh_nor)
+ts_fruit_lh_nor$slopes <- ts_fruit_lh_nor$slopes |>
+  mutate(
+    temp_lower = -upper.CL,
+    temp_upper = -lower.CL,
+    Tmean.trend = -Tmean.trend,
+    lower.CL = temp_lower,
+    upper.CL = temp_upper) |>
+  select(-temp_lower, -temp_upper)
+
 ts_seed_lh_nor <- get_temp_sens_coef(m_sens_seed_gs_lh_nor)
+ts_seed_lh_nor$slopes <- ts_seed_lh_nor$slopes |>
+  mutate(
+    temp_lower = -upper.CL,
+    temp_upper = -lower.CL,
+    Tmean.trend = -Tmean.trend,
+    lower.CL = temp_lower,
+    upper.CL = temp_upper) |>
+  select(-temp_lower, -temp_upper)
+
 
 
 # CHE ---------------------------------------------------------------------
 
 ts_bud_lh_che <- get_temp_sens_coef(m_sens_bud_gs_lh_che)
+ts_bud_lh_che$slopes <- ts_bud_lh_che$slopes |>
+  mutate(
+    temp_lower = -upper.CL,
+    temp_upper = -lower.CL,
+    Tmean.trend = -Tmean.trend,
+    lower.CL = temp_lower,
+    upper.CL = temp_upper) |>
+  select(-temp_lower, -temp_upper)
+
 ts_flower_lh_che <- get_temp_sens_coef(m_sens_flower_gs_lh_che)
+ts_flower_lh_che$slopes <- ts_flower_lh_che$slopes |>
+  mutate(
+    temp_lower = -upper.CL,
+    temp_upper = -lower.CL,
+    Tmean.trend = -Tmean.trend,
+    lower.CL = temp_lower,
+    upper.CL = temp_upper) |>
+  select(-temp_lower, -temp_upper)
+
 ts_fruit_lh_che <- get_temp_sens_coef(m_sens_fruit_gs_lh_che)
+ts_fruit_lh_che$slopes <- ts_fruit_lh_che$slopes |>
+  mutate(
+    temp_lower = -upper.CL,
+    temp_upper = -lower.CL,
+    Tmean.trend = -Tmean.trend,
+    lower.CL = temp_lower,
+    upper.CL = temp_upper) |>
+  select(-temp_lower, -temp_upper)
+
 ts_seed_lh_che <- get_temp_sens_coef(m_sens_seed_gs_lh_che)
+ts_seed_lh_che$slopes <- ts_seed_lh_che$slopes |>
+  mutate(
+    temp_lower = -upper.CL,
+    temp_upper = -lower.CL,
+    Tmean.trend = -Tmean.trend,
+    lower.CL = temp_lower,
+    upper.CL = temp_upper) |>
+  select(-temp_lower, -temp_upper)
+
 
 
 
@@ -991,7 +1064,7 @@ ts_aw
 
 # joined figure for hi vs lo and ambi vs warm -----------------------------
 
-sens_all_lh$type <- "low-high"
+sens_all_lh$type <- "high-low"
 sens_all_aw$type <- "warmed-ambient"
 
 sens_combined <- bind_rows(sens_all_lh, sens_all_aw)
@@ -1040,7 +1113,7 @@ ts_hl_aw
 
 # add significance stars --------------------------------------------------
 
-sig_all_lh$type <- "low-high"
+sig_all_lh$type <- "high-low"
 sig_all_aw$type <- "warmed-ambient"
 
 sig_combined <- bind_rows(sig_all_lh, sig_all_aw)
@@ -1132,7 +1205,7 @@ ts_hl_aw_sig
 
 # Steps to get final temp sens jdays plot --------------------------------------------------------------
 
-# plot with facet for low-high ambi-warm
+# plot with facet for high-low ambi-warm
 ts_hl_aw2 <- ggplot(
   sens_combined,
   aes(
@@ -1269,17 +1342,18 @@ ts_hl_aw3 <- ggplot(
 ) +
   geom_errorbar(
     aes(ymin = lower.CL, ymax = upper.CL),
-    width = 0.1,
+    width = 0.15,
+    linewidth = 0.5,
     position = pd
   ) +
   geom_point(
-    size = 2.5,
+    size = 1.7,
     position = pd
   ) +
   
   geom_hline(yintercept = 0, linetype = "dashed",
              color = "grey66") +
-  facet_grid(region ~ type, scales = "free") +
+  facet_grid(region ~ type, scales = "free_x") +
   labs(
     y = expression("Temperature sensitivity (" * Delta * " days / " * degree * "C)"),
     x = "Stage",
@@ -1375,6 +1449,41 @@ ts_hl_aw_sig3
 # ggsave(filename = "Output/Sensitivity/Figures_for_manuscript/Temperature_sensitivity_days_hi_lo_ambi_warm_signif_NOR_CHE_12h.png", 
 #       plot = ts_hl_aw_sig3,
 #       width = 18, height = 12, units = "cm", dpi = 600)
+
+
+# add labels for when onset is delayed or advanced
+panel_labels <- data.frame(
+  region = c("Norway", "Switzerland"),
+  type = c("high-low", "warmed-ambient"),
+  x = c(1.1, 3.8),
+  y = c(10, -19),
+  label = c("Delayed", "Advanced"),
+  colour = c("blue", "red"))
+panel_labels
+
+ts_hl_aw_sig3 <- ts_hl_aw_sig3 +
+  geom_text(
+    data = panel_labels,
+    aes(x = x, y = y, label = label),
+    colour = panel_labels$colour,
+    inherit.aes = FALSE,
+    vjust = 1.5,
+    size = 3.5,
+    fontface = "italic"
+  )
+
+ts_hl_aw_sig3
+
+
+# ggsave(filename = "Output/Sensitivity/Figures_for_manuscript/Temperature_sensitivity_days_hi_lo_ambi_warm_signif_NOR_CHE_12h_flipped.png", 
+#       plot = ts_hl_aw_sig3,
+#       width = 18, height = 15, units = "cm", dpi = 600)
+# 
+
+
+
+
+
 
 
 
@@ -1594,17 +1703,90 @@ summary(m_sens_bud_gdd_lh_che)$coefficients["Tmean", ]
 # NOR ---------------------------------------------------------------------
 
 ts_bud_gdd_lh_nor <- get_temp_sens_coef(m_sens_bud_gdd_lh_nor)
+# this flips from low-high to high-low sites
+ts_bud_gdd_lh_nor$slopes <- ts_bud_gdd_lh_nor$slopes |>
+  mutate(
+    temp_lower = -upper.CL,
+    temp_upper = -lower.CL,
+    Tmean.trend = -Tmean.trend,
+    lower.CL = temp_lower,
+    upper.CL = temp_upper) |>
+  select(-temp_lower, -temp_upper)
+
 ts_flower_gdd_lh_nor <- get_temp_sens_coef(m_sens_flower_gdd_lh_nor)
+ts_flower_gdd_lh_nor$slopes <- ts_flower_gdd_lh_nor$slopes |>
+  mutate(
+    temp_lower = -upper.CL,
+    temp_upper = -lower.CL,
+    Tmean.trend = -Tmean.trend,
+    lower.CL = temp_lower,
+    upper.CL = temp_upper) |>
+  select(-temp_lower, -temp_upper)
+
 ts_fruit_gdd_lh_nor <- get_temp_sens_coef(m_sens_fruit_gdd_lh_nor)
+ts_fruit_gdd_lh_nor$slopes <- ts_fruit_gdd_lh_nor$slopes |>
+  mutate(
+    temp_lower = -upper.CL,
+    temp_upper = -lower.CL,
+    Tmean.trend = -Tmean.trend,
+    lower.CL = temp_lower,
+    upper.CL = temp_upper) |>
+  select(-temp_lower, -temp_upper)
+
 ts_seed_gdd_lh_nor <- get_temp_sens_coef(m_sens_seed_gdd_lh_nor)
+ts_seed_gdd_lh_nor$slopes <- ts_seed_gdd_lh_nor$slopes |>
+  mutate(
+    temp_lower = -upper.CL,
+    temp_upper = -lower.CL,
+    Tmean.trend = -Tmean.trend,
+    lower.CL = temp_lower,
+    upper.CL = temp_upper) |>
+  select(-temp_lower, -temp_upper)
+
 
 
 # CHE ---------------------------------------------------------------------
 
 ts_bud_gdd_lh_che <- get_temp_sens_coef(m_sens_bud_gdd_lh_che)
+ts_bud_gdd_lh_che$slopes <- ts_bud_gdd_lh_che$slopes |>
+  mutate(
+    temp_lower = -upper.CL,
+    temp_upper = -lower.CL,
+    Tmean.trend = -Tmean.trend,
+    lower.CL = temp_lower,
+    upper.CL = temp_upper) |>
+  select(-temp_lower, -temp_upper)
+
 ts_flower_gdd_lh_che <- get_temp_sens_coef(m_sens_flower_gdd_lh_che)
+ts_flower_gdd_lh_che$slopes <- ts_flower_gdd_lh_che$slopes |>
+  mutate(
+    temp_lower = -upper.CL,
+    temp_upper = -lower.CL,
+    Tmean.trend = -Tmean.trend,
+    lower.CL = temp_lower,
+    upper.CL = temp_upper) |>
+  select(-temp_lower, -temp_upper)
+
 ts_fruit_gdd_lh_che <- get_temp_sens_coef(m_sens_fruit_gdd_lh_che)
+ts_fruit_gdd_lh_che$slopes <- ts_fruit_gdd_lh_che$slopes |>
+  mutate(
+    temp_lower = -upper.CL,
+    temp_upper = -lower.CL,
+    Tmean.trend = -Tmean.trend,
+    lower.CL = temp_lower,
+    upper.CL = temp_upper) |>
+  select(-temp_lower, -temp_upper)
+
 ts_seed_gdd_lh_che <- get_temp_sens_coef(m_sens_seed_gdd_lh_che)
+ts_seed_gdd_lh_che$slopes <- ts_seed_gdd_lh_che$slopes |>
+  mutate(
+    temp_lower = -upper.CL,
+    temp_upper = -lower.CL,
+    Tmean.trend = -Tmean.trend,
+    lower.CL = temp_lower,
+    upper.CL = temp_upper) |>
+  select(-temp_lower, -temp_upper)
+
 
 
 
@@ -1820,7 +2002,7 @@ ts_gdd_aw
 
 # joined figure for GDD hi vs lo and ambi vs warm -----------------------------
 
-sens_all_gdd_lh$type <- "low-high"
+sens_all_gdd_lh$type <- "high-low"
 sens_all_gdd_aw$type <- "warmed-ambient"
 
 sens_combined_gdd <- bind_rows(sens_all_gdd_lh, sens_all_gdd_aw)
@@ -1870,7 +2052,7 @@ ts_hl_aw_gdd
 
 # add significance stars --------------------------------------------------
 
-sig_all_gdd_lh$type <- "low-high"
+sig_all_gdd_lh$type <- "high-low"
 sig_all_gdd_aw$type <- "warmed-ambient"
 
 sig_combined_gdd <- bind_rows(sig_all_gdd_lh, sig_all_gdd_aw)
@@ -2136,6 +2318,42 @@ ts_hl_aw_sig_gdd3
 # ggsave(filename = "Output/Sensitivity/Figures_for_manuscript/Temperature_sensitivity_GDD5_hi_lo_ambi_warm_signif_NOR_CHE_12h.png", 
 #        plot = ts_hl_aw_sig_gdd3,
 #        width = 18, height = 12, units = "cm", dpi = 600)
+
+
+
+# add labels for when onset is delayed or advanced
+panel_labels_gdd <- data.frame(
+  region = c("Norway", "Switzerland"),
+  type = c("high-low", "high-low"),
+  x = c(1.1, 1.1),
+  y = c(300, -150),
+  label = c("More heat", "Less heat"),
+  colour = c("blue", "red"))
+panel_labels_gdd
+
+ts_hl_aw_sig_gdd3 <- ts_hl_aw_sig_gdd3 +
+  geom_text(
+    data = panel_labels_gdd,
+    aes(x = x, y = y, label = label),
+    colour = panel_labels$colour,
+    inherit.aes = FALSE,
+    vjust = 1.5,
+    size = 3.5,
+    fontface = "italic")
+
+ts_hl_aw_sig_gdd3
+
+
+# ggsave(filename = "Output/Sensitivity/Figures_for_manuscript/Temperature_sensitivity_GDD5_hi_lo_ambi_warm_signif_NOR_CHE_12h_flipped.png", 
+#        plot = ts_hl_aw_sig_gdd3,
+#        width = 18, height = 15, units = "cm", dpi = 600)
+
+
+
+
+
+
+
 
 
 
