@@ -93,17 +93,28 @@ tms_final_nor_che <- tms_final_nor_che |>
 
 
 
+# # One common start date per region
+# season_start_fixed <- season_start_all |>
+#   group_by(region) |>
+#   summarise(
+#     season_start = as.Date(
+#       round(median(as.numeric(season_start))),
+#       origin = "1970-01-01"
+#     ),
+#     .groups = "drop"
+#   )
+# 
+# season_start_fixed
+# 
+# season_start_all <- season_start_all |>
+#   select(-season_start) |>
+#   left_join(
+#     season_start_fixed,
+#     by = "region"
+#   )
+# season_start_all
 
-# season_start_all <- season_start_all |> 
-#   mutate(
-#     temp_start = case_when(
-#       region == "Switzerland" ~ as.Date("2022-04-28"),
-#       #region == "Switzerland" & site == "lo" ~ season_start,
-#       TRUE ~ season_start))
-
-
-
-
+# this sort of equals out everything a little
 
 
 # source clean phenology data -----------------------------------------------
@@ -1480,9 +1491,52 @@ ts_hl_aw_sig3
 #       width = 18, height = 15, units = "cm", dpi = 600)
 # 
 
+panel_bars <- data.frame(
+  region = c("Norway", "Switzerland"),
+  type = c("high-low", "high-low"),
+  x = c(0.5, 0.5),
+  y_start = c(0, 0),
+  y_end = c(41, -41))
 
+panel_labels <- data.frame(
+  region = c("Norway", "Switzerland"),
+  type = c("high-low", "high-low"),
+  x = c(1.1, 1.1),
+  y = c(10, -15),
+  label = c("Delayed", "Advanced"),
+  colour = c("blue", "red"))
+panel_labels
 
+ts_hl_aw_sig3 <- ts_hl_aw_sig3 +
+  geom_text(
+    data = panel_labels,
+    aes(x = x, y = y, label = label),
+    colour = panel_labels$colour,
+    inherit.aes = FALSE,
+    vjust = 1.5,
+    size = 3.5,
+    fontface = "italic"
+  )
 
+ts_hl_aw_sig3
+ts_hl_aw_sig3 <- ts_hl_aw_sig3 +
+  geom_segment(
+    data = panel_bars,
+    aes(
+      x = x,
+      xend = x,
+      y = y_start,
+      yend = y_end
+    ),
+    inherit.aes = FALSE,
+    arrow = arrow(
+      length = unit(0.12, "inches"),
+      type = "closed"
+    ),
+    linewidth = 0.7,
+    colour = c("blue", "red"))
+
+ts_hl_aw_sig3
 
 
 
@@ -2328,14 +2382,14 @@ panel_labels_gdd <- data.frame(
   x = c(1.1, 1.1),
   y = c(300, -150),
   label = c("More heat", "Less heat"),
-  colour = c("blue", "red"))
+  colour = c("red", "blue"))
 panel_labels_gdd
 
 ts_hl_aw_sig_gdd3 <- ts_hl_aw_sig_gdd3 +
   geom_text(
     data = panel_labels_gdd,
     aes(x = x, y = y, label = label),
-    colour = panel_labels$colour,
+    colour = panel_labels_gdd$colour,
     inherit.aes = FALSE,
     vjust = 1.5,
     size = 3.5,
@@ -2347,7 +2401,7 @@ ts_hl_aw_sig_gdd3
 # ggsave(filename = "Output/Sensitivity/Figures_for_manuscript/Temperature_sensitivity_GDD5_hi_lo_ambi_warm_signif_NOR_CHE_12h_flipped.png", 
 #        plot = ts_hl_aw_sig_gdd3,
 #        width = 18, height = 15, units = "cm", dpi = 600)
-
+#
 
 
 
