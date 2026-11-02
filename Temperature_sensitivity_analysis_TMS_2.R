@@ -1397,8 +1397,7 @@ ts_hl_aw3
 #       width = 15, height = 10, units = "in")
 
 
-# Plot final temp sens jday -----------------------------------------------
-#theme_set(theme_bw(base_size = 20))
+# Plot temp sens jday -----------------------------------------------
 theme_set(theme_bw(base_size = 10))
 
 ts_hl_aw_sig3 <- ts_hl_aw3 +
@@ -1462,66 +1461,34 @@ ts_hl_aw_sig3
 #       width = 18, height = 12, units = "cm", dpi = 600)
 
 
-# add labels for when onset is delayed or advanced
-panel_labels <- data.frame(
-  region = c("Norway", "Switzerland"),
-  type = c("high-low", "warmed-ambient"),
-  x = c(1.1, 3.8),
-  y = c(10, -19),
-  label = c("Delayed", "Advanced"),
-  colour = c("blue", "red"))
-panel_labels
 
-ts_hl_aw_sig3 <- ts_hl_aw_sig3 +
-  geom_text(
-    data = panel_labels,
-    aes(x = x, y = y, label = label),
-    colour = panel_labels$colour,
-    inherit.aes = FALSE,
-    vjust = 1.5,
-    size = 3.5,
-    fontface = "italic"
-  )
+# figure with delayed advanced labels --------------------------------------------
 
-ts_hl_aw_sig3
+# Start from the clean plot
+ts_hl_aw_sig4 <- ts_hl_aw_sig3
 
-
-# ggsave(filename = "Output/Sensitivity/Figures_for_manuscript/Temperature_sensitivity_days_hi_lo_ambi_warm_signif_NOR_CHE_12h_flipped.png", 
-#       plot = ts_hl_aw_sig3,
-#       width = 18, height = 15, units = "cm", dpi = 600)
-# 
-
-panel_bars <- data.frame(
-  region = c("Norway", "Switzerland"),
-  type = c("high-low", "high-low"),
-  x = c(0.5, 0.5),
-  y_start = c(0, 0),
-  y_end = c(41, -41))
+# Two arrows in each region, both in the high-low panel
+panel_arrows <- data.frame(
+  region = c("Norway", "Norway", "Switzerland", "Switzerland"),
+  type = "high-low",
+  x = 0.5,
+  y_start = 0,
+  y_end = c(40, -40, 40, -40),
+  arrow_colour = c("#3977A8", "#B94747", "#3977A8", "#B94747"))
+  #c("blue", "red", "blue", "red"))
 
 panel_labels <- data.frame(
   region = c("Norway", "Switzerland"),
   type = c("high-low", "high-low"),
-  x = c(1.1, 1.1),
-  y = c(10, -15),
+  x = c(0.53, 0.53),
+  y = c(15, -19),
   label = c("Delayed", "Advanced"),
-  colour = c("blue", "red"))
+  colour = c("#3977A8", "#B94747"))
 panel_labels
 
-ts_hl_aw_sig3 <- ts_hl_aw_sig3 +
-  geom_text(
-    data = panel_labels,
-    aes(x = x, y = y, label = label),
-    colour = panel_labels$colour,
-    inherit.aes = FALSE,
-    vjust = 1.5,
-    size = 3.5,
-    fontface = "italic"
-  )
-
-ts_hl_aw_sig3
-ts_hl_aw_sig3 <- ts_hl_aw_sig3 +
+ts_hl_aw_sig4 <- ts_hl_aw_sig4 +
   geom_segment(
-    data = panel_bars,
+    data = panel_arrows,
     aes(
       x = x,
       xend = x,
@@ -1530,15 +1497,36 @@ ts_hl_aw_sig3 <- ts_hl_aw_sig3 +
     ),
     inherit.aes = FALSE,
     arrow = arrow(
-      length = unit(0.12, "inches"),
-      type = "closed"
-    ),
-    linewidth = 0.7,
-    colour = c("blue", "red"))
-
-ts_hl_aw_sig3
+      length = unit(0.08, "inches"),
+      type = "closed"),
+    linewidth = 0.3,
+    colour = panel_arrows$arrow_colour)
+ts_hl_aw_sig4
 
 
+ts_hl_aw_sig4 <- ts_hl_aw_sig4 +
+  geom_text(
+    data = panel_labels,
+    aes(x = x, y = y, label = label),
+    colour = panel_labels$colour,
+    inherit.aes = FALSE,
+    vjust = 1,
+    angle =  90,
+    size = 3.5,
+    fontface = "italic")
+ts_hl_aw_sig4
+
+
+# Final Temp Sens DOY Figure -----------------------------------------------------
+ts_hl_aw_sig4 <- ts_hl_aw_sig4 +
+  scale_y_continuous(
+    breaks = seq(-40, 40, by = 20))
+ts_hl_aw_sig4
+
+# ggsave(filename = "Output/Sensitivity/Figures_for_manuscript/Temperature_sensitivity_days_hi_lo_ambi_warm_signif_NOR_CHE_12h.png", 
+#       plot = ts_hl_aw_sig4,
+#       width = 18, height = 15, units = "cm", dpi = 600)
+# 
 
 
 
@@ -2287,7 +2275,7 @@ ts_hl_aw_gdd3 <- ggplot(
     width = 0.1,
     position = pd) +
   geom_point(
-    size = 2.5,
+    size = 1.7,
     position = pd) +
   geom_hline(yintercept = 0, linetype = "dashed",
              color = "grey66") +
@@ -2374,39 +2362,65 @@ ts_hl_aw_sig_gdd3
 #        width = 18, height = 12, units = "cm", dpi = 600)
 
 
+# figure with delayed advanced labels --------------------------------------------
 
-# add labels for when onset is delayed or advanced
+# Start from the clean plot
+ts_hl_aw_sig_gdd4 <- ts_hl_aw_sig_gdd3
+
+# Two arrows in each region, both in the high-low panel
+panel_arrows_gdd <- data.frame(
+  region = c("Norway", "Norway", "Switzerland", "Switzerland"),
+  type = "high-low",
+  x = 0.5,
+  y_start = 0,
+  y_end = c(400, -50, 200, -200),
+  arrow_colour = c("#B94747","#3977A8","#B94747", "#3977A8"))
+
+
 panel_labels_gdd <- data.frame(
   region = c("Norway", "Switzerland"),
   type = c("high-low", "high-low"),
-  x = c(1.1, 1.1),
-  y = c(300, -150),
+  x = c(0.53, 0.53),
+  y = c(200, -100),
   label = c("More heat", "Less heat"),
-  colour = c("red", "blue"))
+  colour = c("#B94747", "#3977A8"))
 panel_labels_gdd
 
-ts_hl_aw_sig_gdd3 <- ts_hl_aw_sig_gdd3 +
+ts_hl_aw_sig_gdd4 <- ts_hl_aw_sig_gdd4 +
+  geom_segment(
+    data = panel_arrows_gdd,
+    aes(
+      x = x,
+      xend = x,
+      y = y_start,
+      yend = y_end
+    ),
+    inherit.aes = FALSE,
+    arrow = arrow(
+      length = unit(0.08, "inches"),
+      type = "closed"),
+    linewidth = 0.3,
+    colour = panel_arrows_gdd$arrow_colour)
+ts_hl_aw_sig_gdd4
+
+# Final Temp Sens GDD Figure -----------------------------------------------------
+ts_hl_aw_sig_gdd4 <- ts_hl_aw_sig_gdd4 +
   geom_text(
     data = panel_labels_gdd,
     aes(x = x, y = y, label = label),
     colour = panel_labels_gdd$colour,
     inherit.aes = FALSE,
-    vjust = 1.5,
+    vjust = 1,
+    angle =  90,
     size = 3.5,
     fontface = "italic")
+ts_hl_aw_sig_gdd4
 
-ts_hl_aw_sig_gdd3
 
-
-# ggsave(filename = "Output/Sensitivity/Figures_for_manuscript/Temperature_sensitivity_GDD5_hi_lo_ambi_warm_signif_NOR_CHE_12h_flipped.png", 
-#        plot = ts_hl_aw_sig_gdd3,
+# ggsave(filename = "Output/Sensitivity/Figures_for_manuscript/Temperature_sensitivity_GDD5_hi_lo_ambi_warm_signif_NOR_CHE_12h.png", 
+#        plot = ts_hl_aw_sig_gdd4,
 #        width = 18, height = 15, units = "cm", dpi = 600)
 #
-
-
-
-
-
 
 
 
