@@ -629,7 +629,7 @@ top_y <- max(flower_number_pred$upper)
 
 brackets <- brackets |>
   mutate(
-    y = top_y + c(18, 6, 27, 6, 6, 13, 22)
+    y = top_y + c(13, 6, 22, 6, 6, 17, 27)
   )
 brackets
 
@@ -685,6 +685,8 @@ flow_no_4 <- ggplot(flower_number_pred, aes(
       "lo_ambi" = "low ambient",
       "hi_ambi" = "high ambient",
       "hi_warm" = "high warmed"))+
+  scale_y_continuous(breaks = c(1,3,5, 7, 10, 20, 30, 40, 50),
+                     limits = c(1, 50))+
   labs(
     x = "Site temperature treatment",
     y = "Log (max flower number)",
@@ -696,7 +698,8 @@ flow_no_4 <- ggplot(flower_number_pred, aes(
          fill = "none")+
   coord_transform(y = "log1p")+
   theme(legend.position = "bottom",
-        plot.title = element_blank())
+        plot.title = element_blank(),
+        panel.grid.minor = element_blank())
 flow_no_4
 
 # add significances
@@ -770,8 +773,9 @@ combined <- (flower_presence_plot2 |
   plot_layout(guides = "collect") &
   theme(legend.position = "bottom")
 
+combined <- combined+
+  plot_annotation(tag_levels = 'A')
 combined
-
 
 # ggsave(filename = "Output/Biomass/Figures_for_manuscript/Flower_NOR.png", 
 #        plot = combined,

@@ -30,6 +30,9 @@ library(lubridate)
 library(multcomp)
 library(multcompView)
 library(gt)
+library(multcomp)
+library(multcompView)
+library(gtsummary)
 library(patchwork)
 
 
@@ -103,7 +106,10 @@ flower_pre_abs <- phenology_bio_species2 |>
   summarise(
     flower_presence = as.integer(any(value > 0)),
     .groups = "drop")
+flower_pre_abs
 
+
+# model for flower probability --------------------------------------------
 m_flowering <- glmer(flower_presence ~ treatment_site_temp * treat_competition * 
                        pred_log_biomass_species + (1|species) + (1|block_ID), 
                      family = binomial, data = flower_pre_abs)
@@ -131,6 +137,7 @@ emm_bio_flower <- emmeans(
 emm_bio_flower
 
 
+# function for predicting flower probability with biomass -----------------
 make_predictions_flowering <- function(model, data) {
   
   biomass_mean <- mean(data$pred_log_biomass_species, na.rm = TRUE)
@@ -161,6 +168,8 @@ make_predictions_flowering <- function(model, data) {
     )
 }
 
+
+# make flower probability predictions -------------------------------------
 pred_flowering <-
   make_predictions_flowering(
     m_flowering,
@@ -168,6 +177,10 @@ pred_flowering <-
 pred_flowering
 
 
+
+# raw data ----------------------------------------------------------------
+# this is without biomass though
+# flower probability per treatment
 flower_obs <- flower_pre_abs |>
   group_by(treatment_site_temp, treat_competition) |>
   summarise(
@@ -176,6 +189,7 @@ flower_obs <- flower_pre_abs |>
   )
 flower_obs
 
+# flower probability per species
 flower_obs_species <- flower_pre_abs |>
   group_by(treatment_site_temp, treat_competition, species) |>
   summarise(
@@ -184,6 +198,9 @@ flower_obs_species <- flower_pre_abs |>
   )
 flower_obs_species
 
+
+
+# plot flower probability -------------------------------------------------
 pd <- position_dodge(width = 0.7)
 
 pred_flowering <- pred_flowering |>
@@ -271,9 +288,8 @@ flower_presence_plot
 
 
 
-
 # plot with stars as significances ----------------------------------------
-
+# get contrasts
 emm_bio_flower_contr <- emm_bio_flower$contrasts |> 
   as.data.frame()
 
@@ -334,8 +350,8 @@ brackets <- brackets |>
 brackets
 
 
-pd <- position_dodge(width = 0.7) 
 
+# figure for flowering probability with sig -------------------------------
 theme_set(theme_bw(base_size = 8))
 
 flower_presence_plot2 <- flower_presence_plot +
@@ -348,13 +364,13 @@ flower_presence_plot2 <- flower_presence_plot +
   geom_segment(
     data = brackets,linewidth = 0.25,
     aes(x = xmin, xend = xmin,
-        y = y, yend = y - 0.02),
+        y = y, yend = y - 0.01),
     inherit.aes = FALSE
   ) +
   geom_segment(
     data = brackets,linewidth = 0.25,
     aes(x = xmax, xend = xmax,
-        y = y, yend = y - 0.02),
+        y = y, yend = y - 0.01),
     inherit.aes = FALSE
   ) +
   geom_text(
@@ -374,6 +390,7 @@ flower_presence_plot2
 
 
 
+# quantity of flowers when present ----------------------------------------
 
 # get max number of flowers -----------------------------------------------
 max_flower_per_plant_bio <- phenology_bio_species2 |>
@@ -383,9 +400,12 @@ max_flower_per_plant_bio <- phenology_bio_species2 |>
     max_flower_number = max(value, na.rm = TRUE),
     .groups = "drop")
 
+
+# exclude 0 ---------------------------------------------------------------
 max_flower_per_plant_bio <- 
   max_flower_per_plant_bio |>
   filter(max_flower_number > 0)
+max_flower_per_plant_bio
 
 
 # fit the model negative binomial  ------------------------------------
@@ -400,6 +420,7 @@ summary(m_flower_number_bio)
 
 car::Anova(m_flower_number_bio)
 
+# contrasts
 emmeans(m_flower_number_bio,
         pairwise ~ treatment_site_temp * treat_competition)
 
@@ -417,7 +438,7 @@ emm_bio <- emmeans(
   type = "response")
 emm_bio
 
-
+# split into small and large plants
 small_bio <- quantile(
   max_flower_per_plant_bio$pred_log_biomass_species,
   0.25, na.rm = TRUE)
@@ -443,57 +464,7 @@ emm_bio_large
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#######################################################
-# 
-# # additive
-# m_flower_number_bio2 <- glmer.nb(max_flower_number ~ treatment_site_temp * treat_competition + 
-#                                    pred_log_biomass_species + (1|species) + (1|block_ID),
-#                                  data = max_flower_per_plant_bio,
-#                                  control = glmerControl(optimizer = "bobyqa"))
-# 
-# summary(m_flower_number_bio2)
-# 
-# car::Anova(m_flower_number_bio2)
-# 
-# AIC(m_flower_number_bio, m_flower_number_bio2)
-# 
-# 
-# summary(glht(m_flower_number_bio2,
-#              linfct = mcp(treatment_site_temp = "Tukey")))
-# 
-# 
-# emmeans(m_flower_number_bio2,
-#         pairwise ~ treatment_site_temp * treat_competition)
-# 
-# 
-# performance::model_performance(m_flower_number_bio2)
-# 
-# 
-
-
+# function for predictions for max flower number including biomass --------------------------
 
 make_predictions_bio <- function(model, data) {
   
@@ -525,140 +496,13 @@ make_predictions_bio <- function(model, data) {
     )
 }
 
+# get predicted max flower number -----------------------------------------
 pred_bio <- make_predictions_bio(m_flower_number_bio, max_flower_per_plant_bio)
 pred_bio
 
 
-# 
-# pred_bio2 <- make_predictions_bio(m_flower_number_bio2, max_flower_per_plant_bio)
-# pred_bio2
-
-
-
-
-# this should be new script
 # plot --------------------------------------------------
-pd <- position_dodge(width = 0.9) 
-
-# flow_no_bio2 <- ggplot(pred_bio2, aes(
-#   x = treatment_site_temp,
-#   y = fit,
-#   color = treat_competition,              
-#   shape = treatment_site_temp  
-# )) +
-#   
-#   geom_point(position = pd, size = 4, stroke = 1.2) +
-#   
-#   geom_errorbar(aes(ymin = lower, ymax = upper),
-#                 width = .2,
-#                 position = pd) +
-#   
-#   geom_jitter(
-#     data = max_flower_per_plant_bio,
-#     aes(
-#       x = treatment_site_temp,
-#       y = max_flower_number,
-#       color = treat_competition
-#     ),
-#     position = position_jitterdodge(
-#       jitter.width = 0.15,
-#       dodge.width = 0.9
-#     ),
-#     alpha = 0.05,
-#     size = 2,
-#     inherit.aes = FALSE
-#   )+
-#   
-#   scale_color_manual(values = c("#528B8B", "#CD950C")) +   
-#   
-#   scale_shape_manual(
-#     values = c(
-#       "lo_ambi" = 16,   # circle
-#       "hi_ambi" = 17,    # triangle
-#       "hi_warm" = 2    # square 
-#     )
-#   ) +
-#   
-#   labs(
-#     x = "Site temperature treatment",
-#     y = "(Predicted) max flower number",
-#     title = "Effect of transplantation and warming on flower number",
-#     shape = "Treatment site × warming",
-#     color = "Biotic interactions"
-#   )+
-#   guides(shape = "none")
-# flow_no_bio2
-# 
-# # ggsave(filename = "Output/Biomass/Transplantation_warming_flower_number_predictions_NOR_glmer.nb.png", 
-# #       plot = flow_no, width = 12, height = 8, units = "in")
-# 
-
-
-# Plot with raw as violin ------------------------------------------------
-# # additive
-# 
-# flow_no_bio3 <- ggplot(pred_bio2, aes(
-#   x = treatment_site_temp,
-#   y = fit,
-#   color = treat_competition,
-#   shape = treatment_site_temp
-# )) +
-#   
-#   # distribution of raw data
-#   geom_violin(
-#     data = max_flower_per_plant_bio,
-#     aes(
-#       x = treatment_site_temp,
-#       y = max_flower_number,
-#       fill = treat_competition
-#     ),
-#     position = position_dodge(width = 0.9),
-#     alpha = 0.25,
-#     color = NA,
-#     trim = TRUE # cuts of at 0 because we dont have negative flower no
-#   ) +
-#   
-#   # model estimates
-#   geom_point(position = pd, size = 4, stroke = 1.2) +
-#   geom_errorbar(
-#     aes(ymin = lower, ymax = upper),
-#     width = .2,
-#     position = pd
-#   ) +
-#   
-#   scale_color_manual(values = c("#528B8B", "#CD950C")) +
-#   scale_fill_manual(values = c("#528B8B", "#CD950C")) +
-#   
-#   scale_shape_manual(
-#     values = c(
-#       "lo_ambi" = 16,
-#       "hi_ambi" = 17,
-#       "hi_warm" = 2
-#     )
-#   ) +
-#   
-#   labs(
-#     x = "Site temperature treatment",
-#     y = "Log (max flower number)",
-#     title = "Effect of transplantation and warming on flower number adjusted for biomass additive",
-#     shape = "Treatment site × warming",
-#     color = "Biotic interactions",
-#     fill = "Biotic interactions"
-#   ) +
-#   
-#   guides(shape = "none")+
-#   coord_transform(y = "log1p")
-# 
-# flow_no_bio3
-# 
-# # ggsave(filename = "Output/Biomass/Transplantation_warming_flower_number_predictions_Biomass_NOR_glmer.nb_violin_additive.png", 
-# #       plot = flow_no_bio3, width = 12, height = 8, units = "in")
-
-
-
-
-
-# plot interactive
+pd <- position_dodge(width = 0.7) 
 
 flow_no_bio4 <- ggplot(pred_bio, aes(
   x = treatment_site_temp,
@@ -675,7 +519,7 @@ flow_no_bio4 <- ggplot(pred_bio, aes(
       y = max_flower_number,
       fill = treat_competition
     ),
-    position = position_dodge(width = 0.9),
+    position = position_dodge(width = 0.7),
     alpha = 0.25,
     color = NA,
     trim = TRUE # cuts of at 0 because we dont have negative flower no
@@ -716,8 +560,6 @@ flow_no_bio4
 
 # ggsave(filename = "Output/Biomass/Transplantation_warming_flower_number_predictions_Biomass_NOR_glmer.nb_violin_interactive.png", 
 #       plot = flow_no_bio4, width = 12, height = 8, units = "in")
-
-
 
 
 
@@ -781,89 +623,12 @@ top_y <- max(pred_bio$upper)
 
 brackets <- brackets |>
   mutate(
-    y = top_y + c(18, 6, 27, 6, 6, 13, 22)
+    y = top_y + c(13, 6, 22, 6, 6, 17, 27)
   )
 brackets
 
-#theme_set(theme_bw(base_size = 20))
 
-flow_no_bio4_sig <- flow_no_bio4 +
-  geom_segment(
-    data = brackets,
-    aes(x = xmin, xend = xmax,
-        y = y, yend = y),
-    inherit.aes = FALSE
-  ) +
-  geom_segment(
-    data = brackets,
-    aes(x = xmin, xend = xmin,
-        y = y, yend = y - 0.5),
-    inherit.aes = FALSE
-  ) +
-  geom_segment(
-    data = brackets,
-    aes(x = xmax, xend = xmax,
-        y = y, yend = y - 0.5),
-    inherit.aes = FALSE
-  ) +
-  geom_text(
-    data = brackets,
-    aes(
-      x = (xmin + xmax)/2,
-      y = y + 0.5,
-      label = stars
-    ),
-    inherit.aes = FALSE)+
-  theme(plot.title = element_text(size = 15))
-flow_no_bio4_sig
-
-# ggsave(filename = "Output/Biomass/Transplantation_warming_flower_number_predictions_Biomass_NOR_glmer.nb_violin_interactive_sig.png", 
-#       plot = flow_no_bio4_sig, width = 12, height = 9, units = "in")
-
-
-tab <- emm_bio_contr2 |>
-  gt() |>
-  fmt_number(
-    columns = c(ratio, SE),
-    decimals = 2
-  ) |>
-  fmt_number(
-    columns = p.value,
-    decimals = 3
-  ) |>
-  cols_label(
-    contrast = "Contrast",
-    ratio = "Ratio",
-    SE = "SE",
-    p.value = "p",
-    stars = ""
-  ) |>
-  cols_hide(c(df, null, z.ratio)) |>
-  tab_header(
-    title = md("**Number of flowers adjusted for biomass comparisons**")
-  )
-tab
-
-#gtsave(tab, "Output/Biomass/Number_flowers_Biomass_signif_NOR.docx")
-
-
-
-t2 <- tbl_regression(
-  m_flower_number_bio2,
-  exponentiate = TRUE) |>
-  as_gt() |>
-  tab_header(
-    title = md("**Number of flowers adj biomass NOR glm.nb**"))
-t2
-
-#gtsave(t2, "Output/Biomass/Number_flowers_Biomass_model_summary_NOR.docx")
-
-
-
-
-
-
-# figure for manuscript ---------------------------------------------------
+# figure max flwoer adj biomass ---------------------------------------------------
 # with jitter instead of violins for raw data
 
 pred_bio <- pred_bio |>
@@ -873,7 +638,6 @@ pred_bio <- pred_bio |>
       treat_competition == "with" ~ "#528B8B",
       treat_competition == "without" ~ "#CD950C"))
 
-pd <- position_dodge(width = 0.7) 
 
 theme_set(theme_bw(base_size = 8))
 
@@ -914,7 +678,8 @@ flow_no_bio5 <- ggplot(pred_bio, aes(
       "lo_ambi" = 16,
       "hi_ambi" = 17,
       "hi_warm" = 24)) +
-  #scale_y_continuous(limits = c(0, 60))+
+  scale_y_continuous(breaks = c(1,3,5, 7, 10, 20, 30, 40, 50),
+                     limits = c(1, 50))+
   scale_x_discrete(
     labels = c(
       "lo_ambi" = "low ambient",
@@ -931,7 +696,8 @@ flow_no_bio5 <- ggplot(pred_bio, aes(
          fill = "none")+
   coord_transform(y = "log1p")+
   theme(legend.position = "bottom",
-        plot.title = element_blank())
+        plot.title = element_blank(),
+        panel.grid.minor = element_blank())
 flow_no_bio5
 
 
@@ -958,7 +724,7 @@ flow_no_bio5_sig <- flow_no_bio5 +
     data = brackets,
     aes(
       x = (xmin + xmax)/2,
-      y = y + 0.5,
+      y = y + 0.55,
       label = stars
     ),
     inherit.aes = FALSE)
@@ -970,10 +736,7 @@ flow_no_bio5_sig
 
 
 
-
-
-
-# one combined figure -----------------------------------------------------
+# one combined figure for manuscript -----------------------------------------------------
 # using patchwork
 combined <- (flower_presence_plot2 |
     (flow_no_bio5_sig + guides(colour = "none"))) +
@@ -982,10 +745,52 @@ combined <- (flower_presence_plot2 |
 
 combined
 
+combined <- combined+
+  plot_annotation(tag_levels = 'A')
+combined
 
 # ggsave(filename = "Output/Biomass/Figures_for_manuscript/Flower_adj_biomass_NOR.png", 
 #        plot = combined,
 #        width = 18, height = 12, units = "cm", dpi = 600)
 
 
+
+# tables with significances -----------------------------------------------
+
+tab <- emm_bio_contr2 |>
+  gt() |>
+  fmt_number(
+    columns = c(ratio, SE),
+    decimals = 2
+  ) |>
+  fmt_number(
+    columns = p.value,
+    decimals = 3
+  ) |>
+  cols_label(
+    contrast = "Contrast",
+    ratio = "Ratio",
+    SE = "SE",
+    p.value = "p",
+    stars = ""
+  ) |>
+  cols_hide(c(df, null, z.ratio)) |>
+  tab_header(
+    title = md("**Number of flowers adjusted for biomass comparisons**")
+  )
+tab
+
+#gtsave(tab, "Output/Biomass/Number_flowers_Biomass_signif_NOR.docx")
+
+
+
+t2 <- tbl_regression(
+  m_flower_number_bio,
+  exponentiate = TRUE) |>
+  as_gt() |>
+  tab_header(
+    title = md("**Number of flowers adj biomass NOR glm.nb**"))
+t2
+
+#gtsave(t2, "Output/Biomass/Number_flowers_Biomass_model_summary_NOR.docx")
 
