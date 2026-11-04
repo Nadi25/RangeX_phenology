@@ -649,7 +649,7 @@ delta_temp_stage_ambi <- mean_temp_stage_ambi |>
     values_from = mean_temp
   ) |>
   mutate(
-    delta_T = lo - hi
+    delta_T = hi - lo
   )
 
 delta_temp_stage_ambi
@@ -703,7 +703,7 @@ delta_stage_plot_ambi
 
 
 # Joined plot ambi warm and low high --------------------------------------
-delta_temp_stage_ambi$type <- "low-high"
+delta_temp_stage_ambi$type <- "high-low"
 delta_temp_stage_hi$type <- "warmed-ambient"
 
 delta_stage_combined <- bind_rows(delta_temp_stage_ambi, delta_temp_stage_hi)
@@ -1011,7 +1011,7 @@ sig_hi <- sig_hi |>
   mutate(type = "warmed-ambient")
 
 sig_ambi <- sig_ambi |>
-  mutate(type = "low-high")
+  mutate(type = "high-low")
 
 
 sig_all <- bind_rows(sig_hi, sig_ambi)
@@ -1159,7 +1159,7 @@ fit_temp_model <- function(stage_data, region_name, stage_name) {
   
   emm2 <- contrast(emm,
                    method = list(
-                     "lo_ambi - hi_ambi" = c( 1, -1,  0),
+                     "hi_ambi - lo_ambi" = c( 1, -1,  0),
                      "lo_ambi - hi_warm" = c( 1,  0, -1),
                      "hi_warm - hi_ambi" = c( 0, -1,  1)))
   
@@ -1227,13 +1227,13 @@ sig_all2
 
 sig_all2 <- sig_all2 |>
   filter(contrast %in% c(
-      "lo_ambi - hi_ambi",
+      "hi_ambi - lo_ambi",
       "hi_warm - hi_ambi"))
 sig_all2
 
 sig_all2 <- sig_all2 |>
   mutate(type = case_when(
-      contrast == "lo_ambi - hi_ambi" ~ "low-high",
+      contrast == "hi_ambi - lo_ambi" ~ "high-low",
       contrast == "hi_warm - hi_ambi" ~ "warmed-ambient"))
 sig_all2
 
@@ -1254,13 +1254,13 @@ temp_sig <- tab_dat |>
   gt(groupname_col = "region") |>
   cols_label(
     "stage"            = "Stage",
-    "low-high"       = "Low–high",
+    "high-low"       = "High-low",
     "warmed-ambient" = "Warmed–ambient",
     "treat_competition" ="Biotic interactions"
   ) |>
   cols_align(
     align = "center",
-    columns = c(`low-high`, `warmed-ambient`)
+    columns = c(`high-low`, `warmed-ambient`)
   ) |>
   tab_header(
     title = md("**Pairwise contrasts**")
@@ -1275,8 +1275,8 @@ temp_sig
 
 
 
-# Joined plot ambi warm and low high --------------------------------------
-delta_temp_stage_ambi$type <- "low-high"
+# Joined plot ambi warm and high low --------------------------------------
+delta_temp_stage_ambi$type <- "high-low"
 delta_temp_stage_hi$type <- "warmed-ambient"
 
 delta_stage_combined2 <- bind_rows(delta_temp_stage_ambi, delta_temp_stage_hi)
@@ -1363,7 +1363,7 @@ delta_stage_combined <- delta_stage_combined |>
     sign_group = ifelse(sign == "yes", treat_competition, "no"))
 delta_stage_combined
 
-theme_set(theme_bw(base_size = 22))
+theme_set(theme_bw(base_size = 11))
 
 delta_temp2 <- ggplot(
   delta_stage_combined,
@@ -1372,24 +1372,19 @@ delta_temp2 <- ggplot(
     y = delta_T,
     color = treat_competition,
     shape = stage,
-    fill = sign_group
-  )
-) +
+    fill = sign_group)) +
   geom_point(
-    size = 6,
-    position = pd
-  ) +
+    size = 3,
+    position = pd) +
   facet_grid(region ~ type) +
   geom_hline(
     yintercept = 0,
-    linetype = "dashed"
-  ) +
+    linetype = "dashed",
+    colour = "grey66") +
   scale_color_manual(
     values = c(
       "with" = "#528B8B",
-      "without" = "#CD950C"
-    )
-  ) +
+      "without" = "#CD950C")) +
   scale_fill_manual(values = c("with" = "#528B8B",
                                "without" = "#CD950C",
                                "no" = "white"))+
@@ -1399,32 +1394,32 @@ delta_temp2 <- ggplot(
     title = "Temperature difference during each stage 12h",
     x = "Stage",
     y = "Delta temperature (°C)",
-    color = "Biotic interactions"
-  ) +
+    color = "Biotic interactions") +
   theme(
-    legend.position = "bottom"
-  ) +
+    legend.position = "bottom") +
   geom_text_repel(
     aes(label = round(delta_T, 2)),
-    size = 4,
+    size = 3,
     position = pd,
     show.legend = FALSE,
     box.padding = 0.5,
-    point.padding = 0.5
-  )+
+    point.padding = 0.5)+
   scale_shape_manual(values = c(
     "Budding" = 21,
-    "Flowering" = 22,
-    "Fruiting" = 23,
-    "Seeds" = 24))
+    "Flowering" = 21,
+    "Fruiting" = 21,
+    "Seeds" = 21))+
+  scale_y_continuous(breaks = c(-3,-2, -1, 0, 1, 2, 3), 
+                     limits = c(-3.5, 3.5),
+                     minor_breaks = FALSE)
 delta_temp2
 
-# ggsave(filename = "Output/Temperature/Delta_temperature_stages_NOR_CHE_12h2.png", 
-#       plot = delta_temp2, width = 15, height = 10, units = "in")
+delta_temp2 <- delta_temp2 +
+  theme(plot.title = element_blank()) # remove title
+delta_temp2
 
-
-
-
-
-
+# ggsave(filename = "Output/Temperature/Figures_for_manuscript/Delta_temperature_stages_NOR_CHE_12h.png", 
+#       plot = delta_temp2, 
+#       width = 18, height = 15, units = "cm", dpi = 600)
+# 
 
