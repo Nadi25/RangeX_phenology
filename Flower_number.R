@@ -575,11 +575,24 @@ flow_no2
 emm_contr <- emm$contrasts |> 
   as.data.frame()
 
-emm_contr <- emm_contr |> mutate(stars = case_when(p.value < 0.001 ~ "***",
+emm_contr <- emm_contr |> mutate(ratio = exp(estimate),
+                                 stars = case_when(p.value < 0.001 ~ "***",
                                                    p.value < 0.01 ~ "**",
                                                    p.value < 0.05 ~ "*",
                                                    TRUE ~ ""))
 emm_contr
+
+emm_contr <- emm_contr |> 
+  mutate(
+    ratio = exp(estimate),
+    lower = exp(estimate - 1.96 * SE),
+    upper = exp(estimate + 1.96 * SE),
+    stars = case_when(
+      p.value < 0.001 ~ "***",
+      p.value < 0.01 ~ "**",
+      p.value < 0.05 ~ "*",
+      TRUE ~ ""))
+
 
 emm_contr2 <- emm_contr |> 
   filter(contrast %in% c("lo_ambi with - lo_ambi without",
