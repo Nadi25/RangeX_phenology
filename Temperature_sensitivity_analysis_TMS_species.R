@@ -129,7 +129,23 @@ temp_sens$hypmac
 temp_sens_all_species <- bind_rows(temp_sens, .id = "species")
 temp_sens_all_species
 
+
 temp_sens_slopes_all_species <- map_dfr(temp_sens, "slopes", .id = "species")
+
+
+# flip to high-low --------------------------------------------------------
+temp_sens_slopes_all_species <- temp_sens_slopes_all_species |>
+  mutate(
+    temp_lower = -upper.CL,
+    temp_upper = -lower.CL,
+    Tmean.trend = -Tmean.trend,
+    lower.CL = temp_lower,
+    upper.CL = temp_upper) |>
+  select(-temp_lower, -temp_upper)
+temp_sens_slopes_all_species
+
+
+
 
 temp_sens_pairs_all_species <- map_dfr(temp_sens, "pairs", .id = "species")
 
@@ -502,6 +518,7 @@ temp_sens_all_species_aw
 
 temp_sens_slopes_all_species_aw <- map_dfr(temp_sens_aw, "slopes", .id = "species")
 
+
 temp_sens_pairs_all_species_aw <- map_dfr(temp_sens_aw, "pairs", .id = "species")
 
 temp_sens_slopes_all_species_aw <- temp_sens_slopes_all_species_aw |>
@@ -603,7 +620,7 @@ ts_species_label_aw
 
 
 # Joined figure flowering lo hi and ambi warm -------------------------------------------------
-temp_sens_slopes_all_species$comparison <- "low-high"
+temp_sens_slopes_all_species$comparison <- "high-low"
 temp_sens_slopes_all_species_aw$comparison <- "warmed-ambient"
 
 temp_sens_combined <- bind_rows(
@@ -611,7 +628,7 @@ temp_sens_combined <- bind_rows(
   temp_sens_slopes_all_species_aw
 )
 
-label_data$comparison <- "low-high"
+label_data$comparison <- "high-low"
 label_data_aw$comparison <- "warmed-ambient"
 
 label_data_combined <- bind_rows(
@@ -663,8 +680,9 @@ temp_sens_flo_comb <- ggplot(
     values = c(
       "early" = "white",
       "late" = "grey")) +
-  #facet_grid(region~ comparison, scales = "free") +
   facet_grid(region~ comparison) +
+  #facet_grid(region ~ comparison, scales = "free_y") +
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 6))+
   guides(color = "none",
          fill = "none") +
   labs(
@@ -673,14 +691,15 @@ temp_sens_flo_comb <- ggplot(
     title = "Temperature sensitivity flowering per species hi vs lo and ambi vs warm 12h",
     shape = "Flowering time") +
   theme(legend.position = "bottom",
-        plot.title = element_blank())
+        plot.title = element_blank(),
+        panel.grid.minor = element_blank())
 
 temp_sens_flo_comb
 
 
-# ggsave(filename = "Output/Sensitivity/Figures_for_manuscript/Temperature_sensitivity_DOY_hi_lo_ambi_warm_flowering_species_12h.png", 
+# ggsave(filename = "Output/Sensitivity/Figures_for_manuscript/Temperature_sensitivity_DOY_hi_lo_ambi_warm_flowering_species_12h_flipped.png", 
 #        plot = temp_sens_flo_comb,
-#        width = 18, height = 15, units = "cm", dpi = 600)
+#        width = 18, height = 23, units = "cm", dpi = 600)
 
 
 
